@@ -1,26 +1,121 @@
 @import "tailwindcss";
 
+/*
+  Meridian — Local Presence Studio
+  Design tokens. Deliberate light "editorial paper" palette (no auto dark mode,
+  so the brand always reads the same way for image-conscious clients).
+*/
+
+@theme {
+  /* Surfaces */
+  --color-paper: #f6f3ec;
+  --color-paper-2: #efeae0;
+  --color-panel: #fffdf9;
+
+  /* Ink / text */
+  --color-ink: #16181d;
+  --color-ink-soft: #4b4e55;
+  --color-ink-faint: #7c7f86;
+
+  /* Brand */
+  --color-forest: #1f4740;
+  --color-forest-deep: #163a34;
+  --color-gold: #b98d3e;
+  --color-gold-soft: #e7d9b6;
+
+  /* Lines */
+  --color-line: #ded8cc;
+  --color-line-strong: #cfc7b6;
+
+  /* Fonts (wired up in layout.tsx via next/font) */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
+
+  /* Rhythm */
+  --radius-card: 14px;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Small caps eyebrow label used throughout the site */
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-forest);
+}
+
+/* Subtle paper grain, kept very light so it never competes with content */
+.paper-grain {
+  background-image: radial-gradient(
+      rgba(22, 24, 29, 0.028) 1px,
+      transparent 1px
+    );
+  background-size: 4px 4px;
+}
+
+/* Reveal-on-scroll (progressive enhancement; content is visible without JS) */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Marquee for the "who we work with" strip */
+@keyframes meridian-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee-track {
+  animation: meridian-marquee 38s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
 }

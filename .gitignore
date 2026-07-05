@@ -24,6 +24,9 @@
 .DS_Store
 *.pem
 
+# local intro-call submissions (dev only)
+/.data/
+
 # debug
 npm-debug.log*
 yarn-debug.log*
