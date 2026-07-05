@@ -71,6 +71,11 @@ export default async function LoginPage() {
           Book an intro call
         </a>
       </p>
+      <p className="mt-2 text-center text-xs text-ink-faint">
+        <a href="/admin" className="hover:text-forest">
+          Operator sign in →
+        </a>
+      </p>
     </div>
   );
 }

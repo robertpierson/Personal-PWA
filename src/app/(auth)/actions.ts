@@ -41,6 +41,30 @@ export async function signIn(
   redirect("/dashboard");
 }
 
+export type ResetState = { error?: string; sent?: boolean };
+
+/** Sends a password-reset email (Supabase). No-op notice in demo mode. */
+export async function requestPasswordReset(
+  _prev: ResetState,
+  formData: FormData,
+): Promise<ResetState> {
+  const email = String(formData.get("email") ?? "").trim();
+  if (!email) return { error: "Enter your email." };
+
+  if (!isSupabaseConfigured) {
+    return { sent: true }; // demo: pretend success, nothing to send
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const base =
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${base}/reset-password`,
+  });
+  if (error) return { error: error.message };
+  return { sent: true };
+}
+
 export async function signOut() {
   const store = await cookies();
   if (isSupabaseConfigured) {

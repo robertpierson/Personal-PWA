@@ -9,6 +9,7 @@ import {
   fetchInsightSnapshot,
   getLongLivedToken,
 } from "@/lib/meta/graph";
+import { encryptSecret } from "@/lib/crypto";
 
 /**
  * Handles the Meta OAuth redirect: validates state, exchanges the code for a
@@ -57,7 +58,7 @@ export async function GET(request: Request) {
         ig_user_id: account.igUserId,
         username: account.username,
         followers_count: account.followersCount,
-        access_token: longToken, // consider encrypting at rest in production
+        access_token: encryptSecret(longToken), // encrypted at rest
         connected_at: new Date().toISOString(),
       },
       { onConflict: "org_id" },

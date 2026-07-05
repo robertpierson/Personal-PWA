@@ -56,10 +56,21 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-12 flex flex-col gap-3 border-t border-line pt-6 text-xs text-ink-faint sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            © {year} {site.name}. A placeholder brand — final identity to be
-            confirmed.
-          </p>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <p>
+              © {year} {site.name}. A placeholder brand — final identity to be
+              confirmed.
+            </p>
+            <Link href="/privacy" className="hover:text-forest">
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-forest">
+              Terms
+            </Link>
+            <Link href="/login" className="hover:text-forest">
+              Client login
+            </Link>
+          </div>
           <p className="max-w-md sm:text-right">
             Organic strategy only. We never use bots or follow/unfollow
             automation, and we never post on your behalf without your review.
