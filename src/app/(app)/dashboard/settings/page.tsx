@@ -1,0 +1,135 @@
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { requireSession } from "@/lib/auth";
+import { getInsights } from "@/lib/data/dashboard";
+import {
+  isMetaConfigured,
+  isStripeConfigured,
+  isSupabaseConfigured,
+} from "@/lib/config";
+import {
+  PageHeader,
+  Panel,
+  formatDate,
+} from "@/components/dashboard/primitives";
+
+export const metadata: Metadata = { title: "Settings" };
+
+function IntegrationRow({
+  name,
+  status,
+  detail,
+  action,
+}: {
+  name: string;
+  status: "connected" | "not_connected" | "demo";
+  detail: string;
+  action?: React.ReactNode;
+}) {
+  const dot =
+    status === "connected"
+      ? "bg-forest"
+      : status === "demo"
+        ? "bg-gold"
+        : "bg-ink-faint";
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+      <div className="flex items-start gap-3">
+        <span className={`mt-1.5 h-2.5 w-2.5 rounded-full ${dot}`} />
+        <div>
+          <p className="font-medium text-ink">{name}</p>
+          <p className="text-sm text-ink-soft">{detail}</p>
+        </div>
+      </div>
+      {action}
+    </div>
+  );
+}
+
+export default async function SettingsPage() {
+  const session = await requireSession();
+  if (session.member.role !== "owner") redirect("/dashboard");
+
+  const insights = await getInsights(session);
+
+  return (
+    <div className="space-y-8">
+      <PageHeader
+        title="Settings"
+        description="Your organization, connected accounts, and team access."
+      />
+
+      <Panel title="Organization">
+        <dl className="divide-y divide-line">
+          <div className="flex justify-between px-5 py-4">
+            <dt className="text-ink-soft">Name</dt>
+            <dd className="font-medium text-ink">{session.org.name}</dd>
+          </div>
+          <div className="flex justify-between px-5 py-4">
+            <dt className="text-ink-soft">Type</dt>
+            <dd className="font-medium text-ink">{session.org.type}</dd>
+          </div>
+          <div className="flex justify-between px-5 py-4">
+            <dt className="text-ink-soft">Account owner</dt>
+            <dd className="font-medium text-ink">{session.member.email}</dd>
+          </div>
+        </dl>
+      </Panel>
+
+      <Panel title="Connected accounts">
+        <div className="divide-y divide-line">
+          <IntegrationRow
+            name="Instagram Business"
+            status={
+              insights.connection
+                ? "connected"
+                : isMetaConfigured
+                  ? "not_connected"
+                  : "demo"
+            }
+            detail={
+              insights.connection
+                ? `@${insights.connection.username} · since ${formatDate(insights.connection.connectedAt)}`
+                : "Read-only insights via Meta's official Graph API. We never post or act on your behalf."
+            }
+            action={
+              !insights.connection && (
+                <a
+                  href="/api/instagram/connect"
+                  className="inline-flex h-9 items-center rounded-full border border-line-strong px-4 text-sm font-medium text-ink hover:border-forest hover:text-forest"
+                >
+                  Connect
+                </a>
+              )
+            }
+          />
+          <IntegrationRow
+            name="Billing (Stripe)"
+            status={isStripeConfigured ? "connected" : "demo"}
+            detail={
+              isStripeConfigured
+                ? "Payments are live via Stripe Checkout."
+                : "Add Stripe keys to accept invoice payments online."
+            }
+          />
+        </div>
+      </Panel>
+
+      <Panel title="Team access">
+        <div className="px-5 py-4 text-sm leading-relaxed text-ink-soft">
+          Your account supports a full <strong className="text-ink">owner</strong>{" "}
+          login plus limited <strong className="text-ink">team member</strong>{" "}
+          logins that can see the content calendar and insights, but not
+          designs, deliverables, or billing.
+          {!isSupabaseConfigured && (
+            <span className="mt-2 block text-xs text-ink-faint">
+              Team invitations become available once authentication is
+              configured. In demo mode you can preview the team-member view by
+              signing out and choosing “Enter as team member”.
+            </span>
+          )}
+        </div>
+      </Panel>
+    </div>
+  );
+}

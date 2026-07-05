@@ -13,10 +13,27 @@ Deploys to Vercel; data/auth (from Phase 2) via Supabase.
 
 | Phase | Scope | State |
 | ----- | ----- | ----- |
-| **1** | Marketing site, installable PWA, booking flow | ✅ Complete — ready for review |
-| 2 | Auth-gated client dashboard (Supabase) | Not started |
-| 3 | Instagram metrics via Graph API OAuth | Not started |
-| 4 | Stripe billing | Not started |
+| **1** | Marketing site, installable PWA, booking flow | ✅ Built |
+| **2** | Auth-gated client dashboard (Supabase) | ✅ Built — runs in demo mode until Supabase keys added |
+| **3** | Instagram metrics via Graph API OAuth | ✅ Built — needs Meta app + App Review for live data |
+| **4** | Stripe billing | ✅ Built — needs Stripe keys for live payments |
+
+> **Demo mode:** with no credentials in `.env`, the whole app runs on bundled
+> sample data. Visit `/login` and choose **Enter as owner** or **Enter as team
+> member** to explore the dashboard. Add real keys (see `.env.example`) to switch
+> each integration live — no code changes required.
+
+### Going live — what you provide
+
+- **Supabase** (Phase 2): create a project, run `supabase/migrations/0001_init.sql`,
+  and set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+  `SUPABASE_SERVICE_ROLE_KEY`. This switches auth + data off demo mode.
+- **Meta** (Phase 3): create a Meta app with the Instagram Graph API, complete
+  App Review / Business Verification (Meta-controlled, multi-week), set
+  `META_APP_ID` + `META_APP_SECRET`. Data is read-only and tracked from connect
+  date onward.
+- **Stripe** (Phase 4): set `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET`, and
+  point a webhook at `/api/stripe/webhook` (`checkout.session.completed`).
 
 ## Getting started
 

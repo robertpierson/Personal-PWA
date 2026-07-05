@@ -46,6 +46,12 @@ export function SiteNav() {
               {item.label}
             </Link>
           ))}
+          <Link
+            href="/login"
+            className="text-sm font-medium text-ink-soft transition-colors hover:text-forest"
+          >
+            Client login
+          </Link>
           <ButtonLink href="/contact" size="md">
             Book intro call
           </ButtonLink>
@@ -93,7 +99,7 @@ export function SiteNav() {
             </Link>
           ))}
         </nav>
-        <div className="mt-8">
+        <div className="mt-8 flex flex-col gap-3">
           <ButtonLink
             href="/contact"
             size="lg"
@@ -101,6 +107,15 @@ export function SiteNav() {
             onClick={() => setOpen(false)}
           >
             Book intro call
+          </ButtonLink>
+          <ButtonLink
+            href="/login"
+            variant="secondary"
+            size="lg"
+            className="w-full"
+            onClick={() => setOpen(false)}
+          >
+            Client login
           </ButtonLink>
         </div>
       </div>
