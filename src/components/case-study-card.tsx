@@ -2,8 +2,8 @@ import type { CaseStudy } from "@/content/case-studies";
 
 const accentMap: Record<CaseStudy["accent"], string> = {
   forest: "from-forest to-forest-deep text-paper",
-  gold: "from-gold to-[#8f6a26] text-paper",
-  ink: "from-ink to-[#2b2f38] text-paper",
+  gold: "from-gold to-gold-deep text-paper",
+  ink: "from-ink to-ink-deep text-paper",
 };
 
 /**
@@ -18,12 +18,12 @@ export function CaseStudyCard({
   detailed?: boolean;
 }) {
   return (
-    <article className="group flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-line bg-panel transition-shadow duration-300 hover:shadow-[0_18px_40px_-24px_rgba(22,24,29,0.35)]">
+    <article className="tilt-card group flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-line bg-panel">
       {/* Placeholder "cover" — a branded gradient panel standing in for imagery */}
       <div
         className={`relative flex aspect-[16/10] flex-col justify-between bg-gradient-to-br p-5 ${accentMap[study.accent]}`}
       >
-        <div className="flex items-center justify-between text-[0.7rem] font-medium uppercase tracking-[0.14em] opacity-90">
+        <div className="flex items-center justify-between text-xs font-medium uppercase tracking-[0.14em] opacity-90">
           <span>{study.category}</span>
           <span>{study.year}</span>
         </div>
@@ -31,7 +31,7 @@ export function CaseStudyCard({
           <p className="font-serif text-2xl leading-tight">{study.client}</p>
           <p className="mt-1 text-sm opacity-85">{study.location}</p>
         </div>
-        <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 font-serif text-[3.5rem] leading-none opacity-15">
+        <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 font-serif text-6xl leading-none opacity-15">
           {study.client.charAt(0)}
         </span>
       </div>
@@ -68,12 +68,12 @@ export function CaseStudyCard({
         <div className="mt-6 grid grid-cols-3 gap-3 border-t border-line pt-5">
           {study.metrics.map((m) => (
             <div key={m.label}>
-              <p className="font-serif text-xl text-forest">{m.value}</p>
-              <p className="mt-0.5 text-[0.7rem] font-medium uppercase tracking-wide text-ink-faint">
+              <p className="figure text-xl font-semibold text-forest">{m.value}</p>
+              <p className="mt-0.5 text-xs font-medium uppercase tracking-wide text-ink-faint">
                 {m.label}
               </p>
               {m.note && (
-                <p className="mt-0.5 text-[0.68rem] leading-tight text-ink-faint">
+                <p className="mt-0.5 text-xs leading-tight text-ink-faint">
                   {m.note}
                 </p>
               )}

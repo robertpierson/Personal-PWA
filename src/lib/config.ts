@@ -28,6 +28,14 @@ export const isDemoMode = !isSupabaseConfigured;
 /** Cookie set when a visitor enters the demo dashboard without real auth. */
 export const DEMO_SESSION_COOKIE = "meridian_demo_session";
 
+/**
+ * In demo mode there's no database to write to, so edits made on the
+ * Settings page (org name/type) are stored here instead and merged over the
+ * bundled demo org on read — lets the "editable" settings form actually work
+ * locally without Supabase configured.
+ */
+export const DEMO_ORG_OVERRIDE_COOKIE = "meridian_demo_org_override";
+
 /** Emails allowed into the operator admin panel (comma-separated env). */
 export const operatorEmails = (process.env.OPERATOR_EMAILS ?? "")
   .split(",")

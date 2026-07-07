@@ -45,7 +45,7 @@ export default async function InvoicesPage() {
 
       <Panel title="All invoices">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] text-sm">
+          <table className="w-full min-w-160 text-sm">
             <thead>
               <tr className="border-b border-line text-left text-xs uppercase tracking-wide text-ink-faint">
                 <th className="px-5 py-3 font-medium">Invoice</th>

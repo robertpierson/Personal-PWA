@@ -13,8 +13,8 @@ export const metadata: Metadata = { title: "Designs" };
 
 const accentMap: Record<string, string> = {
   forest: "from-forest to-forest-deep",
-  gold: "from-gold to-[#8f6a26]",
-  ink: "from-ink to-[#2b2f38]",
+  gold: "from-gold to-gold-deep",
+  ink: "from-ink to-ink-deep",
 };
 
 export default async function DesignsPage() {

@@ -32,7 +32,7 @@ export async function adminListOrgs(): Promise<
 
   const { data: orgs } = await supabase
     .from("orgs")
-    .select("id, name, slug, type")
+    .select("id, name, slug, type, plan")
     .order("created_at", { ascending: false });
 
   const result = [];
@@ -62,7 +62,7 @@ export async function adminGetOrg(id: string): Promise<Org | null> {
   if (!supabase) return null;
   const { data } = await supabase
     .from("orgs")
-    .select("id, name, slug, type")
+    .select("id, name, slug, type, plan")
     .eq("id", id)
     .maybeSingle();
   return (data as Org) ?? null;

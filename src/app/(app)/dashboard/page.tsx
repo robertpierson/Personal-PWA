@@ -16,6 +16,10 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Overview" };
 
+function since(msAgo: number) {
+  return new Date(Date.now() - msAgo);
+}
+
 export default async function OverviewPage() {
   const session = await requireSession();
   const isOwner = session.member.role === "owner";
@@ -26,8 +30,9 @@ export default async function OverviewPage() {
     getInsights(session),
   ]);
 
+  const cutoff = since(86_400_000);
   const upcoming = calendar
-    .filter((c) => new Date(c.date) >= new Date(Date.now() - 86_400_000))
+    .filter((c) => new Date(c.date) >= cutoff)
     .slice(0, 4);
   const activeDeliverables = deliverables.filter(
     (d) => d.status !== "delivered",
@@ -46,7 +51,7 @@ export default async function OverviewPage() {
         <StatCard
           label="Followers"
           value={insights.connection ? latest?.followers.toLocaleString() : "—"}
-          sub={insights.connection ? "Organic growth" : "Not connected"}
+          sub={insights.connection ? "Growing steadily" : "Not connected"}
           accent
         />
         <StatCard
@@ -63,7 +68,7 @@ export default async function OverviewPage() {
           <StatCard
             label="Active work"
             value={activeDeliverables}
-            sub="Deliverables in flight"
+            sub="Currently in progress"
           />
         )}
       </div>

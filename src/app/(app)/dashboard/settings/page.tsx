@@ -12,6 +12,7 @@ import {
   Panel,
   formatDate,
 } from "@/components/dashboard/primitives";
+import { OrgSettingsForm } from "@/components/dashboard/org-settings-form";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -32,12 +33,20 @@ function IntegrationRow({
       : status === "demo"
         ? "bg-gold"
         : "bg-ink-faint";
+  const statusLabel =
+    status === "connected"
+      ? "Connected"
+      : status === "demo"
+        ? "Demo mode"
+        : "Not connected";
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
       <div className="flex items-start gap-3">
-        <span className={`mt-1.5 h-2.5 w-2.5 rounded-full ${dot}`} />
+        <span className={`mt-1.5 h-2.5 w-2.5 rounded-full ${dot}`} aria-hidden />
         <div>
-          <p className="font-medium text-ink">{name}</p>
+          <p className="font-medium text-ink">
+            {name} <span className="text-xs font-normal text-ink-faint">· {statusLabel}</span>
+          </p>
           <p className="text-sm text-ink-soft">{detail}</p>
         </div>
       </div>
@@ -60,20 +69,11 @@ export default async function SettingsPage() {
       />
 
       <Panel title="Organization">
-        <dl className="divide-y divide-line">
-          <div className="flex justify-between px-5 py-4">
-            <dt className="text-ink-soft">Name</dt>
-            <dd className="font-medium text-ink">{session.org.name}</dd>
-          </div>
-          <div className="flex justify-between px-5 py-4">
-            <dt className="text-ink-soft">Type</dt>
-            <dd className="font-medium text-ink">{session.org.type}</dd>
-          </div>
-          <div className="flex justify-between px-5 py-4">
-            <dt className="text-ink-soft">Account owner</dt>
-            <dd className="font-medium text-ink">{session.member.email}</dd>
-          </div>
-        </dl>
+        <OrgSettingsForm
+          name={session.org.name}
+          type={session.org.type}
+          ownerEmail={session.member.email}
+        />
       </Panel>
 
       <Panel title="Connected accounts">

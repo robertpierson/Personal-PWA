@@ -2,11 +2,15 @@
 
 export type Role = "owner" | "worker";
 
+/** Matches the `name` field of tiers in src/content/site.config.ts (pricing.tiers). */
+export type PlanName = "Free" | "Basic" | "Average" | "Pro";
+
 export type Org = {
   id: string;
   name: string;
   slug: string;
   type: string;
+  plan: PlanName;
 };
 
 export type Member = {
@@ -100,4 +104,22 @@ export type DashboardSession = {
   org: Org;
   member: Member;
   demo: boolean;
+};
+
+export type NotificationCategory =
+  | "calendar"
+  | "deliverable"
+  | "invoice"
+  | "insights"
+  | "system";
+
+export type Notification = {
+  id: string;
+  category: NotificationCategory;
+  title: string;
+  body: string;
+  /** Where clicking the notification should take you. */
+  href: string;
+  createdAt: string; // ISO datetime
+  read: boolean;
 };

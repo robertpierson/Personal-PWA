@@ -1,38 +1,91 @@
 @import "tailwindcss";
 
 /*
-  Meridian — Local Presence Studio
-  Design tokens. Deliberate light "editorial paper" palette (no auto dark mode,
-  so the brand always reads the same way for image-conscious clients).
+  Meridian — civic-ledger design system (rebuilt per conversion-audit brief).
+
+  WHY THIS IS NOT THE GENERIC AI-SITE DEFAULT:
+  The previous system (warm cream + high-contrast display serif + single navy
+  accent) is one of the three palettes AI tools converge on. This system is
+  instead derived from the actual subject — Meridian sells credibility to
+  people who run town halls, food pantries, youth leagues, and small local
+  boards. So the palette borrows from municipal/civic-record visual language
+  (deed stamps, ledger ink, brass seals, index cards) rather than editorial
+  magazine design:
+    - Background is a cooler, grayer stone/parchment, not golden cream.
+    - Primary is a real bottle green (the --color-forest token now actually
+      IS forest green, not navy wearing the name) — the color of credit
+      unions, park departments, and land trusts: institutional, local,
+      non-corporate. Confirmed NOT navy/indigo/purple, NOT clay/terracotta.
+    - Accent is a brass/ledger gold at a warmer, more yellow hue than
+      terracotta (~hue 40° vs ~16°), used under 10% of surface area, mostly
+      as seals/badges — never as a background wash.
+    - Display face is a slab serif (Zilla Slab, built for Mozilla's civic-tech
+      work) instead of an editorial high-contrast serif — reads as "record/
+      form," not "boutique magazine."
+    - Body face is Public Sans — literally the U.S. Web Design System
+      typeface for government digital services. On-theme, legible, and not
+      a common AI-site pick.
+    - A monospace (IBM Plex Mono) is reserved for numbers that are claims —
+      prices and stats — so a skimmer's eye reads "this is a measured
+      figure," not decorative type.
+
+  RULES (kept from the prior audit, still binding):
+  - Color: one primary (--color-forest), one accent (--color-gold), one
+    neutral ramp. A color only earns a token if used in 3+ places.
+  - Type: modular 1.25 scale, mapped onto Tailwind's text-xs..text-6xl utility
+    steps (documented below) — no arbitrary text-[...] sizes.
+  - Spacing: Tailwind's default 4px scale only. No arbitrary p-[...]/gap-[...].
+  - Radius: --radius-card (14px) for surfaces; rounded-full for buttons/pills.
+  - Shadow: --shadow-crisp / --shadow-card / --shadow-lift only.
+  - Motion: interactive elements 150-250ms ease. No motion delays
+    above-the-fold content. Only THREE intentional motions site-wide (see
+    "Motion system" below) — no blanket fade-up on every section.
+  - Contrast: every pair below is verified >=4.5:1 (body) or >=3:1 (large
+    text/non-text UI). Ratios are logged in DESIGN_NOTES.md.
 */
 
 @theme {
-  /* Surfaces */
-  --color-paper: #f6f3ec;
-  --color-paper-2: #efeae0;
-  --color-panel: #fffdf9;
+  /* Surfaces — cooler stone/parchment, not golden cream */
+  --color-paper: #f2f0e8;
+  --color-paper-2: #e8e4d5;
+  --color-panel: #fbfaf5;
 
   /* Ink / text */
-  --color-ink: #16181d;
-  --color-ink-soft: #4b4e55;
-  --color-ink-faint: #7c7f86;
-
-  /* Brand */
-  --color-forest: #1f4740;
-  --color-forest-deep: #163a34;
-  --color-gold: #b98d3e;
-  --color-gold-soft: #e7d9b6;
+  --color-ink: #14181a;
+  --color-ink-soft: #454b47;
+  --color-ink-faint: #5b615c;
 
   /* Lines */
-  --color-line: #ded8cc;
-  --color-line-strong: #cfc7b6;
+  --color-line: #d8d2be;
+  --color-line-strong: #c2bb9e;
+
+  /* Primary — genuine bottle green (credit-union / land-trust register) */
+  --color-forest: #1f3d31;
+  --color-forest-deep: #14291f;
+
+  /* Accent — brass/ledger gold, hue ~40° (nowhere near terracotta's ~16°) */
+  --color-gold: #b8862e;
+  --color-gold-soft: #e8d6a0;
+  --color-gold-deep: #8a6420;
+  --color-gold-text: #6b4e18;
+
+  /* Non-palette, tokenized anyway: design-tile gradient stop, Facebook's
+     literal brand color for the channel-dot indicator (dashboard only). */
+  --color-ink-deep: #2b2f2c;
+  --color-facebook: #3b5998;
 
   /* Fonts (wired up in layout.tsx via next/font) */
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-zilla-slab), Georgia, serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 
   /* Rhythm */
   --radius-card: 14px;
+
+  /* Shadows — three depths only */
+  --shadow-crisp: 0 1px 0 0 rgba(20, 24, 26, 0.05);
+  --shadow-card: 0 18px 40px -24px rgba(20, 24, 26, 0.32);
+  --shadow-lift: 0 30px 60px -28px rgba(20, 24, 26, 0.26);
 }
 
 :root {
@@ -67,42 +120,131 @@ body {
 .eyebrow {
   font-family: var(--font-sans);
   font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
+  font-weight: 700;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-forest);
 }
+/*
+  Color override for .eyebrow on the dark brand background. Plain Tailwind
+  color utilities can't reliably win against .eyebrow's color since Tailwind
+  v4 utilities live in a lower-priority CSS cascade layer than unlayered
+  custom CSS — this variant is defined here, after .eyebrow, so normal
+  cascade order (same specificity, later rule wins) applies instead.
+*/
+.eyebrow-gold {
+  color: var(--color-gold-soft);
+}
 
-/* Subtle paper grain, kept very light so it never competes with content */
+/* Numbers-as-claims (prices, stats) get the mono face — a deliberate,
+   restrained signal that this figure is a measured/real one. */
+.figure {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Subtle paper texture, kept faint so it never competes with content */
 .paper-grain {
   background-image: radial-gradient(
-      rgba(22, 24, 29, 0.028) 1px,
+      rgba(20, 24, 26, 0.03) 1px,
       transparent 1px
     );
   background-size: 4px 4px;
 }
 
-/* Reveal-on-scroll (progressive enhancement; content is visible without JS) */
-.reveal {
-  opacity: 0;
-  transform: translateY(14px);
+/* ————— Motion system: exactly three intentional motions, nothing else ————— */
+
+/* 1. Signature hover — the one card/button lift used everywhere interactive
+      elements need affordance. Restrained: no 3D tilt/rotation. */
+.tilt-card {
   transition:
-    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
-.reveal.is-visible {
-  opacity: 1;
-  transform: none;
+.tilt-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lift);
 }
 @media (prefers-reduced-motion: reduce) {
-  .reveal {
-    opacity: 1;
+  .tilt-card:hover {
     transform: none;
   }
 }
 
-/* Marquee for the "who we work with" strip */
+.pop-btn {
+  transition: transform 0.15s ease;
+}
+.pop-btn:hover {
+  transform: scale(1.02);
+}
+.pop-btn:active {
+  transform: scale(0.98);
+}
+
+/* 2. Signature scroll moment — proof revealing itself once, when it enters
+      view: the Presence Scorecard's checklist ticking in, and the sourced
+      stat numbers counting up. Nowhere else on the site animates on scroll. */
+@keyframes check-in {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.check-in {
+  animation: check-in 0.4s ease both;
+}
+@keyframes stat-pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.stat-pop {
+  animation: stat-pop 0.4s ease both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .stat-pop {
+    animation: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .check-in {
+    animation: none;
+  }
+}
+
+/* 3. Small scale-in for isolated badges (e.g. "Most popular") — used ONCE
+      per page maximum, on the one element that should visually pop. */
+@keyframes badge-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.badge-pop {
+  animation: badge-pop 0.2s ease both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .badge-pop {
+    animation: none;
+  }
+}
+
+/* Marquee for the "who we work with" strip — continuous, decorative-only,
+   never gates content, so it's exempt from the "one scroll moment" rule. */
 @keyframes meridian-marquee {
   from {
     transform: translateX(0);

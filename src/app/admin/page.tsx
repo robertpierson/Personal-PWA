@@ -4,6 +4,7 @@ import { getOperator } from "@/lib/operator";
 import { adminListOrgs } from "@/lib/data/admin";
 import { createOrg } from "@/app/admin/actions";
 import { PageHeader, Panel } from "@/components/dashboard/primitives";
+import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = { title: "Operator · Clients" };
 
@@ -60,37 +61,32 @@ export default async function AdminHome() {
         ) : (
           <form action={createOrg} className="grid gap-4 p-5 sm:grid-cols-2">
             <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-sm font-medium text-ink">
+              <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-ink">
                 Organization name
               </label>
-              <input name="name" required className={fieldClass} placeholder="Riverside Arts Collective" />
+              <input id="name" name="name" required className={fieldClass} placeholder="Riverside Arts Collective" />
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-ink">
+              <label htmlFor="type" className="mb-1.5 block text-sm font-medium text-ink">
                 Type
               </label>
-              <input name="type" className={fieldClass} placeholder="Community nonprofit" defaultValue="Community nonprofit" />
+              <input id="type" name="type" className={fieldClass} placeholder="Community nonprofit" defaultValue="Community nonprofit" />
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-ink">
+              <label htmlFor="ownerEmail" className="mb-1.5 block text-sm font-medium text-ink">
                 Owner email
               </label>
-              <input name="ownerEmail" type="email" required className={fieldClass} placeholder="owner@org.org" />
+              <input id="ownerEmail" name="ownerEmail" type="email" required className={fieldClass} placeholder="owner@org.org" />
             </div>
             <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-sm font-medium text-ink">
+              <label htmlFor="ownerPassword" className="mb-1.5 block text-sm font-medium text-ink">
                 Temporary owner password{" "}
                 <span className="text-ink-faint">(min 8 chars — share securely)</span>
               </label>
-              <input name="ownerPassword" type="text" required minLength={8} className={fieldClass} placeholder="a strong temporary password" />
+              <input id="ownerPassword" name="ownerPassword" type="text" required minLength={8} className={fieldClass} placeholder="a strong temporary password" />
             </div>
             <div className="sm:col-span-2">
-              <button
-                type="submit"
-                className="inline-flex h-11 items-center rounded-full bg-forest px-5 text-sm font-medium text-paper hover:bg-forest-deep"
-              >
-                Create client + owner login
-              </button>
+              <Button type="submit">Create client + owner login</Button>
             </div>
           </form>
         )}

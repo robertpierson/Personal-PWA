@@ -41,11 +41,11 @@ export function Logo({
         </svg>
       </span>
       <span className="flex flex-col leading-none">
-        <span className="font-serif text-[1.35rem] font-semibold tracking-tight text-ink">
+        <span className="font-serif text-xl font-semibold tracking-tight text-ink">
           {site.wordmark}
         </span>
         {showTagline && (
-          <span className="mt-0.5 text-[0.62rem] font-medium uppercase tracking-[0.2em] text-ink-faint">
+          <span className="mt-0.5 text-xs font-medium uppercase tracking-[0.2em] text-ink-faint">
             {site.tagline}
           </span>
         )}

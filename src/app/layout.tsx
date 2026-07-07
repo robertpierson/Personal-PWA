@@ -1,21 +1,34 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Fraunces } from "next/font/google";
+import { Public_Sans, Zilla_Slab, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { site } from "@/lib/site";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Body face — the U.S. Web Design System's typeface for government digital
+// services. On-theme for a civic/local/trustworthy brand, legible, and not
+// a common AI-site default.
+const publicSans = Public_Sans({
+  variable: "--font-public-sans",
   subsets: ["latin"],
   display: "swap",
 });
 
-// Editorial display serif — optical sizing gives headlines their premium feel.
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
+// Display face — a slab serif built for Mozilla's civic-tech work. Reads as
+// "record/form," not "boutique editorial magazine."
+const zillaSlab = Zilla_Slab({
+  variable: "--font-zilla-slab",
   subsets: ["latin"],
+  weight: ["500", "600", "700"],
   display: "swap",
-  axes: ["opsz"],
+});
+
+// Reserved for numbers that are claims — prices, stats — so they read as
+// measured figures, not decorative type.
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
+  subsets: ["latin"],
+  weight: ["500", "600"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -63,7 +76,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#1f4740",
+  // Keep in sync with --color-forest in globals.css — Next's metadata API
+  // needs a literal string here, it can't read the CSS token.
+  themeColor: "#1f3d31",
   colorScheme: "light",
   width: "device-width",
   initialScale: 1,
@@ -75,7 +90,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${fraunces.variable} h-full`}
+      className={`${publicSans.variable} ${zillaSlab.variable} ${plexMono.variable} h-full`}
     >
       <body className="min-h-full flex flex-col antialiased">
         {children}

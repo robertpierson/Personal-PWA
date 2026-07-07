@@ -6,6 +6,7 @@ import type {
   Insights,
   Invoice,
   MetricPoint,
+  Notification,
   Org,
   Member,
 } from "@/lib/types";
@@ -18,6 +19,10 @@ import type {
 
 const DAY = 86_400_000;
 
+function datetimeOffset(hoursAgo: number): string {
+  return new Date(Date.now() - hoursAgo * 60 * 60 * 1000).toISOString();
+}
+
 function isoOffset(days: number): string {
   return new Date(Date.now() + days * DAY).toISOString().slice(0, 10);
 }
@@ -27,6 +32,7 @@ export const demoOrg: Org = {
   name: "Riverside Arts Collective",
   slug: "riverside-arts",
   type: "Community nonprofit",
+  plan: "Average",
 };
 
 export const demoOwner: Member = {
@@ -288,3 +294,60 @@ export const demoInsightsUnconnected: Insights = {
   connection: null,
   series: [],
 };
+
+export const demoNotifications: Notification[] = [
+  {
+    id: "n1",
+    category: "invoice",
+    title: "Invoice due soon",
+    body: "MER-2026-021 ($1,200) is due in about a week.",
+    href: "/dashboard/invoices",
+    createdAt: datetimeOffset(2),
+    read: false,
+  },
+  {
+    id: "n2",
+    category: "calendar",
+    title: "Post approved",
+    body: "“Gala save-the-date” was approved and is scheduled to post.",
+    href: "/dashboard/calendar",
+    createdAt: datetimeOffset(6),
+    read: false,
+  },
+  {
+    id: "n3",
+    category: "insights",
+    title: "Weekly insights are in",
+    body: "Reach and engagement both grew again this week — take a look.",
+    href: "/dashboard/insights",
+    createdAt: datetimeOffset(20),
+    read: false,
+  },
+  {
+    id: "n4",
+    category: "deliverable",
+    title: "In review: Q3 content calendar",
+    body: "Twelve weeks mapped to summer programming and the fall gala are ready for your review.",
+    href: "/dashboard/deliverables",
+    createdAt: datetimeOffset(30),
+    read: true,
+  },
+  {
+    id: "n5",
+    category: "deliverable",
+    title: "Design delivered",
+    body: "Your Instagram post template kit (10 templates) is ready to use.",
+    href: "/dashboard/designs",
+    createdAt: datetimeOffset(72),
+    read: true,
+  },
+  {
+    id: "n6",
+    category: "system",
+    title: "Welcome to your dashboard",
+    body: "This is where you'll track content, designs, deliverables, and billing.",
+    href: "/dashboard",
+    createdAt: datetimeOffset(200),
+    read: true,
+  },
+];

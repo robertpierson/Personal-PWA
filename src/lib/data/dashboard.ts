@@ -5,8 +5,15 @@ import {
   demoDesigns,
   demoInsights,
   demoInvoices,
+  demoNotifications,
 } from "@/lib/demo/data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  CREDIT_COSTS,
+  creditsForPlan,
+  usageBreakdownForPlan,
+  type CreditBreakdownItem,
+} from "@/content/credits";
 import type {
   CalendarItem,
   Deliverable,
@@ -14,6 +21,8 @@ import type {
   DashboardSession,
   Insights,
   Invoice,
+  Notification,
+  PlanName,
 } from "@/lib/types";
 
 /*
@@ -141,4 +150,85 @@ export async function getInsights(
       profileViews: s.profile_views,
     })),
   };
+}
+
+export async function getNotifications(
+  session: DashboardSession,
+): Promise<Notification[]> {
+  if (session.demo) return demoNotifications;
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase
+    .from("notifications")
+    .select("id, category, title, body, href, created_at, read")
+    .eq("org_id", session.org.id)
+    .order("created_at", { ascending: false })
+    .limit(20);
+  return (data ?? []).map((n) => ({
+    id: n.id,
+    category: n.category,
+    title: n.title,
+    body: n.body,
+    href: n.href,
+    createdAt: n.created_at,
+    read: n.read,
+  }));
+}
+
+export type CreditsSummary = {
+  plan: PlanName;
+  totalCredits: number;
+  usedCredits: number;
+  breakdown: CreditBreakdownItem[];
+  /** ISO date the credit cycle resets (start of next calendar month). */
+  periodEnd: string;
+};
+
+/**
+ * Monthly credit usage, translated 1:1 from the org's plan (see
+ * src/content/credits.ts) plus real activity this cycle: post-design
+ * credits are counted from calendar items actually committed to (scheduled,
+ * approved, or published — not bare ideas/drafts), and the plan's other
+ * ongoing services (website hosting, calendar management, etc.) are counted
+ * as consumed in proportion to how far through the billing month we are.
+ */
+export async function getCreditsUsage(
+  session: DashboardSession,
+): Promise<CreditsSummary> {
+  const plan = session.org.plan;
+  const totalCredits = creditsForPlan(plan);
+  const breakdown = usageBreakdownForPlan(plan);
+
+  const calendar = await getCalendar(session);
+  const now = new Date();
+  const committedPosts = calendar.filter(
+    (c) =>
+      ["scheduled", "approved", "published"].includes(c.status) &&
+      new Date(c.date).getFullYear() === now.getFullYear() &&
+      new Date(c.date).getMonth() === now.getMonth(),
+  ).length;
+  const postCreditsUsed = committedPosts * CREDIT_COSTS.post;
+
+  const daysInMonth = new Date(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    0,
+  ).getDate();
+  const monthProgress = now.getDate() / daysInMonth;
+  const flatCredits = breakdown
+    .filter((b) => b.key !== "post")
+    .reduce((sum, b) => sum + b.credits, 0);
+  const flatCreditsUsed = Math.round(flatCredits * monthProgress);
+
+  const usedCredits = Math.min(
+    totalCredits,
+    postCreditsUsed + flatCreditsUsed,
+  );
+
+  const periodEnd = new Date(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    1,
+  ).toISOString();
+
+  return { plan, totalCredits, usedCredits, breakdown, periodEnd };
 }

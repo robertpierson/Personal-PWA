@@ -72,8 +72,7 @@ export function SiteFooter() {
             </Link>
           </div>
           <p className="max-w-md sm:text-right">
-            Organic strategy only. We never use bots or follow/unfollow
-            automation, and we never post on your behalf without your review.
+            We never post on your behalf without your review.
           </p>
         </div>
       </div>

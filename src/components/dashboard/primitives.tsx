@@ -14,18 +14,18 @@ export function StatusBadge({
   const map: Record<string, { label: string; className: string }> = {
     // Deliverables
     not_started: { label: "Not started", className: "bg-paper-2 text-ink-faint" },
-    in_progress: { label: "In progress", className: "bg-gold-soft/50 text-[#7a5c1f]" },
+    in_progress: { label: "In progress", className: "bg-gold-soft/50 text-gold-text" },
     in_review: { label: "In review", className: "bg-forest/10 text-forest" },
     delivered: { label: "Delivered", className: "bg-forest text-paper" },
     // Calendar
     idea: { label: "Idea", className: "bg-paper-2 text-ink-faint" },
-    drafting: { label: "Drafting", className: "bg-gold-soft/50 text-[#7a5c1f]" },
+    drafting: { label: "Drafting", className: "bg-gold-soft/50 text-gold-text" },
     scheduled: { label: "Scheduled", className: "bg-forest/10 text-forest" },
     approved: { label: "Approved", className: "bg-forest/15 text-forest" },
     published: { label: "Published", className: "bg-forest text-paper" },
     // Invoices
     draft: { label: "Draft", className: "bg-paper-2 text-ink-faint" },
-    open: { label: "Open", className: "bg-gold-soft/50 text-[#7a5c1f]" },
+    open: { label: "Open", className: "bg-gold-soft/50 text-gold-text" },
     paid: { label: "Paid", className: "bg-forest text-paper" },
     void: { label: "Void", className: "bg-paper-2 text-ink-faint line-through" },
   };

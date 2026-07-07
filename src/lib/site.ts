@@ -1,39 +1,23 @@
 /**
- * Central site configuration. Swap these values (name, contact, links) once the
- * real brand is chosen — nothing else in the marketing site hard-codes them.
+ * Compatibility re-export. The actual content lives in
+ * `src/content/site.config.ts` (the single source of truth per the
+ * conversion-rebuild brief) — this file exists only so the many components
+ * that already import `{ site, nav, orgTypes, audiences }` from `@/lib/site`
+ * keep working unchanged. New code should import from `@/content/site.config`
+ * directly.
  */
+import { brand, nav as navConfig, icp } from "@/content/site.config";
 
 export const site = {
-  name: "Meridian",
-  wordmark: "Meridian",
-  tagline: "Local Presence Studio",
-  positioning:
-    "We make community organizations look as serious as the work they do.",
-  description:
-    "Meridian is a studio that gives nonprofits, community groups, and local businesses a professional public presence — branded design, a real content calendar, and honest Instagram insights. No bots. No follow-for-follow. Just organizations that look the way they deserve to.",
-  // Where to send/receive intro-call requests (wire to email/CRM at deploy time).
-  contactEmail: "hello@meridian.studio",
-  // Canonical URL — overridden by NEXT_PUBLIC_SITE_URL in production.
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  name: brand.name,
+  wordmark: brand.wordmark,
+  tagline: brand.tagline,
+  positioning: brand.positioning,
+  description: brand.description,
+  contactEmail: brand.contactEmail,
+  url: brand.url,
 } as const;
 
-export const nav = [
-  { label: "Work", href: "/work" },
-  { label: "Approach", href: "/#approach" },
-  { label: "Services", href: "/#services" },
-  { label: "Contact", href: "/contact" },
-] as const;
-
-/** Audiences we serve — used in the hero marquee and positioning strip. */
-export const audiences = [
-  "PTA & school foundations",
-  "Youth sports leagues",
-  "Local nonprofits",
-  "Community theaters",
-  "Neighborhood associations",
-  "Environmental groups",
-  "Food banks & pantries",
-  "Historical societies",
-  "Small local businesses",
-  "Volunteer coalitions",
-] as const;
+export const nav = navConfig;
+export const orgTypes = icp.orgTypes;
+export const audiences = icp.audiences;

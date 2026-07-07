@@ -109,6 +109,15 @@ export default async function InsightsPage() {
         />
       </div>
 
+      <p className="text-xs leading-relaxed text-ink-faint">
+        New to these terms? <strong className="text-ink-soft">Reach</strong> is
+        how many different accounts saw your posts.{" "}
+        <strong className="text-ink-soft">Engagement</strong> is how many of
+        them liked, commented, or saved something, as a percent.{" "}
+        <strong className="text-ink-soft">Profile views</strong> is how many
+        people visited your Instagram profile page.
+      </p>
+
       <Panel title="Followers over time">
         <div className="p-5">
           <AreaChart data={series.map((p) => p.followers)} labels={labels} />

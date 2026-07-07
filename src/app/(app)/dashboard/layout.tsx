@@ -1,5 +1,8 @@
 import { requireSession } from "@/lib/auth";
+import { getCreditsUsage, getNotifications } from "@/lib/data/dashboard";
 import { Sidebar, type NavItem } from "@/components/dashboard/sidebar";
+import { NotificationsMenu } from "@/components/dashboard/notifications-menu";
+import { CreditsMenu } from "@/components/dashboard/credits-menu";
 
 const ownerNav: NavItem[] = [
   { label: "Overview", href: "/dashboard", icon: "overview" },
@@ -25,7 +28,13 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await requireSession();
-  const nav = session.member.role === "owner" ? ownerNav : workerNav;
+  const isOwner = session.member.role === "owner";
+  const nav = isOwner ? ownerNav : workerNav;
+
+  const [notifications, credits] = await Promise.all([
+    getNotifications(session),
+    isOwner ? getCreditsUsage(session) : Promise.resolve(null),
+  ]);
 
   return (
     <div className="min-h-full bg-paper">
@@ -36,6 +45,10 @@ export default async function DashboardLayout({
             Demo mode — sample data. Add Supabase credentials to go live.
           </div>
         )}
+        <div className="flex items-center justify-end gap-3 border-b border-line px-4 py-3 sm:px-8">
+          {credits && <CreditsMenu summary={credits} />}
+          <NotificationsMenu initial={notifications} />
+        </div>
         <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-8 sm:py-10">
           {children}
         </main>

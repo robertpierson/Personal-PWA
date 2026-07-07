@@ -9,7 +9,7 @@ const base =
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-forest text-paper hover:bg-forest-deep shadow-[0_1px_0_0_rgba(0,0,0,0.04)]",
+    "shadow-crisp bg-gradient-to-br from-forest to-forest-deep text-paper hover:brightness-110",
   secondary:
     "border border-line-strong bg-panel text-ink hover:border-forest hover:text-forest",
   ghost: "text-ink hover:text-forest",
@@ -17,7 +17,7 @@ const variants: Record<Variant, string> = {
 
 const sizes: Record<Size, string> = {
   md: "h-11 px-5 text-sm",
-  lg: "h-13 px-7 text-[0.95rem]",
+  lg: "h-13 px-7 text-base",
 };
 
 function classes(variant: Variant, size: Size, className?: string) {

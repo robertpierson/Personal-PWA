@@ -92,7 +92,7 @@ export const caseStudies: CaseStudy[] = [
     metrics: [
       { label: "Reach", value: "+2.1×", note: "90-day organic" },
       { label: "Profile visits", value: "+180%", note: "quarter over quarter" },
-      { label: "Follower growth", value: "Organic", note: "no paid, no bots" },
+      { label: "Follower growth", value: "Steady", note: "quarter over quarter" },
     ],
     accent: "ink",
     placeholder: true,

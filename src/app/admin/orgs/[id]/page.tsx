@@ -27,9 +27,11 @@ import {
 export const metadata: Metadata = { title: "Operator · Manage client" };
 
 const fc =
-  "w-full rounded-lg border border-line-strong bg-panel px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-forest focus:outline-none";
+  "w-full rounded-lg border border-line-strong bg-panel px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20";
 const del =
   "text-xs font-medium text-red-600 hover:underline disabled:opacity-40";
+const submitBtn =
+  "justify-self-start rounded-full bg-forest px-4 py-2 text-sm font-medium text-paper transition-colors duration-200 hover:bg-forest-deep focus:outline-none focus:ring-2 focus:ring-forest/20";
 
 export default async function ManageOrgPage({
   params,
@@ -88,7 +90,12 @@ export default async function ManageOrgPage({
                     action={setDeliverableStatus.bind(null, id, d.id)}
                     className="flex items-center gap-2"
                   >
-                    <select name="status" defaultValue={d.status} className={fc}>
+                    <select
+                      name="status"
+                      aria-label={`Status for ${d.title}`}
+                      defaultValue={d.status}
+                      className={fc}
+                    >
                       <option value="not_started">Not started</option>
                       <option value="in_progress">In progress</option>
                       <option value="in_review">In review</option>
@@ -116,19 +123,17 @@ export default async function ManageOrgPage({
             action={createDeliverable.bind(null, id)}
             className="grid gap-3 border-t border-line p-5 sm:grid-cols-2"
           >
-            <input name="title" required placeholder="Title" className={fc} />
-            <input name="type" placeholder="Type (e.g. Design)" className={fc} defaultValue="Design" />
-            <input name="dueDate" type="date" className={fc} />
-            <select name="status" className={fc} defaultValue="not_started">
+            <input name="title" required placeholder="Title" aria-label="Title" className={fc} />
+            <input name="type" placeholder="Type (e.g. Design)" aria-label="Type" className={fc} defaultValue="Design" />
+            <input name="dueDate" type="date" aria-label="Due date" className={fc} />
+            <select name="status" aria-label="Status" className={fc} defaultValue="not_started">
               <option value="not_started">Not started</option>
               <option value="in_progress">In progress</option>
               <option value="in_review">In review</option>
               <option value="delivered">Delivered</option>
             </select>
-            <input name="description" placeholder="Short description" className={`${fc} sm:col-span-2`} />
-            <button className="justify-self-start rounded-full bg-forest px-4 py-2 text-sm font-medium text-paper hover:bg-forest-deep">
-              Add deliverable
-            </button>
+            <input name="description" placeholder="Short description" aria-label="Short description" className={`${fc} sm:col-span-2`} />
+            <button className={submitBtn}>Add deliverable</button>
           </form>
         )}
       </Panel>
@@ -166,32 +171,30 @@ export default async function ManageOrgPage({
             action={createCalendarItem.bind(null, id)}
             className="grid gap-3 border-t border-line p-5 sm:grid-cols-2"
           >
-            <input name="title" required placeholder="Title" className={fc} />
-            <input name="date" type="date" className={fc} />
-            <select name="channel" className={fc} defaultValue="instagram">
+            <input name="title" required placeholder="Title" aria-label="Title" className={fc} />
+            <input name="date" type="date" aria-label="Date" className={fc} />
+            <select name="channel" aria-label="Channel" className={fc} defaultValue="instagram">
               <option value="instagram">Instagram</option>
               <option value="facebook">Facebook</option>
               <option value="newsletter">Newsletter</option>
               <option value="other">Other</option>
             </select>
-            <select name="format" className={fc} defaultValue="post">
+            <select name="format" aria-label="Format" className={fc} defaultValue="post">
               <option value="post">Post</option>
               <option value="reel">Reel</option>
               <option value="story">Story</option>
               <option value="carousel">Carousel</option>
               <option value="email">Email</option>
             </select>
-            <select name="status" className={fc} defaultValue="idea">
+            <select name="status" aria-label="Status" className={fc} defaultValue="idea">
               <option value="idea">Idea</option>
               <option value="drafting">Drafting</option>
               <option value="scheduled">Scheduled</option>
               <option value="approved">Approved</option>
               <option value="published">Published</option>
             </select>
-            <input name="caption" placeholder="Caption" className={fc} />
-            <button className="justify-self-start rounded-full bg-forest px-4 py-2 text-sm font-medium text-paper hover:bg-forest-deep">
-              Add to calendar
-            </button>
+            <input name="caption" placeholder="Caption" aria-label="Caption" className={fc} />
+            <button className={submitBtn}>Add to calendar</button>
           </form>
         )}
       </Panel>
@@ -231,19 +234,17 @@ export default async function ManageOrgPage({
             action={createInvoice.bind(null, id)}
             className="grid gap-3 border-t border-line p-5 sm:grid-cols-2"
           >
-            <input name="number" required placeholder="Invoice # (e.g. MER-2026-022)" className={fc} />
-            <input name="amount" type="number" step="0.01" min="0" required placeholder="Amount (USD)" className={fc} />
-            <input name="description" placeholder="Description" className={fc} />
-            <input name="dueDate" type="date" className={fc} />
-            <select name="status" className={fc} defaultValue="open">
+            <input name="number" required placeholder="Invoice # (e.g. MER-2026-022)" aria-label="Invoice number" className={fc} />
+            <input name="amount" type="number" step="0.01" min="0" required placeholder="Amount (USD)" aria-label="Amount (USD)" className={fc} />
+            <input name="description" placeholder="Description" aria-label="Description" className={fc} />
+            <input name="dueDate" type="date" aria-label="Due date" className={fc} />
+            <select name="status" aria-label="Status" className={fc} defaultValue="open">
               <option value="draft">Draft</option>
               <option value="open">Open</option>
               <option value="paid">Paid</option>
               <option value="void">Void</option>
             </select>
-            <button className="justify-self-start rounded-full bg-forest px-4 py-2 text-sm font-medium text-paper hover:bg-forest-deep">
-              Add invoice
-            </button>
+            <button className={submitBtn}>Add invoice</button>
           </form>
         )}
       </Panel>

@@ -1,7 +1,11 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { DEMO_SESSION_COOKIE, isSupabaseConfigured } from "@/lib/config";
+import {
+  DEMO_ORG_OVERRIDE_COOKIE,
+  DEMO_SESSION_COOKIE,
+  isSupabaseConfigured,
+} from "@/lib/config";
 import { demoSession } from "@/lib/demo/data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { DashboardSession, Org, Role } from "@/lib/types";
@@ -16,7 +20,21 @@ export async function getSession(): Promise<DashboardSession | null> {
     const store = await cookies();
     const demo = store.get(DEMO_SESSION_COOKIE);
     if (!demo) return null;
-    return demoSession(demo.value === "worker" ? "worker" : "owner");
+    const session = demoSession(demo.value === "worker" ? "worker" : "owner");
+
+    const override = store.get(DEMO_ORG_OVERRIDE_COOKIE);
+    if (override) {
+      try {
+        const { name, type } = JSON.parse(override.value) as {
+          name?: string;
+          type?: string;
+        };
+        session.org = { ...session.org, name: name || session.org.name, type: type || session.org.type };
+      } catch {
+        // ignore a malformed cookie
+      }
+    }
+    return session;
   }
 
   const supabase = await createSupabaseServerClient();
@@ -27,7 +45,7 @@ export async function getSession(): Promise<DashboardSession | null> {
 
   const { data: membership } = await supabase
     .from("org_members")
-    .select("id, role, orgs(id, name, slug, type)")
+    .select("id, role, orgs(id, name, slug, type, plan)")
     .eq("user_id", user.id)
     .maybeSingle();
 

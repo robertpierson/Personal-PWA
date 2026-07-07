@@ -15,8 +15,6 @@ type Payload = {
   email?: string;
   organization?: string;
   orgType?: string;
-  role?: string;
-  instagram?: string;
   timeframe?: string;
   goals?: string;
   company?: string; // honeypot
@@ -85,8 +83,6 @@ export async function POST(request: Request) {
     email,
     organization,
     orgType: clean(body.orgType, 120),
-    role: clean(body.role, 120),
-    instagram: clean(body.instagram, 120),
     timeframe: clean(body.timeframe, 120),
     goals: clean(body.goals, 2000),
     receivedAt: new Date().toISOString(),
