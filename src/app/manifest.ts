@@ -14,7 +14,7 @@ export default function manifest(): MetadataRoute.Manifest {
     // Keep in sync with --color-paper / --color-forest in globals.css — the
     // manifest needs literal strings, it can't read the CSS tokens.
     background_color: "#f2f0e8",
-    theme_color: "#1b3a6b",
+    theme_color: "#2451d6",
     categories: ["business", "productivity"],
     icons: [
       { src: "/icon-192.png", sizes: "192x192", type: "image/png" },

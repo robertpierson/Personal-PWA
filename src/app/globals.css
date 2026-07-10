@@ -4,9 +4,9 @@
   Meridian — design system (civic-ledger structure, blue + gold palette per
   explicit brand direction).
 
-  Palette note: primary is a deep royal blue (--color-forest — the token
-  name predates this color and is kept as-is; see the theme block below),
-  paired with the existing brass/ledger gold accent. Everything else from
+  Palette note: primary is a vivid royal/cobalt blue (--color-forest — the
+  token name predates this color and is kept as-is; see the theme block
+  below), paired with the existing brass/ledger gold accent. Everything else from
   the conversion-audit rebuild still holds:
     - Background is a cooler, grayer stone/parchment, not golden cream.
     - Accent gold sits at ~40° hue, used under 10% of surface area, mostly
@@ -53,12 +53,15 @@
   --color-line: #d8d2be;
   --color-line-strong: #c2bb9e;
 
-  /* Primary — deep royal blue (explicit brand direction: blue + gold). Token
-     name kept as "forest" for the same reason as before — dozens of
-     bg-forest/text-forest/border-forest classes reference it; renaming the
-     token means renaming every one of those classes for no visual benefit. */
-  --color-forest: #1b3a6b;
-  --color-forest-deep: #12274a;
+  /* Primary — vivid royal/cobalt blue (explicit brand direction: blue + gold;
+     brightened and more saturated than the initial muted-navy pass so it
+     reads as a distinct, colorful blue next to the gold, not a desaturated
+     near-black). Token name kept as "forest" for the same reason as before —
+     dozens of bg-forest/text-forest/border-forest classes reference it;
+     renaming the token means renaming every one of those classes for no
+     visual benefit. */
+  --color-forest: #2451d6;
+  --color-forest-deep: #16309e;
 
   /* Accent — brass/ledger gold, hue ~40° (nowhere near terracotta's ~16°) */
   --color-gold: #b8862e;
