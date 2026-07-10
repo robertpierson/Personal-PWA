@@ -23,6 +23,16 @@ export default function HomePage() {
     <>
       {/* ————— Hero — no motion, everything visible instantly ————— */}
       <section className="paper-grain relative overflow-hidden">
+        {/* Soft background glow — blue + gold, decorative only, never
+            overlaps text so contrast is unaffected. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-forest-300/25 blur-3xl"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-32 -left-16 h-80 w-80 rounded-full bg-gold-soft/30 blur-3xl"
+        />
         <div className="relative mx-auto grid w-full max-w-6xl gap-12 px-5 pt-16 pb-14 sm:px-8 md:pt-24 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div>
             <p className="eyebrow">{hero.eyebrow}</p>
@@ -155,7 +165,7 @@ export default function HomePage() {
                 }`}
               >
                 <span
-                  className={`mb-5 grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gold/15 text-2xl ${isLast ? "sm:mb-0" : ""}`}
+                  className={`mb-5 grid h-12 w-12 shrink-0 place-items-center rounded-full text-2xl ${i % 2 === 0 ? "bg-gold/15" : "bg-forest-100"} ${isLast ? "sm:mb-0" : ""}`}
                 >
                   {s.emoji}
                 </span>
@@ -195,34 +205,44 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ————— One system, not five vendors ————— */}
-      <section className="border-t border-line bg-paper-2/50">
-        <div className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8 md:py-20">
-          <p className="eyebrow">{system.eyebrow}</p>
-          <h2 className="mt-3 max-w-xl font-serif text-3xl leading-tight tracking-tight text-ink sm:text-4xl">
+      {/* ————— One system, not five vendors — the site's one bold dark band,
+          matching the "vibrant, high-contrast" direction requested; the
+          rest of the site stays the light civic-ledger surface ————— */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-forest-ink via-forest-deep to-forest-ink">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-20 right-0 h-80 w-80 rounded-full bg-forest-300/30 blur-3xl"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-24 -left-10 h-72 w-72 rounded-full bg-gold/20 blur-3xl"
+        />
+        <div className="relative mx-auto w-full max-w-6xl px-5 py-16 sm:px-8 md:py-24">
+          <p className="eyebrow eyebrow-gold">{system.eyebrow}</p>
+          <h2 className="mt-3 max-w-xl font-serif text-3xl leading-tight tracking-tight text-paper sm:text-4xl">
             {system.title}
           </h2>
-          <p className="mt-3 max-w-xl text-ink-soft">{system.subhead}</p>
+          <p className="mt-3 max-w-xl text-paper/75">{system.subhead}</p>
 
           <div className="mt-10 grid gap-6 sm:grid-cols-3">
             {system.steps.map((step, i) => (
               <div
                 key={step.n}
-                className="relative rounded-[var(--radius-card)] bg-panel p-7 shadow-card"
+                className="relative rounded-[var(--radius-card)] border border-paper/15 bg-paper/5 p-7 backdrop-blur-sm"
               >
-                <span className="figure text-sm font-semibold text-gold-text">
+                <span className="figure text-sm font-semibold text-gold-soft">
                   {step.n}
                 </span>
-                <h3 className="mt-2 font-serif text-xl tracking-tight text-ink">
+                <h3 className="mt-2 font-serif text-xl tracking-tight text-paper">
                   {step.title}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                <p className="mt-2 text-sm leading-relaxed text-paper/70">
                   {step.body}
                 </p>
                 {i < system.steps.length - 1 && (
                   <span
                     aria-hidden
-                    className="pointer-events-none absolute top-1/2 -right-3 hidden -translate-y-1/2 text-lg text-forest/40 sm:block"
+                    className="pointer-events-none absolute top-1/2 -right-3 hidden -translate-y-1/2 text-lg text-gold-soft/60 sm:block"
                   >
                     →
                   </span>
@@ -300,8 +320,12 @@ export default function HomePage() {
 
       {/* ————— CTA band — the one promise, one more time ————— */}
       <section className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8">
-        <div className="rounded-[calc(var(--radius-card)+6px)] bg-forest px-7 py-14 text-paper sm:px-14 sm:py-20">
-          <div className="max-w-2xl">
+        <div className="relative overflow-hidden rounded-[calc(var(--radius-card)+6px)] bg-gradient-to-br from-forest via-forest to-forest-ink px-7 py-14 text-paper shadow-glow-blue sm:px-14 sm:py-20">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -top-16 -right-16 h-64 w-64 rounded-full bg-gold/25 blur-3xl"
+          />
+          <div className="relative max-w-2xl">
             <p className="eyebrow eyebrow-gold">Let&apos;s begin</p>
             <h2 className="mt-4 font-serif text-3xl leading-tight tracking-tight sm:text-5xl">
               Give your organization the presence it&apos;s earned.

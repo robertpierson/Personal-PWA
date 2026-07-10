@@ -6,11 +6,17 @@
 
   Palette note: primary is a vivid royal/cobalt blue (--color-forest — the
   token name predates this color and is kept as-is; see the theme block
-  below), paired with the existing brass/ledger gold accent. Everything else from
-  the conversion-audit rebuild still holds:
+  below), paired with the existing brass/ledger gold accent. Per an explicit
+  follow-up request ("more vibrant, more visually interesting, closer to a
+  bold modern agency site"), the single flat blue was expanded into a tonal
+  ramp (100/300/base/deep/ink — see theme block) used for gradients, glow
+  accents, and a small number of dark full-bleed section bands. This is a
+  deliberate loosening of the original "one flat primary, restrained
+  everywhere" rule below; it is not a full redesign — most of the site is
+  still the light civic-ledger surface, with the tonal ramp and dark bands
+  used as accents on specific high-impact sections, not sitewide. Everything
+  else from the conversion-audit rebuild still holds:
     - Background is a cooler, grayer stone/parchment, not golden cream.
-    - Accent gold sits at ~40° hue, used under 10% of surface area, mostly
-      as seals/badges — never as a background wash.
     - Display face is a slab serif (Zilla Slab, built for Mozilla's civic-tech
       work) instead of an editorial high-contrast serif — reads as "record/
       form," not "boutique magazine."
@@ -21,21 +27,25 @@
       prices and stats — so a skimmer's eye reads "this is a measured
       figure," not decorative type.
 
-  RULES (kept from the prior audit, still binding):
-  - Color: one primary (--color-forest), one accent (--color-gold), one
-    neutral ramp. A color only earns a token if used in 3+ places.
+  RULES (kept from the prior audit, updated per the tonal-ramp request above):
+  - Color: one primary hue family (--color-forest-100/-300/-forest/-deep/-ink,
+    all blue), one accent (--color-gold family), one neutral ramp. Tones
+    within the blue family are used freely (gradients, glows, dark bands);
+    no hue outside blue/gold/neutral is introduced.
   - Type: modular 1.25 scale, mapped onto Tailwind's text-xs..text-6xl utility
     steps (documented below) — no arbitrary text-[...] sizes.
   - Spacing: Tailwind's default 4px scale only. No arbitrary p-[...]/gap-[...].
   - Radius: --radius-card (14px) for surfaces; rounded-full for buttons/pills.
-  - Shadow: --shadow-crisp / --shadow-card / --shadow-lift only.
+  - Shadow: --shadow-crisp / --shadow-card / --shadow-lift, plus
+    --shadow-glow-blue / --shadow-glow-gold for the new vibrant-accent pass.
   - Motion: interactive elements 150-250ms ease. No motion delays
     above-the-fold content. Sitewide, only THREE intentional motions (see
     "Motion system" below). Services and Pricing additionally use `.reveal`
     scroll-entrance animation by explicit request — scoped to those two
     pages only, not blanket sitewide.
   - Contrast: every pair below is verified >=4.5:1 (body) or >=3:1 (large
-    text/non-text UI). Ratios are logged in DESIGN_NOTES.md.
+    text/non-text UI), including light text on the new dark bands. Ratios
+    are logged in DESIGN_NOTES.md.
 */
 
 @theme {
@@ -56,15 +66,17 @@
   --color-line: #d8d2be;
   --color-line-strong: #c2bb9e;
 
-  /* Primary — vivid royal/cobalt blue (explicit brand direction: blue + gold;
-     brightened and more saturated than the initial muted-navy pass so it
-     reads as a distinct, colorful blue next to the gold, not a desaturated
-     near-black). Token name kept as "forest" for the same reason as before —
-     dozens of bg-forest/text-forest/border-forest classes reference it;
-     renaming the token means renaming every one of those classes for no
-     visual benefit. */
-  --color-forest: #2451d6;
-  --color-forest-deep: #16309e;
+  /* Primary — vivid royal/cobalt blue, now a tonal ramp (explicit brand
+     direction: blue + gold, expanded to several tones of the same hue for
+     more visual variety per follow-up request). Token name kept as "forest"
+     for the same reason as before — dozens of bg-forest/text-forest/
+     border-forest classes reference the base tone; renaming buys no visual
+     benefit. */
+  --color-forest-100: #dce6ff; /* pale tint — soft glows, badge backgrounds */
+  --color-forest-300: #5b82f0; /* bright mid-blue — gradient highlights, hover */
+  --color-forest: #2451d6; /* primary/base — unchanged */
+  --color-forest-deep: #16309e; /* deep — unchanged */
+  --color-forest-ink: #0a1233; /* near-black navy — dark section bands */
 
   /* Accent — brass/ledger gold, hue ~40° (nowhere near terracotta's ~16°) */
   --color-gold: #b8862e;
@@ -85,10 +97,13 @@
   /* Rhythm */
   --radius-card: 14px;
 
-  /* Shadows — three depths only */
+  /* Shadows — three depths, plus two colored glows for the vibrant-accent
+     pass (buttons, highlighted pricing tier, dark-band cards). */
   --shadow-crisp: 0 1px 0 0 rgba(20, 24, 26, 0.05);
   --shadow-card: 0 18px 40px -24px rgba(20, 24, 26, 0.32);
   --shadow-lift: 0 30px 60px -28px rgba(20, 24, 26, 0.26);
+  --shadow-glow-blue: 0 20px 50px -16px rgba(36, 81, 214, 0.55);
+  --shadow-glow-gold: 0 16px 40px -14px rgba(184, 134, 46, 0.45);
 }
 
 :root {

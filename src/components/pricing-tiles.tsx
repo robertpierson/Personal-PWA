@@ -92,7 +92,7 @@ export function PricingTiles({ compact = false }: { compact?: boolean }) {
               <div
                 className={`flex h-full flex-col rounded-[calc(var(--radius-card)+4px)] border p-7 transition-transform duration-200 ${
                   tier.highlighted
-                    ? "scale-[1.03] border-forest bg-forest text-paper shadow-lift"
+                    ? "scale-[1.03] border-forest bg-gradient-to-br from-forest to-forest-ink text-paper shadow-glow-blue"
                     : "border-line bg-panel hover:-translate-y-1 hover:shadow-lift"
                 }`}
               >

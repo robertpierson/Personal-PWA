@@ -9,7 +9,7 @@ const base =
 
 const variants: Record<Variant, string> = {
   primary:
-    "shadow-crisp bg-gradient-to-br from-forest to-forest-deep text-paper hover:brightness-110",
+    "bg-gradient-to-br from-forest to-forest-deep text-paper shadow-glow-blue hover:brightness-110 hover:shadow-lift",
   secondary:
     "border border-line-strong bg-panel text-ink hover:border-forest hover:text-forest",
   ghost: "text-ink hover:text-forest",

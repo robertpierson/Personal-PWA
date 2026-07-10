@@ -27,7 +27,9 @@ export default function ServicesPage() {
           {services.items.map((s, i) => (
             <Reveal key={s.title} delay={i * 60}>
               <div className="group flex flex-col gap-4 p-6 transition-colors duration-200 hover:bg-paper-2/40 sm:flex-row sm:items-start sm:p-7">
-                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gold/15 text-2xl transition-transform duration-200 group-hover:scale-110">
+                <span
+                  className={`grid h-12 w-12 shrink-0 place-items-center rounded-full text-2xl transition-transform duration-200 group-hover:scale-110 ${i % 2 === 0 ? "bg-gold/15" : "bg-forest-100"}`}
+                >
                   {s.emoji}
                 </span>
                 <div className="min-w-0">

@@ -50,8 +50,12 @@ export default function PricingPage() {
 
       <section className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8">
         <Reveal>
-          <div className="rounded-[calc(var(--radius-card)+6px)] bg-forest px-7 py-14 text-paper sm:px-14 sm:py-20">
-            <div className="max-w-2xl">
+          <div className="relative overflow-hidden rounded-[calc(var(--radius-card)+6px)] bg-gradient-to-br from-forest via-forest to-forest-ink px-7 py-14 text-paper shadow-glow-blue sm:px-14 sm:py-20">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -top-16 -right-16 h-64 w-64 rounded-full bg-gold/25 blur-3xl"
+            />
+            <div className="relative max-w-2xl">
               <p className="eyebrow eyebrow-gold">Still deciding?</p>
               <h2 className="mt-4 font-serif text-3xl leading-tight tracking-tight sm:text-5xl">
                 Book a free intro call, no pitch deck required.
