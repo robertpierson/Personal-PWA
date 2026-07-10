@@ -78,7 +78,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   // Keep in sync with --color-forest in globals.css — Next's metadata API
   // needs a literal string here, it can't read the CSS token.
-  themeColor: "#1f3d31",
+  themeColor: "#1b3a6b",
   colorScheme: "light",
   width: "device-width",
   initialScale: 1,

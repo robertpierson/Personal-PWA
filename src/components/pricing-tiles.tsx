@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ButtonLink } from "@/components/ui/button";
+import { Reveal } from "@/components/reveal";
 import { pricing } from "@/content/site.config";
 
 function money(n: number) {
@@ -66,15 +67,23 @@ export function PricingTiles({ compact = false }: { compact?: boolean }) {
       </p>
 
       <div className="mt-8 grid gap-6 sm:grid-cols-3">
-        {pricing.tiers.map((tier) => {
+        {pricing.tiers.map((tier, i) => {
           const monthlyPrice = tier.price;
           const annualTotal = monthlyPrice * 10; // 2 months free
           const displayPrice = annual ? annualTotal / 12 : monthlyPrice;
           const perDay = displayPrice / 30;
           const savings = monthlyPrice * 12 - annualTotal;
 
+          // Reveal is scoped to the standalone /pricing and /services pages
+          // only (see globals.css) — the homepage's `compact` embed of this
+          // component stays static, no scroll-entrance animation.
+          const Wrapper = compact ? "div" : Reveal;
+          const wrapperProps = compact
+            ? { className: "relative" }
+            : { className: "relative", delay: i * 90 };
+
           return (
-            <div key={tier.name} className="relative">
+            <Wrapper key={tier.name} {...wrapperProps}>
               {tier.highlighted && (
                 <span className="badge-pop absolute -top-4 right-6 z-10 rounded-full bg-gold px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-ink shadow-card">
                   {tier.badge}
@@ -84,7 +93,7 @@ export function PricingTiles({ compact = false }: { compact?: boolean }) {
                 className={`flex h-full flex-col rounded-[calc(var(--radius-card)+4px)] border p-7 transition-transform duration-200 ${
                   tier.highlighted
                     ? "scale-[1.03] border-forest bg-forest text-paper shadow-lift"
-                    : "border-line bg-panel"
+                    : "border-line bg-panel hover:-translate-y-1 hover:shadow-lift"
                 }`}
               >
                 <h3 className="font-serif text-xl tracking-tight">
@@ -152,7 +161,7 @@ export function PricingTiles({ compact = false }: { compact?: boolean }) {
                   {tier.cta}
                 </ButtonLink>
               </div>
-            </div>
+            </Wrapper>
           );
         })}
       </div>

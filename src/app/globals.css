@@ -1,23 +1,15 @@
 @import "tailwindcss";
 
 /*
-  Meridian — civic-ledger design system (rebuilt per conversion-audit brief).
+  Meridian — design system (civic-ledger structure, blue + gold palette per
+  explicit brand direction).
 
-  WHY THIS IS NOT THE GENERIC AI-SITE DEFAULT:
-  The previous system (warm cream + high-contrast display serif + single navy
-  accent) is one of the three palettes AI tools converge on. This system is
-  instead derived from the actual subject — Meridian sells credibility to
-  people who run town halls, food pantries, youth leagues, and small local
-  boards. So the palette borrows from municipal/civic-record visual language
-  (deed stamps, ledger ink, brass seals, index cards) rather than editorial
-  magazine design:
+  Palette note: primary is a deep royal blue (--color-forest — the token
+  name predates this color and is kept as-is; see the theme block below),
+  paired with the existing brass/ledger gold accent. Everything else from
+  the conversion-audit rebuild still holds:
     - Background is a cooler, grayer stone/parchment, not golden cream.
-    - Primary is a real bottle green (the --color-forest token now actually
-      IS forest green, not navy wearing the name) — the color of credit
-      unions, park departments, and land trusts: institutional, local,
-      non-corporate. Confirmed NOT navy/indigo/purple, NOT clay/terracotta.
-    - Accent is a brass/ledger gold at a warmer, more yellow hue than
-      terracotta (~hue 40° vs ~16°), used under 10% of surface area, mostly
+    - Accent gold sits at ~40° hue, used under 10% of surface area, mostly
       as seals/badges — never as a background wash.
     - Display face is a slab serif (Zilla Slab, built for Mozilla's civic-tech
       work) instead of an editorial high-contrast serif — reads as "record/
@@ -38,8 +30,10 @@
   - Radius: --radius-card (14px) for surfaces; rounded-full for buttons/pills.
   - Shadow: --shadow-crisp / --shadow-card / --shadow-lift only.
   - Motion: interactive elements 150-250ms ease. No motion delays
-    above-the-fold content. Only THREE intentional motions site-wide (see
-    "Motion system" below) — no blanket fade-up on every section.
+    above-the-fold content. Sitewide, only THREE intentional motions (see
+    "Motion system" below). Services and Pricing additionally use `.reveal`
+    scroll-entrance animation by explicit request — scoped to those two
+    pages only, not blanket sitewide.
   - Contrast: every pair below is verified >=4.5:1 (body) or >=3:1 (large
     text/non-text UI). Ratios are logged in DESIGN_NOTES.md.
 */
@@ -59,9 +53,12 @@
   --color-line: #d8d2be;
   --color-line-strong: #c2bb9e;
 
-  /* Primary — genuine bottle green (credit-union / land-trust register) */
-  --color-forest: #1f3d31;
-  --color-forest-deep: #14291f;
+  /* Primary — deep royal blue (explicit brand direction: blue + gold). Token
+     name kept as "forest" for the same reason as before — dozens of
+     bg-forest/text-forest/border-forest classes reference it; renaming the
+     token means renaming every one of those classes for no visual benefit. */
+  --color-forest: #1b3a6b;
+  --color-forest-deep: #12274a;
 
   /* Accent — brass/ledger gold, hue ~40° (nowhere near terracotta's ~16°) */
   --color-gold: #b8862e;
@@ -240,6 +237,29 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .badge-pop {
     animation: none;
+  }
+}
+
+/* 4. Scroll-entrance — Services and Pricing only, by explicit request. Not
+      used sitewide (see the rule at the top of this file). Content is
+      already in the DOM and readable without JS; this only adds a fade +
+      lift as each section is scrolled to. */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
+  will-change: opacity, transform;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
   }
 }
 

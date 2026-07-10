@@ -53,7 +53,7 @@ Everything above is addressed in the sections that follow; where something is on
 The full rationale lives as a comment block at the top of `src/app/globals.css` (kept next to the tokens so it can't drift out of sync); summarized here:
 
 - **Palette pivot, not a tweak.** The previous system — warm cream + high-contrast display serif + single navy accent — is named directly in §3 as one of the three palettes AI tools converge on. Rather than adjust it, the palette is re-derived from the actual subject: Meridian sells credibility to people who run town halls, food pantries, youth leagues, and small local boards. So it borrows civic/municipal visual language (deed stamps, ledger ink, brass seals) instead of editorial-magazine design.
-- **Primary color is a real bottle green** (`--color-forest: #1f3d31`) — the color of credit unions, park departments, and land trusts. Confirmed NOT navy/indigo/purple and NOT clay/terracotta (`#D97757`-family hues sit at ~16° hue; this accent gold sits at ~40°, and the primary green isn't in that family at all).
+- **Primary color is a deep royal blue** (`--color-forest: #1b3a6b` — token name kept from the earlier bottle-green iteration since dozens of `bg-forest`/`text-forest`/`border-forest` classes reference it, and renaming the token buys no visual benefit). Blue + gold was chosen as the explicit brand direction after the initial "civic ledger" bottle-green palette shipped; the civic/municipal reasoning still holds (blue is the color of seals, ribbons, and official letterhead, same register as the green it replaced), it's just a different hue within that register.
 - **Background is cooler/grayer stone** (`#f2f0e8`), not golden cream — a small shift that reads very differently once type/spacing are also different.
 - **Type pairing swapped entirely**: Zilla Slab (built for Mozilla's civic-tech work) for display instead of an editorial high-contrast serif; Public Sans — literally the U.S. Web Design System's typeface for government digital services — for body, instead of a generic modern grotesk. Both are on-theme and neither is a common AI-site default.
 - **A monospace (IBM Plex Mono) is reserved for numbers that are claims** — prices and stats get the `.figure` class, a small but deliberate signal that a given number is measured, not decorative.
@@ -64,10 +64,11 @@ The full rationale lives as a comment block at the top of `src/app/globals.css` 
 Per §4/§10, exactly three, named and scoped, replacing the prior blanket `<Reveal>` fade-up on every section:
 
 1. **Signature hover** (`.tilt-card`, `.pop-btn`) — a lift + shadow on cards, a scale on buttons. Used consistently on every interactive card/button, nowhere else.
-2. **Signature scroll moment** — the Presence Scorecard's checklist ticking in (`.check-in`) and the proof stats counting up (`.stat-pop`), both once, both only in the Proof section. Nowhere else on the site animates on scroll.
+2. **Signature scroll moment** — the Presence Scorecard's checklist ticking in (`.check-in`) and the proof stats counting up (`.stat-pop`), both once, both only in the Proof section.
 3. **Isolation pop** (`.badge-pop`) — the "Most popular" pricing badge scaling in. Used on exactly one element per page (verified via grep during the critique pass).
+4. **Scroll-entrance** (`.reveal` / `<Reveal>`) — added after initial ship, by explicit request, to `/services` and `/pricing` only: a fade + lift as each section/card scrolls into view, plus hover-lift on the new work-sample cards and pricing tiers. Deliberately *not* applied sitewide — the "blanket fade-up on every section" tell from the original audit (§1, homepage) still applies everywhere else. The homepage's compact `<PricingTiles compact />` embed shares the tier-card component with `/pricing` but is explicitly excluded from the Reveal wrapper so it stays static.
 
-The audience marquee's continuous scroll is decorative-only and exempt (it never gates or delays content). All motion is wrapped in `prefers-reduced-motion` guards (a blanket rule in `globals.css` plus explicit per-feature overrides, consistent with the pre-existing pattern in this codebase).
+The audience marquee's continuous scroll is decorative-only and exempt (it never gates or delays content). All motion, including `.reveal`, is wrapped in `prefers-reduced-motion` guards (a blanket rule in `globals.css` plus explicit per-feature overrides, consistent with the pre-existing pattern in this codebase).
 
 ## 4. Psychology tactics — where each was applied
 
