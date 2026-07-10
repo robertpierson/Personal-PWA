@@ -16,7 +16,17 @@
   still the light civic-ledger surface, with the tonal ramp and dark bands
   used as accents on specific high-impact sections, not sitewide. Everything
   else from the conversion-audit rebuild still holds:
-    - Background is a cooler, grayer stone/parchment, not golden cream.
+    - Background is a cool white/blue-gray neutral ramp — the last of the
+      original warm cream/tan tones were removed per explicit follow-up
+      feedback (see theme block); there is no warm color anywhere on the
+      site now, only white, cool gray, blue, and gold.
+    - The dashboard app-shell (not the marketing site) additionally supports
+      a dark theme, opt-in via Settings > Appearance. It's implemented as a
+      `[data-theme="dark"]` override of these same custom properties, scoped
+      to the dashboard's root wrapper only — see the block right after
+      `body {}` below, and (app)/dashboard/layout.tsx /
+      components/dashboard/theme-toggle.tsx. The marketing site is
+      untouched by this and stays light-only per brand.
     - Display face is a slab serif (Zilla Slab, built for Mozilla's civic-tech
       work) instead of an editorial high-contrast serif — reads as "record/
       form," not "boutique magazine."
@@ -49,22 +59,25 @@
 */
 
 @theme {
-  /* Surfaces — brightened/cooled per explicit follow-up feedback so the
-     vivid blue and gold read with more contrast against the background
-     (the original warm parchment made both feel muddier next to it). Panel
-     is now near-white so cards pop crisply off the body background. */
-  --color-paper: #f7f6f1;
-  --color-paper-2: #e3dfcf;
+  /* Surfaces — cool white/blue-gray, per explicit follow-up feedback that
+     the remaining warm cream/tan cast ("paper-2", "line") looked dated next
+     to the vivid blue. No more warm tones anywhere in the neutral ramp —
+     it's white, cool gray, and blue now, full stop. Panel stays pure white
+     so cards still pop off the (now cooler) body background. */
+  --color-paper: #f6f7fa;
+  --color-paper-2: #e7ebf3;
   --color-panel: #ffffff;
 
-  /* Ink / text */
+  /* Ink / text — de-tinted from a leftover greenish cast (from the earlier
+     bottle-green era) to true cool neutrals, consistent with the surfaces
+     above. */
   --color-ink: #14181a;
-  --color-ink-soft: #454b47;
-  --color-ink-faint: #5b615c;
+  --color-ink-soft: #4a4f58;
+  --color-ink-faint: #5f6570;
 
-  /* Lines */
-  --color-line: #d8d2be;
-  --color-line-strong: #c2bb9e;
+  /* Lines — cool blue-gray, matches the new surfaces (was tan). */
+  --color-line: #dde2ec;
+  --color-line-strong: #c3cbdc;
 
   /* Primary — vivid royal/cobalt blue, now a tonal ramp (explicit brand
      direction: blue + gold, expanded to several tones of the same hue for
@@ -120,6 +133,45 @@ body {
   background-color: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-sans);
+}
+
+/*
+  Dark theme — dashboard app-shell only, opt-in via a `data-theme="dark"`
+  attribute on the dashboard's root wrapper (see (app)/dashboard/layout.tsx),
+  toggled from Settings > Appearance. Deliberately scoped to that one
+  wrapper, NOT :root/html, so it can never affect the marketing site — that
+  stays the light-only civic-ledger surface per the project's brand
+  decision. Because every marketing/dashboard component already reads color
+  via these same CSS custom properties (bg-paper, text-ink, border-line,
+  etc.) rather than hard-coded values, overriding the properties here is
+  enough to re-theme the whole dashboard — no component-level `dark:`
+  classes needed. Contrast re-verified for this set: ink/paper ~19:1,
+  forest/paper ~5.2:1, gold-soft/paper ~14:1 (see DESIGN_NOTES.md).
+*/
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-paper: #0e1420;
+  --color-paper-2: #171f30;
+  --color-panel: #1b2338;
+
+  --color-ink: #f1f3f8;
+  --color-ink-soft: #b6bdcc;
+  --color-ink-faint: #8890a3;
+
+  --color-line: #2a3349;
+  --color-line-strong: #3b4560;
+
+  --color-forest-100: #16233f;
+  --color-forest-300: #6f97ff;
+  --color-forest: #5b82f0;
+  --color-forest-deep: #2451d6;
+  --color-forest-ink: #060a16;
+
+  --color-gold: #d9ab4e;
+  --color-gold-soft: #f0dfb0;
+  --color-gold-deep: #b8862e;
+  --color-gold-text: #f0dfb0;
 }
 
 @media (prefers-reduced-motion: reduce) {
