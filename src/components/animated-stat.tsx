@@ -67,7 +67,7 @@ export function AnimatedStat({
 
   return (
     <div ref={ref} className={started ? "stat-pop" : "opacity-0"}>
-      <p className="figure text-3xl font-semibold text-forest sm:text-4xl">
+      <p className="figure text-3xl font-semibold text-gold-text sm:text-4xl">
         {prefix}
         {display.toFixed(decimals)}
         {suffix}

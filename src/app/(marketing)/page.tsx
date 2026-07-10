@@ -139,7 +139,7 @@ export default function HomePage() {
                 }`}
               >
                 <span
-                  className={`mb-5 grid h-12 w-12 shrink-0 place-items-center rounded-full bg-forest/10 text-2xl ${isLast ? "sm:mb-0" : ""}`}
+                  className={`mb-5 grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gold/15 text-2xl ${isLast ? "sm:mb-0" : ""}`}
                 >
                   {s.emoji}
                 </span>

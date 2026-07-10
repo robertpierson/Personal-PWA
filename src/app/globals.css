@@ -39,10 +39,13 @@
 */
 
 @theme {
-  /* Surfaces — cooler stone/parchment, not golden cream */
-  --color-paper: #f2f0e8;
-  --color-paper-2: #e8e4d5;
-  --color-panel: #fbfaf5;
+  /* Surfaces — brightened/cooled per explicit follow-up feedback so the
+     vivid blue and gold read with more contrast against the background
+     (the original warm parchment made both feel muddier next to it). Panel
+     is now near-white so cards pop crisply off the body background. */
+  --color-paper: #f7f6f1;
+  --color-paper-2: #e3dfcf;
+  --color-panel: #ffffff;
 
   /* Ink / text */
   --color-ink: #14181a;
@@ -116,14 +119,27 @@ body {
   }
 }
 
-/* Small caps eyebrow label used throughout the site */
+/* Small caps eyebrow label used throughout the site. Carries a short gold
+   tick mark before it — a deliberate, repeated brand touch (28 instances
+   sitewide) so gold has real presence next to the blue, not just on badges. */
 .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55em;
   font-family: var(--font-sans);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-forest);
+}
+.eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 18px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-gold);
 }
 /*
   Color override for .eyebrow on the dark brand background. Plain Tailwind
