@@ -85,6 +85,19 @@ export const hero = {
 } as const;
 
 /**
+ * Trust-stat banner — a single external, authoritative claim shown right
+ * after the hero (pattern borrowed from a reference B2B site). Unlike the
+ * illustrative stats in `proof.stats`, this would be a *real* third-party
+ * citation, not our own measured number — left as an explicit placeholder
+ * until a real source is picked, per the site's no-fake-proof rule.
+ */
+export const trustStat = {
+  quote:
+    "[PLACEHOLDER: a real, cited external stat about website/social presence and donor, sponsor, or customer trust — e.g. published research from Nonprofit Tech for Good, Qgiv, or a comparable source]",
+  source: "[PLACEHOLDER: source name + year]",
+} as const;
+
+/**
  * Presence Scorecard — the signature element. What a funder or board member
  * actually checks before trusting an organization, presented as a checklist.
  * See PresenceScorecard component for the one signature scroll animation.
@@ -218,6 +231,73 @@ export const services = {
       body: "Consistent, reviewed content, and a plain-English insights review so you can see it working.",
       emoji: "🚀",
     },
+  ],
+} as const;
+
+/**
+ * Operational pain points — deliberately distinct from the Presence
+ * Scorecard (which covers how the org *looks* to outsiders): this covers
+ * the day-to-day coordination problems that cause that look in the first
+ * place. Descriptive, not a proof/stat claim, so it needs no source.
+ */
+export const challenges = {
+  eyebrow: "Sound familiar?",
+  title: "The mission isn't the problem. This is.",
+  items: [
+    "The website hasn't been touched since the day it launched",
+    "Instagram goes quiet for weeks, then everyone apologizes for it",
+    "Nobody's sure whose job it is to post this week",
+    "Every graphic looks different because it's whoever had 20 free minutes",
+    "“Reporting” means someone screenshotting a follower count",
+    "One volunteer holds every password, and there's no backup",
+    "Three different vendors who've never spoken to each other",
+    "No real idea whether any of it is working",
+  ],
+} as const;
+
+/**
+ * "One system" differentiation — the connective explanation for why the
+ * five services above aren't five separate line items. Real description of
+ * how Meridian's own engagement works, not a placeholder.
+ */
+export const system = {
+  eyebrow: "How it fits together",
+  title: "Not five vendors. One system, one monthly bill.",
+  subhead:
+    "Design, content, and reporting are usually three separate relationships that don't talk to each other. Here, they're one.",
+  steps: [
+    {
+      n: "01",
+      title: "Design & brand",
+      body: "A website and visual system built once, so every page and post match.",
+    },
+    {
+      n: "02",
+      title: "Content & calendar",
+      body: "A real posting schedule tied to your actual programming, reviewed by a person before it goes out.",
+    },
+    {
+      n: "03",
+      title: "Insights & reporting",
+      body: "Plain-English numbers pulled straight from Meta's own API, sent to you every month.",
+    },
+  ],
+} as const;
+
+/**
+ * Press/awards recognition row — distinct from `proof.logoRowLabel` (real
+ * client logos). Explicitly placeholder per the site's no-fake-proof rule;
+ * bracketed captions only, never styled to resemble a real award seal.
+ */
+export const recognition = {
+  eyebrow: "Recognition",
+  label:
+    "[PLACEHOLDER: press features, local awards, or directory listings will replace these as they're earned]",
+  items: [
+    "[PLACEHOLDER: press feature]",
+    "[PLACEHOLDER: chamber recognition]",
+    "[PLACEHOLDER: directory listing]",
+    "[PLACEHOLDER: industry award]",
   ],
 } as const;
 

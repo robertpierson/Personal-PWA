@@ -7,11 +7,15 @@ import { PresenceScorecard } from "@/components/presence-scorecard";
 import { PricingTiles } from "@/components/pricing-tiles";
 import { caseStudies } from "@/content/case-studies";
 import {
+  challenges,
   cta,
   hero,
   icp,
   proof,
+  recognition,
   services as servicesConfig,
+  system,
+  trustStat,
 } from "@/content/site.config";
 
 export default function HomePage() {
@@ -65,6 +69,18 @@ export default function HomePage() {
               ))}
             </ul>
           </div>
+        </div>
+      </section>
+
+      {/* ————— Trust-stat banner (placeholder pending a real citation) ————— */}
+      <section className="border-y border-line bg-paper-2/60">
+        <div className="mx-auto w-full max-w-3xl px-5 py-12 text-center sm:px-8 sm:py-14">
+          <p className="font-serif text-xl leading-snug tracking-tight text-ink-soft sm:text-2xl">
+            {trustStat.quote}
+          </p>
+          <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-gold-text">
+            {trustStat.source}
+          </p>
         </div>
       </section>
 
@@ -160,6 +176,63 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ————— Challenges: operational pain, distinct from the Scorecard's
+          perception checklist ————— */}
+      <section className="border-t border-line bg-panel">
+        <div className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8 md:py-20">
+          <p className="eyebrow">{challenges.eyebrow}</p>
+          <h2 className="mt-3 max-w-xl font-serif text-3xl leading-tight tracking-tight text-ink sm:text-4xl">
+            {challenges.title}
+          </h2>
+          <ul className="mt-10 grid gap-x-8 gap-y-4 sm:grid-cols-2">
+            {challenges.items.map((item) => (
+              <li key={item} className="flex items-start gap-3 text-ink-soft">
+                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
+                <span className="leading-relaxed">{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* ————— One system, not five vendors ————— */}
+      <section className="border-t border-line bg-paper-2/50">
+        <div className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8 md:py-20">
+          <p className="eyebrow">{system.eyebrow}</p>
+          <h2 className="mt-3 max-w-xl font-serif text-3xl leading-tight tracking-tight text-ink sm:text-4xl">
+            {system.title}
+          </h2>
+          <p className="mt-3 max-w-xl text-ink-soft">{system.subhead}</p>
+
+          <div className="mt-10 grid gap-6 sm:grid-cols-3">
+            {system.steps.map((step, i) => (
+              <div
+                key={step.n}
+                className="relative rounded-[var(--radius-card)] bg-panel p-7 shadow-card"
+              >
+                <span className="figure text-sm font-semibold text-gold-text">
+                  {step.n}
+                </span>
+                <h3 className="mt-2 font-serif text-xl tracking-tight text-ink">
+                  {step.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                  {step.body}
+                </p>
+                {i < system.steps.length - 1 && (
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute top-1/2 -right-3 hidden -translate-y-1/2 text-lg text-forest/40 sm:block"
+                  >
+                    →
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ————— Pricing: visible on the homepage, not just a tab ————— */}
       <section className="border-t border-line bg-paper-2/50">
         <div className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8 md:py-20">
@@ -192,6 +265,23 @@ export default function HomePage() {
             .map((study) => (
               <CaseStudyCard key={study.slug} study={study} />
             ))}
+        </div>
+      </section>
+
+      {/* ————— Recognition (placeholder — see recognition config for why) ————— */}
+      <section className="mx-auto w-full max-w-6xl px-5 pb-16 sm:px-8">
+        <p className="text-center text-xs font-medium uppercase tracking-wide text-ink-faint">
+          {recognition.label}
+        </p>
+        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {recognition.items.map((item) => (
+            <div
+              key={item}
+              className="flex h-16 items-center justify-center rounded-[var(--radius-card)] border border-dashed border-line-strong bg-paper-2/40 px-3 text-center text-xs font-medium text-ink-faint"
+            >
+              {item}
+            </div>
+          ))}
         </div>
       </section>
 
