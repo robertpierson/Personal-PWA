@@ -3,6 +3,7 @@ import { getCreditsUsage, getNotifications } from "@/lib/data/dashboard";
 import { Sidebar, type NavItem } from "@/components/dashboard/sidebar";
 import { NotificationsMenu } from "@/components/dashboard/notifications-menu";
 import { CreditsMenu } from "@/components/dashboard/credits-menu";
+import { ThemeInit } from "@/components/dashboard/theme-init";
 
 const ownerNav: NavItem[] = [
   { label: "Overview", href: "/dashboard", icon: "overview" },
@@ -46,12 +47,7 @@ export default async function DashboardLayout({
       {/* Applies the stored theme before first paint, avoiding a flash of
           the wrong theme. Scoped to this wrapper only (via data-app-theme),
           never the marketing site — see globals.css. */}
-      <script
-        dangerouslySetInnerHTML={{
-          __html:
-            "(function(){try{var t=localStorage.getItem('meridian-theme')||'system';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.currentScript.parentElement.setAttribute('data-theme','dark');}catch(e){}})();",
-        }}
-      />
+      <ThemeInit />
       <Sidebar session={session} nav={nav} />
       <div className="lg:pl-72">
         {session.demo && (
