@@ -44,7 +44,7 @@ export default function PrivacyPage() {
           </p>
           <p>
             <strong>Payment information</strong> is handled by our payment
-            processor (Stripe). We do not store your full card details.
+            processor (PayPal). We do not store your full card details.
           </p>
         </section>
 

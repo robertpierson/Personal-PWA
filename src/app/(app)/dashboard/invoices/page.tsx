@@ -96,7 +96,7 @@ export default async function InvoicesPage() {
 
       {session.demo && (
         <p className="text-xs text-ink-faint">
-          Demo mode — “Pay now” is inactive until Stripe credentials are added.
+          Demo mode — “Pay now” is inactive until PayPal credentials are added.
         </p>
       )}
     </div>

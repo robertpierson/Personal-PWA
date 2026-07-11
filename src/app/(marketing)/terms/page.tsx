@@ -59,7 +59,7 @@ export default function TermsPage() {
           <h2>Payments</h2>
           <p>
             Fees are set out in your proposal or invoices and processed through
-            Stripe. Invoices are due by the date stated. We may pause work on
+            PayPal. Invoices are due by the date stated. We may pause work on
             past-due accounts.
           </p>
         </section>

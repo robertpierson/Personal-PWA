@@ -16,11 +16,11 @@ Instagram growth via Meta's official Graph API (read-only insights only).
 2. **Auth-gated client dashboard** (Supabase) — done. Overview, content
    calendar, designs, deliverables, invoices, insights, settings.
 3. **Instagram metrics** via Graph API OAuth (read-only) — done.
-4. **Stripe billing** — done.
+4. **PayPal billing** — done.
 
 **Demo mode is the backbone of local dev:** when Supabase isn't configured the
 app runs entirely on `src/lib/demo/data.ts` via a demo cookie set at `/login`.
-`src/lib/config.ts` exposes `isSupabaseConfigured` / `isStripeConfigured` /
+`src/lib/config.ts` exposes `isSupabaseConfigured` / `isPayPalConfigured` /
 `isMetaConfigured` / `isDemoMode`. Every data-access function in
 `src/lib/data/dashboard.ts` branches on `session.demo`. Real integrations are
 fully wired and activate when the corresponding env vars are present — no code
@@ -45,7 +45,7 @@ Hard rule still holds in Phase 3: Meta scopes are read-only
 
 Next.js 16 (App Router, **Turbopack**) · React 19 · TypeScript · Tailwind v4
 (CSS-based `@theme` in `globals.css`, no config file) · Supabase (Phase 2+) ·
-Stripe (Phase 4). Deploy: Vercel.
+PayPal (Phase 4). Deploy: Vercel.
 
 **PWA is hand-rolled, not Serwist/next-pwa** — Serwist's Next plugin needs
 webpack, which fights Next 16's default Turbopack. See `public/sw.js` +

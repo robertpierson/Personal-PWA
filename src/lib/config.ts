@@ -10,7 +10,9 @@ export const isSupabaseConfigured = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
 );
 
-export const isStripeConfigured = Boolean(process.env.STRIPE_SECRET_KEY);
+export const isPayPalConfigured = Boolean(
+  process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_CLIENT_SECRET,
+);
 
 export const isMetaConfigured = Boolean(
   process.env.META_APP_ID && process.env.META_APP_SECRET,

@@ -60,21 +60,20 @@ We only ever request read-only scopes and never act on a client's account.
 
 ---
 
-## 3. Stripe — billing
+## 3. PayPal — billing
 
-1. Create an account at [stripe.com](https://stripe.com).
-2. Copy your secret key into `STRIPE_SECRET_KEY` (use a test key first).
-3. Create a webhook endpoint pointing at
-   `https://YOUR_DOMAIN/api/stripe/webhook`, subscribed to
-   `checkout.session.completed`. Copy its signing secret into
-   `STRIPE_WEBHOOK_SECRET`.
-4. Owners can now pay open invoices from **Dashboard → Invoices**; paid status
-   updates automatically via the webhook.
-
-Local webhook testing:
-```bash
-stripe listen --forward-to localhost:3000/api/stripe/webhook
-```
+1. Create/use your PayPal account at [developer.paypal.com](https://developer.paypal.com).
+2. Create an app under **Apps & Credentials**. Copy the **Client ID** and
+   **Secret** into `PAYPAL_CLIENT_ID` / `PAYPAL_CLIENT_SECRET`. Use the
+   Sandbox app first (`PAYPAL_ENV=sandbox`); switch to a Live app + `PAYPAL_ENV=live`
+   when ready.
+3. Add a webhook (same Apps page) pointing at
+   `https://YOUR_DOMAIN/api/paypal/webhook`, subscribed to
+   `PAYMENT.CAPTURE.COMPLETED`. Copy the Webhook ID into `PAYPAL_WEBHOOK_ID`.
+4. Owners can now pay open invoices from **Dashboard → Invoices**. The buyer
+   is redirected to PayPal, approves, and lands back on
+   `/api/paypal/capture-order`, which captures the payment and marks the
+   invoice paid. The webhook is a backup in case that redirect never completes.
 
 ---
 
@@ -92,7 +91,7 @@ such as Resend.
 1. Push this repo to GitHub and import it at [vercel.com](https://vercel.com).
 2. Add every variable from `.env.local` to the Vercel project's Environment
    Variables, and set `NEXT_PUBLIC_SITE_URL` to your production URL.
-3. Deploy. Update the Meta redirect URL and Stripe webhook URL to the
+3. Deploy. Update the Meta redirect URL and PayPal webhook URL to the
    production domain.
 
 ---

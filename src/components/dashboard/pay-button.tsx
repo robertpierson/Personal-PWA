@@ -16,7 +16,7 @@ export function PayButton({
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/stripe/checkout", {
+      const res = await fetch("/api/paypal/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ invoiceId }),
@@ -37,7 +37,7 @@ export function PayButton({
         type="button"
         onClick={pay}
         disabled={loading}
-        title={demo ? "Connect Stripe to enable payments" : undefined}
+        title={demo ? "Connect PayPal to enable payments" : undefined}
         className="inline-flex h-9 items-center rounded-full bg-forest px-4 text-sm font-medium text-paper transition-colors hover:bg-forest-deep disabled:opacity-60"
       >
         {loading ? "Starting…" : "Pay now"}

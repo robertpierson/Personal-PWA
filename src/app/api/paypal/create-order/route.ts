@@ -1,15 +1,14 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { getStripe } from "@/lib/stripe/server";
+import { createOrder } from "@/lib/paypal/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { isStripeConfigured, isSupabaseConfigured } from "@/lib/config";
+import { isPayPalConfigured, isSupabaseConfigured } from "@/lib/config";
 
 /**
- * Creates a Stripe Checkout session to pay an open invoice. Owner-only. In demo
- * mode (or without Stripe configured) it returns a friendly notice instead.
+ * Creates a PayPal order to pay an open invoice. Owner-only. In demo mode (or
+ * without PayPal configured) it returns a friendly notice instead.
  */
 export async function POST(request: Request) {
-  const origin = new URL(request.url).origin;
   const session = await getSession();
 
   if (!session) {
@@ -18,9 +17,7 @@ export async function POST(request: Request) {
   if (session.member.role !== "owner") {
     return NextResponse.json({ error: "Owners only." }, { status: 403 });
   }
-
-  const stripe = getStripe();
-  if (!stripe || !isStripeConfigured || !isSupabaseConfigured) {
+  if (!isPayPalConfigured || !isSupabaseConfigured) {
     return NextResponse.json(
       { error: "Billing isn't configured yet (demo mode)." },
       { status: 503 },
@@ -49,25 +46,13 @@ export async function POST(request: Request) {
     );
   }
 
-  const checkout = await stripe.checkout.sessions.create({
-    mode: "payment",
-    line_items: [
-      {
-        price_data: {
-          currency: invoice.currency ?? "usd",
-          product_data: {
-            name: `Invoice ${invoice.number}`,
-            description: invoice.description ?? undefined,
-          },
-          unit_amount: invoice.amount_cents,
-        },
-        quantity: 1,
-      },
-    ],
-    success_url: `${origin}/dashboard/invoices?paid=1`,
-    cancel_url: `${origin}/dashboard/invoices`,
-    metadata: { invoiceId: invoice.id, orgId: invoice.org_id },
+  const { approveUrl } = await createOrder({
+    id: invoice.id,
+    number: invoice.number,
+    description: invoice.description,
+    amountCents: invoice.amount_cents,
+    currency: invoice.currency ?? "usd",
   });
 
-  return NextResponse.json({ url: checkout.url });
+  return NextResponse.json({ url: approveUrl });
 }

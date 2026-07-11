@@ -3,7 +3,7 @@ import { requireSession } from "@/lib/auth";
 import { getInsights } from "@/lib/data/dashboard";
 import {
   isMetaConfigured,
-  isStripeConfigured,
+  isPayPalConfigured,
   isSupabaseConfigured,
 } from "@/lib/config";
 import {
@@ -137,12 +137,12 @@ export default async function SettingsPage() {
                 }
               />
               <IntegrationRow
-                name="Billing (Stripe)"
-                status={isStripeConfigured ? "connected" : "demo"}
+                name="Billing (PayPal)"
+                status={isPayPalConfigured ? "connected" : "demo"}
                 detail={
-                  isStripeConfigured
-                    ? "Payments are live via Stripe Checkout."
-                    : "Add Stripe keys to accept invoice payments online."
+                  isPayPalConfigured
+                    ? "Payments are live via PayPal Checkout."
+                    : "Add PayPal keys to accept invoice payments online."
                 }
               />
             </div>

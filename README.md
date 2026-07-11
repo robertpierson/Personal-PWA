@@ -16,7 +16,7 @@ Deploys to Vercel; data/auth (from Phase 2) via Supabase.
 | **1** | Marketing site, installable PWA, booking flow | ✅ Built |
 | **2** | Auth-gated client dashboard (Supabase) | ✅ Built — runs in demo mode until Supabase keys added |
 | **3** | Instagram metrics via Graph API OAuth | ✅ Built — needs Meta app + App Review for live data |
-| **4** | Stripe billing | ✅ Built — needs Stripe keys for live payments |
+| **4** | PayPal billing | ✅ Built — needs PayPal keys for live payments |
 
 > **Demo mode:** with no credentials in `.env`, the whole app runs on bundled
 > sample data. Visit `/login` and choose **Enter as owner** or **Enter as team
@@ -32,8 +32,8 @@ Deploys to Vercel; data/auth (from Phase 2) via Supabase.
   App Review / Business Verification (Meta-controlled, multi-week), set
   `META_APP_ID` + `META_APP_SECRET`. Data is read-only and tracked from connect
   date onward.
-- **Stripe** (Phase 4): set `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET`, and
-  point a webhook at `/api/stripe/webhook` (`checkout.session.completed`).
+- **PayPal** (Phase 4): set `PAYPAL_CLIENT_ID` + `PAYPAL_CLIENT_SECRET`, and
+  point a webhook at `/api/paypal/webhook` (`PAYMENT.CAPTURE.COMPLETED`).
 
 ## Getting started
 
