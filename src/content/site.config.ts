@@ -1,4 +1,5 @@
 import type { PlanName } from "@/lib/types";
+import { name as brandName } from "@/content/brand.config";
 
 /**
  * Single source of truth for every string, number, and content list on the
@@ -13,16 +14,15 @@ import type { PlanName } from "@/lib/types";
  */
 
 export const brand = {
-  name: "Meridian",
-  wordmark: "Meridian",
+  name: brandName,
+  wordmark: brandName,
   tagline: "Local Presence Studio",
   /** Short one-liner — footer, OG/meta description. */
   positioning:
     "More donors say yes. More volunteers show up. We run your website, social, and content calendar so your board doesn't have to.",
   /** Longer meta description. */
-  description:
-    "Meridian runs the website, hosting, social content, and content calendar for nonprofits, PTAs, youth leagues, and local businesses — so funders, sponsors, and volunteers see an organization that looks as credible as the work it does.",
-  contactEmail: "hello@meridian.studio",
+  description: `${brandName} runs the website, hosting, social content, and content calendar for nonprofits, PTAs, youth leagues, and local businesses — so funders, sponsors, and volunteers see an organization that looks as credible as the work it does.`,
+  contactEmail: `hello@${brandName.toLowerCase()}.studio`,
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
 } as const;
 
@@ -73,8 +73,7 @@ export const hero = {
   eyebrow: icp.label,
   /** Outcome-first, not mechanism-first — the thing the buyer actually wants. */
   headline: "More donors say yes. More volunteers show up.",
-  subhead:
-    "Meridian runs your website, social content, and content calendar — so your board stops juggling three different vendors and starts seeing it work.",
+  subhead: `${brandName} runs your website, social content, and content calendar — so your board stops juggling three different vendors and starts seeing it work.`,
   /** Above-the-fold credibility cue. A guarantee, not a stat — see DESIGN_NOTES.md for why. */
   credibilityCue: {
     title: "Free 15-minute presence check",
@@ -82,19 +81,9 @@ export const hero = {
   },
   authorityStance:
     "We never post to your account without your review — organic strategy only.",
-} as const;
-
-/**
- * Trust-stat banner — a single external, authoritative claim shown right
- * after the hero (pattern borrowed from a reference B2B site). Unlike the
- * illustrative stats in `proof.stats`, this would be a *real* third-party
- * citation, not our own measured number — left as an explicit placeholder
- * until a real source is picked, per the site's no-fake-proof rule.
- */
-export const trustStat = {
-  quote:
-    "[PLACEHOLDER: a real, cited external stat about website/social presence and donor, sponsor, or customer trust — e.g. published research from Nonprofit Tech for Good, Qgiv, or a comparable source]",
-  source: "[PLACEHOLDER: source name + year]",
+  /** The one word in the headline set in the accent color. Must be a
+   * substring of `headline` — see HomePage for how it's split out. */
+  highlight: "donors",
 } as const;
 
 /**
@@ -118,16 +107,16 @@ export const scorecard = {
 } as const;
 
 /**
- * Proof section. Testimonials and the logo row are illustrative until real
- * engagements complete — each is labeled plainly so it's never mistaken for
- * verified proof. Stats are sourced to the specific illustrative case study
- * they're drawn from (see caseStudies below), not presented as a fleet-wide
- * average.
+ * Proof section. Testimonials are illustrative until real engagements
+ * complete — each is labeled plainly so it's never mistaken for verified
+ * proof. Stats are sourced to the specific illustrative case study they're
+ * drawn from (see caseStudies below), not presented as a fleet-wide average.
+ * No real client logos exist yet, so there's no logo row here — an empty
+ * dashed placeholder box would just be visible filler.
  */
 export const proof = {
   eyebrow: "Proof, not vibes",
   title: "What changes when the presence is real.",
-  logoRowLabel: "[PLACEHOLDER: real client logos will replace this row]",
   testimonials: [
     {
       quote:
@@ -179,31 +168,31 @@ export const services = {
       title: "A website that doesn't embarrass you",
       body: "Built, hosted, and kept online — domain and database included. No separate web host or developer for you to manage.",
       outcome: "Funders find a real site, not a dead link.",
-      emoji: "🌐",
+      icon: "globe",
     },
     {
       title: "Graphics that look like you paid for them",
       body: "A visual system and templates built for your organization, so every post looks deliberate instead of thrown together at 11pm.",
       outcome: "Your page stops looking like a volunteer's side project.",
-      emoji: "🎨",
+      icon: "palette",
     },
     {
       title: "A calendar that actually gets followed",
       body: "A plan mapped to your real programming and season. AI helps us draft faster; a person on our team reviews everything before it goes out.",
       outcome: "Posting doesn't stop after launch week.",
-      emoji: "🗓️",
+      icon: "calendar",
     },
     {
       title: "Outreach that turns followers into people",
       body: "Planning and promoting the events, sponsor conversations, and partnerships that build real relationships.",
       outcome: "New sponsors and volunteers, not just new followers.",
-      emoji: "🤝",
+      icon: "people",
     },
     {
       title: "Reporting you can actually check",
       body: "We read your account's real metrics through Meta's official API — reach, engagement, growth — and report them straight.",
       outcome: "Numbers you can put in a board deck without flinching.",
-      emoji: "📊",
+      icon: "chart",
     },
   ],
   approach: [
@@ -211,25 +200,25 @@ export const services = {
       n: "01",
       title: "Intro call",
       body: "A short, no-pressure conversation about your organization and what a credible presence would unlock.",
-      emoji: "☕",
+      icon: "coffee",
     },
     {
       n: "02",
       title: "Presence audit",
       body: "We run the same checklist as the Presence Scorecard against your organization, honestly.",
-      emoji: "🔍",
+      icon: "search",
     },
     {
       n: "03",
       title: "Build & calendar",
       body: "We design the system and lay out a content calendar tied to your programming — you approve the direction.",
-      emoji: "🛠️",
+      icon: "layers",
     },
     {
       n: "04",
       title: "Run & report",
       body: "Consistent, reviewed content, and a plain-English insights review so you can see it working.",
-      emoji: "🚀",
+      icon: "rocket",
     },
   ],
 } as const;
@@ -258,7 +247,7 @@ export const challenges = {
 /**
  * "One system" differentiation — the connective explanation for why the
  * five services above aren't five separate line items. Real description of
- * how Meridian's own engagement works, not a placeholder.
+ * how the studio's own engagement works, not a placeholder.
  */
 export const system = {
   eyebrow: "How it fits together",
@@ -285,36 +274,18 @@ export const system = {
 } as const;
 
 /**
- * Press/awards recognition row — distinct from `proof.logoRowLabel` (real
- * client logos). Explicitly placeholder per the site's no-fake-proof rule;
- * bracketed captions only, never styled to resemble a real award seal.
- */
-export const recognition = {
-  eyebrow: "Recognition",
-  label:
-    "[PLACEHOLDER: press features, local awards, or directory listings will replace these as they're earned]",
-  items: [
-    "[PLACEHOLDER: press feature]",
-    "[PLACEHOLDER: chamber recognition]",
-    "[PLACEHOLDER: directory listing]",
-    "[PLACEHOLDER: industry award]",
-  ],
-} as const;
-
-/**
  * Pricing. Three visible tiers (Hick's law) — the underlying plan system
  * also has a Free tier (used by the dashboard/demo), surfaced here only as
  * a low-commitment footnote rather than a fourth box, so the paid grid never
- * exceeds three choices. Round numbers on the two higher tiers (Meridian
- * sells credibility); the entry tier keeps its existing charm price.
+ * exceeds three choices. Round numbers on all three tiers — ragged charm
+ * prices ($19.99) directly contradict "No shocking invoices. Ever."
  */
 export const pricing = {
   eyebrow: "Pricing",
   title: "Simple plans. No shocking invoices. Ever.",
   subhead:
     "Pick a tier, cancel anytime. Most organizations land on Growth — but Starter is a genuinely good place to begin.",
-  anchor:
-    "A part-time marketing hire runs about $2,000/mo. A small agency retainer starts around $2,500/mo. Meridian starts at $19.99/mo.",
+  anchor: `A part-time marketing hire runs about $2,000/mo. A small agency retainer starts around $2,500/mo. ${brandName} starts at $19/mo.`,
   freeFootnote:
     "Just want to try it first? Ask about the free plan on your intro call — no card required.",
   annualDiscountLabel: "2 months free",
@@ -326,7 +297,7 @@ export const pricing = {
     {
       name: "Basic" as PlanName,
       displayName: "Starter",
-      price: 19.99,
+      price: 19,
       tagline: "So every org can afford to look good.",
       features: [
         "Branded template kit",
@@ -379,7 +350,7 @@ export const pricing = {
 export const faq = [
   {
     q: "Is this actually worth it for an organization our size?",
-    a: "If a part-time hire runs $2,000/mo and an agency starts around $2,500/mo, Starter at $19.99/mo isn't really a close call. Most of the orgs we talk to are exactly your size — that's who this is built for.",
+    a: "If a part-time hire runs $2,000/mo and an agency starts around $2,500/mo, Starter at $19/mo isn't really a close call. Most of the orgs we talk to are exactly your size — that's who this is built for.",
   },
   {
     q: "What do we actually get for the price?",

@@ -7,7 +7,7 @@ import { isSupabaseConfigured } from "@/lib/config";
 
 export const metadata: Metadata = {
   title: "Client login",
-  description: "Sign in to your Meridian client dashboard.",
+  description: "Sign in to your Marquee client dashboard.",
 };
 
 export default async function LoginPage() {

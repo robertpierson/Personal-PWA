@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const STORAGE_KEY = "meridian-notification-prefs";
+const STORAGE_KEY = "marquee-notification-prefs";
 
 const defaults = {
   deliverableReady: true,

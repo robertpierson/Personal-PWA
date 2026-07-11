@@ -6,7 +6,7 @@
 export function AreaChart({
   data,
   labels,
-  color = "var(--color-forest)",
+  color = "var(--color-ink-soft)",
   height = 220,
   formatValue = (n: number) => n.toLocaleString(),
 }: {

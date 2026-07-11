@@ -12,7 +12,6 @@ import {
   formatDate,
 } from "@/components/dashboard/primitives";
 import { OrgSettingsForm } from "@/components/dashboard/org-settings-form";
-import { ThemeToggle } from "@/components/dashboard/theme-toggle";
 import { NotificationPreferences } from "@/components/dashboard/notification-preferences";
 
 export const metadata: Metadata = { title: "Settings" };
@@ -28,9 +27,12 @@ function IntegrationRow({
   detail: string;
   action?: React.ReactNode;
 }) {
+  // "connected" reuses the muted/off-white "done" tone from the status-pill
+  // system (see primitives.tsx) rather than gold, so it doesn't collide with
+  // "demo" (attention) now that forest and gold are the same accent color.
   const dot =
     status === "connected"
-      ? "bg-forest"
+      ? "bg-ink"
       : status === "demo"
         ? "bg-gold"
         : "bg-ink-faint";
@@ -73,10 +75,6 @@ export default async function SettingsPage() {
             : "Your personal preferences for this dashboard."
         }
       />
-
-      <Panel title="Appearance">
-        <ThemeToggle />
-      </Panel>
 
       <Panel title="Notifications">
         <NotificationPreferences />

@@ -50,26 +50,22 @@ export default function PricingPage() {
 
       <section className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8">
         <Reveal>
-          <div className="relative overflow-hidden rounded-[calc(var(--radius-card)+6px)] bg-gradient-to-br from-forest via-forest to-forest-ink px-7 py-14 text-paper shadow-glow-blue sm:px-14 sm:py-20">
+          <div className="relative overflow-hidden rounded-[calc(var(--radius-card)+6px)] border border-gold/25 bg-panel px-7 py-14 shadow-glow-gold sm:px-14 sm:py-20">
             <div
               aria-hidden
-              className="pointer-events-none absolute -top-16 -right-16 h-64 w-64 rounded-full bg-gold/25 blur-3xl"
+              className="pointer-events-none absolute -top-16 -right-16 h-64 w-64 rounded-full bg-gold/20 blur-3xl"
             />
             <div className="relative max-w-2xl">
-              <p className="eyebrow eyebrow-gold">Still deciding?</p>
-              <h2 className="mt-4 font-serif text-3xl leading-tight tracking-tight sm:text-5xl">
+              <p className="eyebrow">Still deciding?</p>
+              <h2 className="mt-4 font-serif text-3xl leading-tight tracking-tight text-ink sm:text-5xl">
                 Book a free intro call, no pitch deck required.
               </h2>
-              <p className="mt-5 max-w-xl leading-relaxed text-paper/85">
+              <p className="mt-5 max-w-xl leading-relaxed text-ink-soft">
                 We&apos;ll help you figure out which tier actually makes sense
                 for where you are right now.
               </p>
               <div className="mt-8">
-                <ButtonLink
-                  href="/contact"
-                  size="lg"
-                  className="pop-btn !bg-none !bg-paper !text-forest hover:!bg-white"
-                >
+                <ButtonLink href="/contact" size="lg" className="pop-btn">
                   {cta.primary}
                 </ButtonLink>
               </div>

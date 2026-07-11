@@ -12,9 +12,9 @@ import {
 export const metadata: Metadata = { title: "Designs" };
 
 const accentMap: Record<string, string> = {
-  forest: "from-forest to-forest-deep",
+  forest: "from-panel to-paper-2",
   gold: "from-gold to-gold-deep",
-  ink: "from-ink to-ink-deep",
+  ink: "from-paper-2 to-panel",
 };
 
 export default async function DesignsPage() {
@@ -48,7 +48,7 @@ export default async function DesignsPage() {
                   sizes="(max-width:768px) 100vw, 33vw"
                 />
               ) : (
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-serif text-5xl text-paper/15">
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-serif text-5xl text-ink/15">
                   {g.title.charAt(0)}
                 </span>
               )}

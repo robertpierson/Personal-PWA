@@ -1,126 +1,94 @@
 @import "tailwindcss";
 
 /*
-  Meridian — design system (civic-ledger structure, blue + gold palette per
-  explicit brand direction).
+  Marquee — dark-premium design system (warm near-black + one gold accent).
 
-  Palette note: primary is a vivid royal/cobalt blue (--color-forest — the
-  token name predates this color and is kept as-is; see the theme block
-  below), paired with the existing brass/ledger gold accent. Per an explicit
-  follow-up request ("more vibrant, more visually interesting, closer to a
-  bold modern agency site"), the single flat blue was expanded into a tonal
-  ramp (100/300/base/deep/ink — see theme block) used for gradients, glow
-  accents, and a small number of dark full-bleed section bands. This is a
-  deliberate loosening of the original "one flat primary, restrained
-  everywhere" rule below; it is not a full redesign — most of the site is
-  still the light civic-ledger surface, with the tonal ramp and dark bands
-  used as accents on specific high-impact sections, not sitewide. Everything
-  else from the conversion-audit rebuild still holds:
-    - Background is a cool white/blue-gray neutral ramp — the last of the
-      original warm cream/tan tones were removed per explicit follow-up
-      feedback (see theme block); there is no warm color anywhere on the
-      site now, only white, cool gray, blue, and gold.
-    - The dashboard app-shell (not the marketing site) additionally supports
-      a dark theme, opt-in via Settings > Appearance. It's implemented as a
-      `[data-theme="dark"]` override of these same custom properties, scoped
-      to the dashboard's root wrapper only — see the block right after
-      `body {}` below, and (app)/dashboard/layout.tsx /
-      components/dashboard/theme-toggle.tsx. The marketing site is
-      untouched by this and stays light-only per brand.
-    - Display face is a slab serif (Zilla Slab, built for Mozilla's civic-tech
-      work) instead of an editorial high-contrast serif — reads as "record/
-      form," not "boutique magazine."
-    - Body face is Public Sans — literally the U.S. Web Design System
-      typeface for government digital services. On-theme, legible, and not
-      a common AI-site pick.
-    - A monospace (IBM Plex Mono) is reserved for numbers that are claims —
-      prices and stats — so a skimmer's eye reads "this is a measured
-      figure," not decorative type.
+  This is a from-the-ground-up retheme of what used to be a light "civic-
+  ledger" blue+gold site. The previous author built every surface, text, and
+  border color as a Tailwind utility sourced from a small set of CSS custom
+  properties (bg-paper, text-ink, border-line, bg-forest, text-gold-*, …) —
+  that discipline is why this retheme is ~30 lines of variable values below,
+  not a component-by-component rewrite. Two token families still carry their
+  old names for the same reason (`forest` was blue, kept as a name because
+  dozens of bg-forest/text-forest classes reference it; `gold` was always
+  gold) — both are now repointed to the single brand accent. See
+  brand.config.ts to change the accent hex; layout.tsx mirrors it here via
+  inline CSS variables on <html>, which win the cascade.
 
-  RULES (kept from the prior audit, updated per the tonal-ramp request above):
-  - Color: one primary hue family (--color-forest-100/-300/-forest/-deep/-ink,
-    all blue), one accent (--color-gold family), one neutral ramp. Tones
-    within the blue family are used freely (gradients, glows, dark bands);
-    no hue outside blue/gold/neutral is introduced.
-  - Type: modular 1.25 scale, mapped onto Tailwind's text-xs..text-6xl utility
-    steps (documented below) — no arbitrary text-[...] sizes.
-  - Spacing: Tailwind's default 4px scale only. No arbitrary p-[...]/gap-[...].
-  - Radius: --radius-card (14px) for surfaces; rounded-full for buttons/pills.
-  - Shadow: --shadow-crisp / --shadow-card / --shadow-lift, plus
-    --shadow-glow-blue / --shadow-glow-gold for the new vibrant-accent pass.
-  - Motion: interactive elements 150-250ms ease. No motion delays
-    above-the-fold content. Sitewide, only THREE intentional motions (see
-    "Motion system" below). Services and Pricing additionally use `.reveal`
-    scroll-entrance animation by explicit request — scoped to those two
-    pages only, not blanket sitewide.
-  - Contrast: every pair below is verified >=4.5:1 (body) or >=3:1 (large
-    text/non-text UI), including light text on the new dark bands. Ratios
-    are logged in DESIGN_NOTES.md.
+  RULES:
+  - Color: one accent (warm gold), a near-black/off-white neutral ramp, full
+    stop. No blue, no cream, no rainbow status colors. Gold is scarce —
+    primary CTA, active nav, key metrics, one hero word, eyebrows.
+  - Type: display face is Clash Display (self-hosted, next/font/local),
+    body is General Sans, both from Fontshare, both free/commercial-use
+    (see src/app/fonts/LICENSE-fontshare.txt). Eyebrows/labels/stat units
+    are JetBrains Mono, uppercase, gold. `font-serif`/`font-sans` utility
+    names are kept from the prior design (see fonts below) rather than
+    renamed sitewide — same low-diff reasoning as the color tokens.
+  - Space/radius: --radius-card 16px. Shadows are hairline-border + soft
+    lift, plus two gold glows for the hero and the highlighted pricing tier.
+  - Motion: respects prefers-reduced-motion everywhere (see media query
+    below, plus the per-animation queries next to each keyframe).
+  - Contrast: every accent/text pairing is checked against WCAG AA. Notably,
+    text sitting ON a solid gold fill must use `text-paper` (near-black,
+    since --color-paper is the near-black bg value) — never `text-ink`
+    (off-white), which is only correct on dark surfaces.
 */
 
 @theme {
-  /* Surfaces — cool white/blue-gray, per explicit follow-up feedback that
-     the remaining warm cream/tan cast ("paper-2", "line") looked dated next
-     to the vivid blue. No more warm tones anywhere in the neutral ramp —
-     it's white, cool gray, and blue now, full stop. Panel stays pure white
-     so cards still pop off the (now cooler) body background. */
-  --color-paper: #f6f7fa;
-  --color-paper-2: #e7ebf3;
-  --color-panel: #ffffff;
+  /* Surfaces — warm near-black, not pure #000 */
+  --color-paper: #0b0b0c; /* base bg */
+  --color-paper-2: #1b1b1e; /* nested surfaces: hover states, inputs, footer */
+  --color-panel: #141416; /* cards, panels */
 
-  /* Ink / text — de-tinted from a leftover greenish cast (from the earlier
-     bottle-green era) to true cool neutrals, consistent with the surfaces
-     above. */
-  --color-ink: #14181a;
-  --color-ink-soft: #4a4f58;
-  --color-ink-faint: #5f6570;
+  /* Text — warm off-white */
+  --color-ink: #f4f3ee;
+  --color-ink-soft: rgba(244, 243, 238, 0.62);
+  --color-ink-faint: rgba(244, 243, 238, 0.4);
 
-  /* Lines — cool blue-gray, matches the new surfaces (was tan). */
-  --color-line: #dde2ec;
-  --color-line-strong: #c3cbdc;
+  /* Hairline borders */
+  --color-line: rgba(255, 255, 255, 0.08);
+  --color-line-strong: rgba(255, 255, 255, 0.14);
 
-  /* Primary — vivid royal/cobalt blue, now a tonal ramp (explicit brand
-     direction: blue + gold, expanded to several tones of the same hue for
-     more visual variety per follow-up request). Token name kept as "forest"
-     for the same reason as before — dozens of bg-forest/text-forest/
-     border-forest classes reference the base tone; renaming buys no visual
-     benefit. */
-  --color-forest-100: #dce6ff; /* pale tint — soft glows, badge backgrounds */
-  --color-forest-300: #5b82f0; /* bright mid-blue — gradient highlights, hover */
-  --color-forest: #2451d6; /* primary/base — unchanged */
-  --color-forest-deep: #16309e; /* deep — unchanged */
-  --color-forest-ink: #0a1233; /* near-black navy — dark section bands */
+  /* Accent — the one brand color, warm gold. The legacy "forest" ramp (used
+     for buttons/links/active-nav/focus rings) and the "gold" ramp (used for
+     eyebrows/attention-pills/figures) both repoint to it — two token names,
+     one hue. forest-100 is repurposed as a neutral icon-tile tint (paired
+     with bg-gold/15 for alternating rows) rather than a pale gold, so gold
+     stays scarce even in decorative spots. */
+  --color-forest-100: var(--color-paper-2);
+  --color-forest-300: #f0c15e;
+  --color-forest: #e6b24a;
+  --color-forest-deep: #c99a3d;
+  --color-forest-ink: #0b0b0c;
 
-  /* Accent — brass/ledger gold, hue ~40° (nowhere near terracotta's ~16°) */
-  --color-gold: #b8862e;
-  --color-gold-soft: #e8d6a0;
-  --color-gold-deep: #8a6420;
-  --color-gold-text: #6b4e18;
+  --color-gold: #e6b24a;
+  --color-gold-soft: #f0c15e;
+  --color-gold-deep: #c99a3d;
+  --color-gold-text: #e6b24a;
 
-  /* Non-palette, tokenized anyway: design-tile gradient stop, Facebook's
-     literal brand color for the channel-dot indicator (dashboard only). */
-  --color-ink-deep: #2b2f2c;
-  --color-facebook: #3b5998;
+  --color-ink-deep: #050506;
+  --color-facebook: #3b5998; /* Facebook's own brand color — channel dot only */
 
-  /* Fonts (wired up in layout.tsx via next/font) */
-  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-zilla-slab), Georgia, serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+  /* Fonts (wired up in layout.tsx via next/font). Utility names kept as
+     font-serif/font-sans/font-mono from the prior design — see note above. */
+  --font-sans: var(--font-general-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-clash-display), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 
   /* Rhythm */
-  --radius-card: 14px;
+  --radius-card: 16px;
 
-  /* Shadows — three depths, plus two colored glows for the vibrant-accent
-     pass (buttons, highlighted pricing tier, dark-band cards). */
-  --shadow-crisp: 0 1px 0 0 rgba(20, 24, 26, 0.05);
-  --shadow-card: 0 18px 40px -24px rgba(20, 24, 26, 0.32);
-  --shadow-lift: 0 30px 60px -28px rgba(20, 24, 26, 0.26);
-  --shadow-glow-blue: 0 20px 50px -16px rgba(36, 81, 214, 0.55);
-  --shadow-glow-gold: 0 16px 40px -14px rgba(184, 134, 46, 0.45);
+  /* Shadows — hairline-border depth, plus two gold glows */
+  --shadow-crisp: 0 1px 0 0 rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 18px 40px -24px rgba(0, 0, 0, 0.65);
+  --shadow-lift: 0 30px 60px -28px rgba(0, 0, 0, 0.6);
+  --shadow-glow-blue: 0 20px 50px -16px rgba(230, 178, 74, 0.35); /* name kept, now gold */
+  --shadow-glow-gold: 0 16px 40px -14px rgba(230, 178, 74, 0.45);
 }
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 html {
@@ -131,47 +99,11 @@ html {
 
 body {
   background-color: var(--color-paper);
+  background-image: radial-gradient(rgba(244, 243, 238, 0.035) 1px, transparent 1px);
+  background-size: 4px 4px;
+  background-attachment: fixed;
   color: var(--color-ink);
   font-family: var(--font-sans);
-}
-
-/*
-  Dark theme — dashboard app-shell only, opt-in via a `data-theme="dark"`
-  attribute on the dashboard's root wrapper (see (app)/dashboard/layout.tsx),
-  toggled from Settings > Appearance. Deliberately scoped to that one
-  wrapper, NOT :root/html, so it can never affect the marketing site — that
-  stays the light-only civic-ledger surface per the project's brand
-  decision. Because every marketing/dashboard component already reads color
-  via these same CSS custom properties (bg-paper, text-ink, border-line,
-  etc.) rather than hard-coded values, overriding the properties here is
-  enough to re-theme the whole dashboard — no component-level `dark:`
-  classes needed. Contrast re-verified for this set: ink/paper ~19:1,
-  forest/paper ~5.2:1, gold-soft/paper ~14:1 (see DESIGN_NOTES.md).
-*/
-[data-theme="dark"] {
-  color-scheme: dark;
-
-  --color-paper: #0e1420;
-  --color-paper-2: #171f30;
-  --color-panel: #1b2338;
-
-  --color-ink: #f1f3f8;
-  --color-ink-soft: #b6bdcc;
-  --color-ink-faint: #8890a3;
-
-  --color-line: #2a3349;
-  --color-line-strong: #3b4560;
-
-  --color-forest-100: #16233f;
-  --color-forest-300: #6f97ff;
-  --color-forest: #5b82f0;
-  --color-forest-deep: #2451d6;
-  --color-forest-ink: #060a16;
-
-  --color-gold: #d9ab4e;
-  --color-gold-soft: #f0dfb0;
-  --color-gold-deep: #b8862e;
-  --color-gold-text: #f0dfb0;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -186,19 +118,19 @@ body {
   }
 }
 
-/* Small caps eyebrow label used throughout the site. Carries a short gold
-   tick mark before it — a deliberate, repeated brand touch (28 instances
-   sitewide) so gold has real presence next to the blue, not just on badges. */
+/* Small caps eyebrow label used throughout the site — mono, uppercase,
+   letter-spaced, gold. A short gold tick mark precedes it, a repeated brand
+   touch (dozens of instances sitewide). */
 .eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 0.55em;
-  font-family: var(--font-sans);
+  font-family: var(--font-mono);
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--color-forest);
+  color: var(--color-gold);
 }
 .eyebrow::before {
   content: "";
@@ -209,11 +141,11 @@ body {
   background: var(--color-gold);
 }
 /*
-  Color override for .eyebrow on the dark brand background. Plain Tailwind
-  color utilities can't reliably win against .eyebrow's color since Tailwind
-  v4 utilities live in a lower-priority CSS cascade layer than unlayered
-  custom CSS — this variant is defined here, after .eyebrow, so normal
-  cascade order (same specificity, later rule wins) applies instead.
+  .eyebrow variant for the rare spot where the surrounding text is already
+  gold-on-dark and needs a softer tick — kept for cascade-order reasons (see
+  Tailwind v4 layer note in the prior version of this file): unlayered CSS
+  here always wins over Tailwind's utility layer, so this must be declared
+  after .eyebrow, not as a Tailwind color utility.
 */
 .eyebrow-gold {
   color: var(--color-gold-soft);
@@ -225,15 +157,6 @@ body {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
-}
-
-/* Subtle paper texture, kept faint so it never competes with content */
-.paper-grain {
-  background-image: radial-gradient(
-      rgba(20, 24, 26, 0.03) 1px,
-      transparent 1px
-    );
-  background-size: 4px 4px;
 }
 
 /* ————— Motion system: exactly three intentional motions, nothing else ————— */
@@ -349,9 +272,10 @@ body {
   }
 }
 
-/* Marquee for the "who we work with" strip — continuous, decorative-only,
-   never gates content, so it's exempt from the "one scroll moment" rule. */
-@keyframes meridian-marquee {
+/* Marquee ticker for the "who we work with" strip — continuous,
+   decorative-only, never gates content, so it's exempt from the "one scroll
+   moment" rule. (Yes, it's a literal marquee — that's the point.) */
+@keyframes marquee-scroll {
   from {
     transform: translateX(0);
   }
@@ -360,7 +284,7 @@ body {
   }
 }
 .marquee-track {
-  animation: meridian-marquee 38s linear infinite;
+  animation: marquee-scroll 38s linear infinite;
 }
 @media (prefers-reduced-motion: reduce) {
   .marquee-track {

@@ -58,8 +58,7 @@ export function SiteFooter() {
         <div className="mt-12 flex flex-col gap-3 border-t border-line pt-6 text-xs text-ink-faint sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <p>
-              © {year} {site.name}. A placeholder brand — final identity to be
-              confirmed.
+              © {year} {site.name}.
             </p>
             <Link href="/privacy" className="hover:text-forest">
               Privacy

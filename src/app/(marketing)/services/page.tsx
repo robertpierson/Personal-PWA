@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ButtonLink } from "@/components/ui/button";
 import { CaseStudyCard } from "@/components/case-study-card";
 import { Reveal } from "@/components/reveal";
+import { ServiceIcon } from "@/components/service-icon";
 import { WorkGallery } from "@/components/work-gallery";
 import { caseStudies } from "@/content/case-studies";
 import { cta, services } from "@/content/site.config";
@@ -28,9 +29,9 @@ export default function ServicesPage() {
             <Reveal key={s.title} delay={i * 60}>
               <div className="group flex flex-col gap-4 p-6 transition-colors duration-200 hover:bg-paper-2/40 sm:flex-row sm:items-start sm:p-7">
                 <span
-                  className={`grid h-12 w-12 shrink-0 place-items-center rounded-full text-2xl transition-transform duration-200 group-hover:scale-110 ${i % 2 === 0 ? "bg-gold/15" : "bg-forest-100"}`}
+                  className={`grid h-12 w-12 shrink-0 place-items-center rounded-full transition-transform duration-200 group-hover:scale-110 ${i % 2 === 0 ? "bg-gold/15 text-gold" : "bg-forest-100 text-ink"}`}
                 >
-                  {s.emoji}
+                  <ServiceIcon name={s.icon} />
                 </span>
                 <div className="min-w-0">
                   <h2 className="font-serif text-xl tracking-tight text-ink sm:text-2xl">
@@ -85,8 +86,8 @@ export default function ServicesPage() {
                     <span className="font-serif text-2xl text-forest">
                       {step.n}
                     </span>
-                    <span className="text-xl transition-transform duration-200 group-hover:scale-125">
-                      {step.emoji}
+                    <span className="text-ink-soft transition-transform duration-200 group-hover:scale-125">
+                      <ServiceIcon name={step.icon} />
                     </span>
                   </div>
                   <h3 className="mt-3 text-base font-semibold text-ink">
@@ -122,7 +123,7 @@ export default function ServicesPage() {
               Good organizations, looking the part.
             </h2>
             <p className="mt-4 inline-block rounded-full border border-dashed border-line-strong bg-paper-2/60 px-3 py-1 text-xs font-medium text-ink-faint">
-              [PLACEHOLDER: illustrative examples — real, named engagements replace these as they complete]
+              ILLUSTRATIVE EXAMPLES — real, named engagements replace these as they complete
             </p>
           </Reveal>
 

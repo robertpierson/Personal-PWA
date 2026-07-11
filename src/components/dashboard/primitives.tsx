@@ -11,23 +11,29 @@ export function StatusBadge({
 }: {
   status: DeliverableStatus | CalendarStatus | InvoiceStatus;
 }) {
+  // One restrained 3-bucket system, no rainbow: gold = needs attention,
+  // muted off-white = done/settled, faint = idle/not started yet.
+  const attention = "bg-gold/15 text-gold";
+  const done = "bg-paper-2 text-ink-soft";
+  const idle = "bg-paper-2 text-ink-faint";
+
   const map: Record<string, { label: string; className: string }> = {
     // Deliverables
-    not_started: { label: "Not started", className: "bg-paper-2 text-ink-faint" },
-    in_progress: { label: "In progress", className: "bg-gold-soft/50 text-gold-text" },
-    in_review: { label: "In review", className: "bg-forest/10 text-forest" },
-    delivered: { label: "Delivered", className: "bg-forest text-paper" },
+    not_started: { label: "Not started", className: idle },
+    in_progress: { label: "In progress", className: attention },
+    in_review: { label: "In review", className: attention },
+    delivered: { label: "Delivered", className: done },
     // Calendar
-    idea: { label: "Idea", className: "bg-paper-2 text-ink-faint" },
-    drafting: { label: "Drafting", className: "bg-gold-soft/50 text-gold-text" },
-    scheduled: { label: "Scheduled", className: "bg-forest/10 text-forest" },
-    approved: { label: "Approved", className: "bg-forest/15 text-forest" },
-    published: { label: "Published", className: "bg-forest text-paper" },
+    idea: { label: "Idea", className: idle },
+    drafting: { label: "Drafting", className: idle },
+    scheduled: { label: "Scheduled", className: done },
+    approved: { label: "Approved", className: done },
+    published: { label: "Published", className: done },
     // Invoices
-    draft: { label: "Draft", className: "bg-paper-2 text-ink-faint" },
-    open: { label: "Open", className: "bg-gold-soft/50 text-gold-text" },
-    paid: { label: "Paid", className: "bg-forest text-paper" },
-    void: { label: "Void", className: "bg-paper-2 text-ink-faint line-through" },
+    draft: { label: "Draft", className: idle },
+    open: { label: "Open", className: attention },
+    paid: { label: "Paid", className: done },
+    void: { label: "Void", className: `${idle} line-through` },
   };
   const { label, className } = map[status] ?? {
     label: status,
@@ -63,11 +69,11 @@ export function StatCard({
       }`}
     >
       <p
-        className={`text-xs font-medium uppercase tracking-wide ${accent ? "text-gold-soft" : "text-ink-faint"}`}
+        className={`text-xs font-medium uppercase tracking-wide ${accent ? "text-paper/70" : "text-ink-faint"}`}
       >
         {label}
       </p>
-      <p className="mt-2 font-serif text-3xl tracking-tight">{value}</p>
+      <p className="mt-2 font-serif text-3xl tracking-tight tabular-nums">{value}</p>
       {sub && (
         <p
           className={`mt-1 text-sm ${accent ? "text-paper/80" : "text-ink-soft"}`}

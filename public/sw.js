@@ -1,5 +1,5 @@
 /*
-  Meridian service worker.
+  Marquee service worker.
   Lightweight offline support for a marketing PWA:
    - Precache the app shell + a styled offline fallback on install.
    - Navigations: network-first, fall back to cache, then to /offline.
@@ -7,7 +7,7 @@
   Bump CACHE_VERSION to invalidate old caches on deploy.
 */
 
-const CACHE_VERSION = "meridian-v1";
+const CACHE_VERSION = "marquee-v1";
 const PRECACHE = `${CACHE_VERSION}-precache`;
 const RUNTIME = `${CACHE_VERSION}-runtime`;
 

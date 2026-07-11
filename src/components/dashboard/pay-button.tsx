@@ -42,7 +42,7 @@ export function PayButton({
       >
         {loading ? "Starting…" : "Pay now"}
       </button>
-      {error && <span className="text-xs text-red-600">{error}</span>}
+      {error && <span className="text-xs text-red-400">{error}</span>}
     </div>
   );
 }

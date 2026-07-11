@@ -1,0 +1,236 @@
+# Master Prompt — Full Visual + Brand Overhaul (dark-premium)
+
+> Paste this whole file into Claude Code from the root of the existing Next.js repo.
+> It is a redesign brief, not a rebuild. Preserve all business logic, routes, data
+> models, and Supabase wiring. Change how it looks, how it reads, and how it feels.
+
+---
+
+## 0. Your role
+
+You are a senior product designer + front-end engineer. You are inheriting a
+functional-but-templated Next.js app (marketing site + client dashboard PWA) for a
+done-for-you online-presence agency. It currently looks like untouched
+shadcn/Tailwind: cool blue-tinted off-white backgrounds, a mid-saturation cobalt
+accent, a stray dark section, stock system type, and no identity. The bones (IA,
+copy skeleton, dashboard surface area) are good. **The job is to give it a real,
+ownable, award-tier dark-premium identity and fix every rough edge — without
+breaking functionality.**
+
+Reference aesthetic (study the *language*, do not copy any of them 1:1):
+`blueprintapps.io` (bold, confident, systematized agency), `flowty.co` (near-black
+premium product site, huge display type, generous negative space), `supaste.com`
+(CSS-Design-Awards-level craft, repeated key lines, clean feature grids, tidy FAQ),
+`thealpy.studio` and `ulrychkristian.cz` (typographic minimalism, editorial
+confidence). The through-line: **big type, restraint, breathing room, one accent,
+precise motion, nothing decorative that doesn't earn its place.**
+
+---
+
+## 1. Hard constraints (do NOT break these)
+
+- Keep the stack: Next.js (App Router), Tailwind, Supabase, existing PWA config.
+- Keep every route and its data flow. Do not rename URLs or break Supabase queries.
+- Keep the demo-mode fallback, but restyle the banner as an intentional, subtle,
+  dev-only element (see §7). It must never look like a bug.
+- This is a design/copy/component-system pass. Do not refactor business logic
+  unless a change is required to render the new UI.
+- Establish a **single source of truth** for the design system (Tailwind theme
+  tokens + CSS variables). No hard-coded hex values scattered in components.
+- Put brand identity (name, wordmark, accent) behind a `brand.config.ts` so the
+  name and accent can be swapped in one place.
+
+---
+
+## 2. Rebrand
+
+The current name **"Meridian"** was a placeholder — kill it, including its logo.
+It's generic and overused.
+
+**Default new name: `Marquee`.** Rationale: the promise of this business is *get
+seen, look the part, get featured* — a marquee is the lit sign that announces who's
+worth paying attention to. It's premium, ownable, and works for nonprofits, PTAs,
+youth leagues, local businesses, startups, and student-run communities alike.
+
+Wire it through `brand.config.ts` with these alternates available as one-line swaps
+(pick Marquee unless told otherwise): `Civic`, `Commons`, `Bearing`, `Fieldwork`.
+
+**Logo:** wordmark-first. Set the brand name in the display typeface (see §3),
+tight tracking, optional single geometric glyph — a minimal bracketed frame `[ ]`
+or a filled tab/spotlight shape that reads as "framing / featuring." Deliver it as
+an inline SVG component that inherits `currentColor` so it works on light and dark.
+**Do not** generate a generic circle-swoosh, globe, or gradient-blob logo.
+
+---
+
+## 3. Design system (the core of this task)
+
+Define all of the following as CSS variables in `globals.css` and mirror them into
+the Tailwind theme. Everything else references these tokens.
+
+### Color — dark-premium, warm near-black + gold
+
+```
+--bg:            #0B0B0C   /* base, warm near-black (not pure #000) */
+--bg-elevated:   #141416   /* cards, panels */
+--bg-elevated-2: #1B1B1E   /* nested surfaces, inputs */
+--border:        rgba(255,255,255,0.08)   /* hairlines */
+--border-strong: rgba(255,255,255,0.14)   /* hover / focus edges */
+--text:          #F4F3EE   /* warm off-white — primary text */
+--text-muted:    rgba(244,243,238,0.62)   /* secondary text */
+--text-faint:    rgba(244,243,238,0.40)   /* captions, meta */
+--accent:        #E6B24A   /* warm gold — the ONLY brand accent */
+--accent-hover:  #F0C15E
+--accent-contrast:#0B0B0C  /* near-black text sitting on gold */
+```
+
+Swap accents (leave commented in `globals.css` for later): signal orange `#FF5A1F`,
+electric lime `#C6F24E`. **Never reintroduce blue-on-cream. No cream backgrounds at
+all.**
+
+Rules: the gold is scarce — reserve it for the primary CTA, active nav state, key
+metrics/numbers, one highlighted word per hero, and eyebrow labels. Most of the
+surface is near-black + off-white. Verify **WCAG AA** contrast for text and gold.
+
+### Typography
+
+- **Display / headlines:** `Clash Display` (Fontshare, free) — self-host via
+  `next/font/local`. Fallback: a tight neo-grotesque, then system-ui.
+- **Body / UI:** `General Sans` (Fontshare) or keep `Inter`. Tabular numerals on in
+  all dashboard figures.
+- **Eyebrows / labels / stat units:** a mono — `Geist Mono` or `JetBrains Mono`,
+  uppercase, letter-spaced, in gold. Keep the existing `— UPPERCASE EYEBROW` pattern;
+  it's a strength.
+- Headlines are **big and confident**: `clamp(2.5rem, 6.5vw, 6rem)`, leading
+  `0.98–1.02`, letter-spacing `-0.02em`, off-white with occasional single gold word.
+- Borrow the reference rhythm: for the hero and one mid-page beat, repeat the key
+  line as a deliberate typographic device (à la supaste/flowty).
+
+### Space, radius, elevation
+
+- Generous vertical rhythm: section padding `clamp(5rem, 12vh, 9rem)`.
+- Content max-width ~1200–1280px; let oversized hero type break wider than the grid.
+- Radius scale: `--r-sm 10px`, `--r-md 16px`, `--r-lg 22px`.
+- No heavy drop shadows. Depth = hairline border + faint inner glow + slight
+  surface lift. Cards: `--bg-elevated`, `--border`; on hover, border → `--border-strong`
+  and translate up ~2–4px over 200ms.
+
+### Texture & motion
+
+- Apply a **very low-opacity film grain/noise** overlay on `--bg` (≤3% opacity) —
+  a signature premium-dark touch. Keep it subtle enough to never distract.
+- A faint radial gold glow can anchor the hero and the "most popular" pricing card.
+- Scroll-reveal: short fade + 12–20px translate, staggered, 250–350ms, ease-out.
+- Turn the audience list (nonprofits, PTAs, youth leagues, local businesses,
+  community groups, student orgs…) into a slow horizontal **marquee ticker** — it
+  literally reinforces the name.
+- Buttons: primary = gold fill, near-black text, pill; secondary = hairline outline,
+  off-white text. Optional subtle magnetic/hover states. Respect
+  `prefers-reduced-motion` everywhere.
+
+---
+
+## 4. Marketing site — page-by-page
+
+Keep the existing structure and copy skeleton; restyle to the system above and
+sharpen the words (§6). Global: sticky nav (`Home, Services, Pricing, Contact,
+Client login`, primary CTA `Book an intro call`) on near-black with hairline bottom
+border; refined footer with the marquee wordmark.
+
+- **Home (`/`)** — hero (one sharp promise + gold-highlighted word + dual CTA +
+  supporting proof card), audience marquee ticker, trust/stat row (real cited stat or
+  remove — see §6), "What you get" services grid (elevated cards, mono eyebrows,
+  gold link-arrows), "How it fits together" process, results stats, selected-work
+  cards, pricing teaser, FAQ accordion, final CTA band, footer.
+- **Services (`/services`)** — offerings with outcomes and results, consistent card
+  system, closing CTA.
+- **Pricing (`/pricing`)** — three tiers (`Starter / Growth / Managed`),
+  monthly/annual toggle, Growth as the glowing gold "most popular" card, guarantee
+  line, FAQ, CTA. **Fix the prices (§6).**
+- **Contact (`/contact`)** — the multi-step "Let's talk about your presence"
+  intro-call form, restyled: dark inputs (`--bg-elevated-2`), gold focus ring, clear
+  step progress, gold primary action.
+
+---
+
+## 5. Dashboard PWA — page-by-page
+
+Unify the dashboard with the marketing site — **the whole product is one near-black
+premium world.** Kill the current light/dark split. Strong hierarchy over dense
+equal-weight cards: one hero metric row, one primary panel, secondary panels recede.
+
+- Sidebar nav (`Overview, Content calendar, Designs, Deliverables, Insights,
+  Invoices, Settings, Sign out`): near-black, hairline dividers, active item in gold.
+- **Overview** — greeting + top metric row (Followers, Engagement, Next post, Active
+  work) with tabular numerals and gold on the hero metric; "Upcoming content" and
+  "Deliverables" panels; credits indicator (see §6).
+- **Content calendar** — month + list views, dark calendar grid, gold "today,"
+  status dots.
+- **Designs** — delivered branded assets, download/preview, clean progress states.
+- **Deliverables** — production tracker with the unified status pill set.
+- **Insights** — social metrics + line charts over time; restyle charts to the dark
+  palette (off-white lines, gold for the primary series, hairline gridlines, no
+  default chart-library colors).
+- **Invoices** — billing history, outstanding balance, amounts, statuses.
+- **Settings** — account, organization, connected accounts (Instagram/Stripe),
+  appearance, team access — dark forms consistent with Contact.
+
+**Status pills — one restrained system, no rainbow:** gold = active/attention
+(In progress, In review), off-white/muted = done/neutral (Delivered, Scheduled),
+faint = idle (Drafting, Not started). Same components everywhere.
+
+---
+
+## 6. Copy & credibility fixes
+
+- **Prices:** replace the ugly derived decimals (`$16.66 / $49.17 / $149.17`) with
+  clean, rounded, credible numbers — e.g. **`$19 / $59 / $179`** monthly, with an
+  honest annual discount shown on the toggle. Ragged decimals directly contradict
+  the "Simple plans. No shocking invoices. Ever." promise. Keep that promise intact.
+- **Credits:** define what a credit is and surface it (e.g. inline caption or
+  tooltip: "1 credit = one designed asset produced for you"). Never show a bare
+  "468 credits" with no meaning.
+- **Placeholders:** remove every visible `[PLACEHOLDER: …]` string from production
+  UI. For the trust stat, either drop in a real, cited figure or cut the element —
+  do not ship bracketed placeholder text.
+- Keep the strong existing lines ("No shocking invoices. Ever.", "Book a free intro
+  call, no pitch deck required.", the volunteer-board FAQ). Tighten the hero to one
+  clean promise. Preserve the honest, plain-spoken voice.
+
+---
+
+## 7. Do NOT
+
+- No cream/off-white backgrounds. No cobalt/royal blue anywhere.
+- No default shadcn/Tailwind look — no stock rounded cards with thin gray borders on
+  white.
+- No generic logo (circle, swoosh, globe, gradient blob).
+- No rainbow status colors or default chart-library palettes.
+- No visible placeholder text, no ragged decimal prices, no unexplained credits.
+- No demo-mode banner that reads as an error — style it as a quiet, intentional,
+  dev-only strip.
+- No motion without a `prefers-reduced-motion` fallback.
+
+---
+
+## 8. Definition of done
+
+1. `brand.config.ts` drives name + accent; swapping either takes one edit.
+2. All color/type/space/radii come from tokens; no scattered hex.
+3. Marketing site and dashboard share one cohesive near-black + gold system.
+4. Fonts self-hosted via `next/font`; no FOUT/layout shift.
+5. WCAG AA contrast verified; visible focus states; reduced-motion honored.
+6. Prices rounded; credits defined; zero placeholder strings in production.
+7. Every existing route still renders and every Supabase query still works.
+8. It looks like something you'd screenshot — a real studio product, not a template.
+
+## 9. Suggested execution order
+
+1. Tokens + Tailwind theme + fonts + `brand.config.ts` + logo SVG.
+2. Global shell (nav, footer, buttons, cards, pills, grain overlay).
+3. Home, then the other marketing pages.
+4. Dashboard shell, then Overview, then remaining dashboard routes.
+5. Copy/price/credits/placeholder cleanup pass.
+6. Motion + polish + accessibility + contrast audit.
+
+Work in small, reviewable commits. After each phase, show me what changed and why.

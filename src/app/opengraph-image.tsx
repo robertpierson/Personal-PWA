@@ -15,35 +15,34 @@ export default function Image() {
           flexDirection: "column",
           justifyContent: "center",
           padding: "80px",
-          backgroundColor: "#2451d6",
-          color: "#f2f0e8",
+          backgroundColor: "#0B0B0C",
+          color: "#F4F3EE",
           fontFamily: "sans-serif",
         }}
       >
-        <div
-          style={{
-            width: 64,
-            height: 64,
-            borderRadius: 999,
-            border: "3px solid #b8862e",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 30,
-            fontWeight: 700,
-            marginBottom: 36,
-          }}
-        >
-          M
+        <div style={{ display: "flex", alignItems: "center", marginBottom: 36 }}>
+          <div style={{ display: "flex", fontSize: 40, color: "#F4F3EE" }}>[</div>
+          <div
+            style={{
+              display: "flex",
+              width: 14,
+              height: 14,
+              borderRadius: 999,
+              backgroundColor: "#E6B24A",
+              margin: "0 10px",
+            }}
+          />
+          <div style={{ display: "flex", fontSize: 40, color: "#F4F3EE" }}>]</div>
         </div>
         <div style={{ display: "flex", fontSize: 72, fontWeight: 700 }}>
-          {brand.name}
+          <span style={{ color: "#E6B24A" }}>{brand.name.charAt(0)}</span>
+          {brand.name.slice(1)}
         </div>
         <div
           style={{
             display: "flex",
             fontSize: 32,
-            color: "#e8d6a0",
+            color: "#E6B24A",
             marginTop: 16,
           }}
         >
@@ -53,7 +52,7 @@ export default function Image() {
           style={{
             display: "flex",
             fontSize: 26,
-            color: "#f2f0e8",
+            color: "#F4F3EE",
             opacity: 0.85,
             marginTop: 40,
             maxWidth: 900,

@@ -4,8 +4,11 @@ import { useMemo, useState } from "react";
 import { StatusBadge } from "@/components/dashboard/primitives";
 import type { CalendarItem } from "@/lib/types";
 
+// forest and gold both repoint to the one brand accent (see globals.css), so
+// instagram can't use "bg-forest" here without becoming indistinguishable
+// from the newsletter dot — bg-ink gives it its own neutral, legible color.
 const channelDot: Record<string, string> = {
-  instagram: "bg-forest",
+  instagram: "bg-ink",
   facebook: "bg-facebook",
   newsletter: "bg-gold",
   other: "bg-ink-faint",

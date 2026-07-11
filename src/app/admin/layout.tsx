@@ -11,7 +11,7 @@ export default async function AdminLayout({
   const op = await requireOperator();
 
   return (
-    <div className="min-h-full bg-paper">
+    <div className="min-h-full">
       <header className="border-b border-line bg-panel">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-5 py-3 sm:px-8">
           <div className="flex items-center gap-3">
@@ -35,7 +35,7 @@ export default async function AdminLayout({
       </header>
 
       {op.demo && (
-        <div className="bg-gold px-4 py-2 text-center text-xs font-medium text-ink">
+        <div className="bg-gold px-4 py-2 text-center text-xs font-medium text-paper">
           Demo mode — this admin is read-only. Add Supabase + a service-role key
           and set OPERATOR_EMAILS to manage real client data.
         </div>

@@ -1,35 +1,35 @@
 const items = [
   {
     title: "Website design",
-    caption: "[PLACEHOLDER: screenshot of a client website]",
+    caption: "A modern site, built and hosted for you.",
     icon: "🖥️",
-    accent: "from-forest to-forest-deep",
+    accent: "from-panel to-paper-2",
   },
   {
     title: "Social content",
-    caption: "[PLACEHOLDER: designed Instagram post examples]",
+    caption: "On-brand graphics for every post.",
     icon: "🎨",
     accent: "from-gold to-gold-deep",
   },
   {
     title: "Content calendar",
-    caption: "[PLACEHOLDER: a real season's content calendar]",
+    caption: "A season mapped to your real programming.",
     icon: "🗓️",
-    accent: "from-forest-deep to-forest",
+    accent: "from-paper-2 to-panel",
   },
   {
     title: "Insights report",
-    caption: "[PLACEHOLDER: a monthly reporting screenshot]",
+    caption: "Plain-English numbers, every month.",
     icon: "📊",
     accent: "from-gold-deep to-gold",
   },
 ] as const;
 
 /**
- * Placeholder frames for real work photography — deliberately stylized
- * (icon + gradient + bracketed caption) rather than fake-photorealistic, so
- * nothing here is ever mistaken for a real screenshot per the site's honesty
- * standard. Swap each frame for a real image when engagements complete.
+ * Stand-ins for real work photography — deliberately stylized (icon +
+ * gradient) rather than fake-photorealistic, so nothing here is ever
+ * mistaken for a real screenshot per the site's honesty standard. Swap each
+ * frame for a real image when engagements complete.
  */
 export function WorkGallery() {
   return (

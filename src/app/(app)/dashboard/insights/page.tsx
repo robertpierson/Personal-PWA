@@ -120,7 +120,11 @@ export default async function InsightsPage() {
 
       <Panel title="Followers over time">
         <div className="p-5">
-          <AreaChart data={series.map((p) => p.followers)} labels={labels} />
+          <AreaChart
+            data={series.map((p) => p.followers)}
+            labels={labels}
+            color="var(--color-gold)"
+          />
         </div>
       </Panel>
 
@@ -131,7 +135,6 @@ export default async function InsightsPage() {
               data={series.map((p) => p.reach)}
               labels={labels}
               height={180}
-              color="var(--color-gold)"
             />
           </div>
         </Panel>

@@ -1,4 +1,4 @@
-# Meridian — Local Presence Studio
+# Marquee — Local Presence Studio
 
 A Progressive Web App marketing platform for local nonprofits, community
 organizations, and small businesses. Deliverables: branded design, a content
@@ -71,8 +71,9 @@ time, wire the `deliver()` function in `src/app/api/contact/route.ts` to email
 
 ## Configuration
 
-- Brand strings, nav, and contact email live in `src/lib/site.ts` — "Meridian"
-  is a **placeholder** name.
+- Brand name/accent live in `src/content/brand.config.ts`; nav, copy, and
+  contact email live in `src/content/site.config.ts`. Current brand is
+  "Marquee" — swap `brand.config.ts`'s `name`/`accent` to rebrand.
 - Set `NEXT_PUBLIC_SITE_URL` in production for correct canonical/OG URLs.
 
 ## Notes for contributors

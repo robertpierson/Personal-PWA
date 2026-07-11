@@ -5,6 +5,7 @@ import { Faq } from "@/components/faq";
 import { AnimatedStat } from "@/components/animated-stat";
 import { PresenceScorecard } from "@/components/presence-scorecard";
 import { PricingTiles } from "@/components/pricing-tiles";
+import { ServiceIcon } from "@/components/service-icon";
 import { caseStudies } from "@/content/case-studies";
 import {
   challenges,
@@ -12,32 +13,34 @@ import {
   hero,
   icp,
   proof,
-  recognition,
   services as servicesConfig,
   system,
-  trustStat,
 } from "@/content/site.config";
 
 export default function HomePage() {
+  const [beforeHighlight, afterHighlight] = hero.headline.split(hero.highlight);
+
   return (
     <>
       {/* ————— Hero — no motion, everything visible instantly ————— */}
-      <section className="paper-grain relative overflow-hidden">
-        {/* Soft background glow — blue + gold, decorative only, never
-            overlaps text so contrast is unaffected. */}
+      <section className="relative overflow-hidden">
+        {/* Soft gold glow — decorative only, never overlaps text so
+            contrast is unaffected. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-forest-300/25 blur-3xl"
+          className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-gold/15 blur-3xl"
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute -bottom-32 -left-16 h-80 w-80 rounded-full bg-gold-soft/30 blur-3xl"
+          className="pointer-events-none absolute -bottom-32 -left-16 h-80 w-80 rounded-full bg-gold/10 blur-3xl"
         />
         <div className="relative mx-auto grid w-full max-w-6xl gap-12 px-5 pt-16 pb-14 sm:px-8 md:pt-24 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div>
             <p className="eyebrow">{hero.eyebrow}</p>
-            <h1 className="mt-5 font-serif text-4xl font-semibold leading-[1.08] tracking-tight text-ink sm:text-6xl">
-              {hero.headline}
+            <h1 className="mt-5 font-serif text-4xl font-semibold leading-[1.02] tracking-tight text-ink sm:text-6xl">
+              {beforeHighlight}
+              <span className="text-gold">{hero.highlight}</span>
+              {afterHighlight}
             </h1>
             <p className="mt-6 max-w-lg text-lg leading-relaxed text-ink-soft">
               {hero.subhead}
@@ -82,18 +85,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ————— Trust-stat banner (placeholder pending a real citation) ————— */}
-      <section className="border-y border-line bg-paper-2/60">
-        <div className="mx-auto w-full max-w-3xl px-5 py-12 text-center sm:px-8 sm:py-14">
-          <p className="font-serif text-xl leading-snug tracking-tight text-ink-soft sm:text-2xl">
-            {trustStat.quote}
-          </p>
-          <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-gold-text">
-            {trustStat.source}
-          </p>
-        </div>
-      </section>
-
       {/* ————— Proof: Scorecard + testimonials + sourced stats ————— */}
       <section className="border-b border-line bg-panel">
         <div className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8 md:py-20">
@@ -123,9 +114,6 @@ export default function HomePage() {
                   </figcaption>
                 </figure>
               ))}
-              <p className="rounded-[var(--radius-card)] border border-dashed border-line-strong bg-paper-2/50 px-5 py-4 text-center text-xs font-medium text-ink-faint">
-                {proof.logoRowLabel}
-              </p>
             </div>
           </div>
 
@@ -165,9 +153,9 @@ export default function HomePage() {
                 }`}
               >
                 <span
-                  className={`mb-5 grid h-12 w-12 shrink-0 place-items-center rounded-full text-2xl ${i % 2 === 0 ? "bg-gold/15" : "bg-forest-100"} ${isLast ? "sm:mb-0" : ""}`}
+                  className={`mb-5 grid h-12 w-12 shrink-0 place-items-center rounded-full ${i % 2 === 0 ? "bg-gold/15 text-gold" : "bg-forest-100 text-ink"} ${isLast ? "sm:mb-0" : ""}`}
                 >
-                  {s.emoji}
+                  <ServiceIcon name={s.icon} />
                 </span>
                 <div>
                   <h3 className="font-serif text-xl tracking-tight text-ink">
@@ -205,44 +193,42 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ————— One system, not five vendors — the site's one bold dark band,
-          matching the "vibrant, high-contrast" direction requested; the
-          rest of the site stays the light civic-ledger surface ————— */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-forest-ink via-forest-deep to-forest-ink">
+      {/* ————— One system, not five vendors ————— */}
+      <section className="relative overflow-hidden border-t border-line bg-panel">
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-20 right-0 h-80 w-80 rounded-full bg-forest-300/30 blur-3xl"
+          className="pointer-events-none absolute -top-20 right-0 h-80 w-80 rounded-full bg-gold/10 blur-3xl"
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute -bottom-24 -left-10 h-72 w-72 rounded-full bg-gold/20 blur-3xl"
+          className="pointer-events-none absolute -bottom-24 -left-10 h-72 w-72 rounded-full bg-gold/10 blur-3xl"
         />
         <div className="relative mx-auto w-full max-w-6xl px-5 py-16 sm:px-8 md:py-24">
-          <p className="eyebrow eyebrow-gold">{system.eyebrow}</p>
-          <h2 className="mt-3 max-w-xl font-serif text-3xl leading-tight tracking-tight text-paper sm:text-4xl">
+          <p className="eyebrow">{system.eyebrow}</p>
+          <h2 className="mt-3 max-w-xl font-serif text-3xl leading-tight tracking-tight text-ink sm:text-4xl">
             {system.title}
           </h2>
-          <p className="mt-3 max-w-xl text-paper/75">{system.subhead}</p>
+          <p className="mt-3 max-w-xl text-ink-soft">{system.subhead}</p>
 
           <div className="mt-10 grid gap-6 sm:grid-cols-3">
             {system.steps.map((step, i) => (
               <div
                 key={step.n}
-                className="relative rounded-[var(--radius-card)] border border-paper/15 bg-paper/5 p-7 backdrop-blur-sm"
+                className="relative rounded-[var(--radius-card)] border border-line bg-paper-2/50 p-7"
               >
-                <span className="figure text-sm font-semibold text-gold-soft">
+                <span className="figure text-sm font-semibold text-gold">
                   {step.n}
                 </span>
-                <h3 className="mt-2 font-serif text-xl tracking-tight text-paper">
+                <h3 className="mt-2 font-serif text-xl tracking-tight text-ink">
                   {step.title}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-paper/70">
+                <p className="mt-2 text-sm leading-relaxed text-ink-soft">
                   {step.body}
                 </p>
                 {i < system.steps.length - 1 && (
                   <span
                     aria-hidden
-                    className="pointer-events-none absolute top-1/2 -right-3 hidden -translate-y-1/2 text-lg text-gold-soft/60 sm:block"
+                    className="pointer-events-none absolute top-1/2 -right-3 hidden -translate-y-1/2 text-lg text-gold/60 sm:block"
                   >
                     →
                   </span>
@@ -277,7 +263,7 @@ export default function HomePage() {
           </Link>
         </div>
         <p className="mt-3 inline-block rounded-full border border-dashed border-line-strong bg-paper-2/60 px-3 py-1 text-xs font-medium text-ink-faint">
-          [PLACEHOLDER: illustrative examples — real, named engagements replace these as they complete]
+          ILLUSTRATIVE EXAMPLES — real, named engagements replace these as they complete
         </p>
         <div className="mt-8 grid gap-6 md:grid-cols-3">
           {caseStudies
@@ -285,23 +271,6 @@ export default function HomePage() {
             .map((study) => (
               <CaseStudyCard key={study.slug} study={study} />
             ))}
-        </div>
-      </section>
-
-      {/* ————— Recognition (placeholder — see recognition config for why) ————— */}
-      <section className="mx-auto w-full max-w-6xl px-5 pb-16 sm:px-8">
-        <p className="text-center text-xs font-medium uppercase tracking-wide text-ink-faint">
-          {recognition.label}
-        </p>
-        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {recognition.items.map((item) => (
-            <div
-              key={item}
-              className="flex h-16 items-center justify-center rounded-[var(--radius-card)] border border-dashed border-line-strong bg-paper-2/40 px-3 text-center text-xs font-medium text-ink-faint"
-            >
-              {item}
-            </div>
-          ))}
         </div>
       </section>
 
@@ -320,25 +289,21 @@ export default function HomePage() {
 
       {/* ————— CTA band — the one promise, one more time ————— */}
       <section className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8">
-        <div className="relative overflow-hidden rounded-[calc(var(--radius-card)+6px)] bg-gradient-to-br from-forest via-forest to-forest-ink px-7 py-14 text-paper shadow-glow-blue sm:px-14 sm:py-20">
+        <div className="relative overflow-hidden rounded-[calc(var(--radius-card)+6px)] border border-gold/25 bg-panel px-7 py-14 shadow-glow-gold sm:px-14 sm:py-20">
           <div
             aria-hidden
-            className="pointer-events-none absolute -top-16 -right-16 h-64 w-64 rounded-full bg-gold/25 blur-3xl"
+            className="pointer-events-none absolute -top-16 -right-16 h-64 w-64 rounded-full bg-gold/20 blur-3xl"
           />
           <div className="relative max-w-2xl">
-            <p className="eyebrow eyebrow-gold">Let&apos;s begin</p>
-            <h2 className="mt-4 font-serif text-3xl leading-tight tracking-tight sm:text-5xl">
+            <p className="eyebrow">Let&apos;s begin</p>
+            <h2 className="mt-4 font-serif text-3xl leading-tight tracking-tight text-ink sm:text-5xl">
               Give your organization the presence it&apos;s earned.
             </h2>
-            <p className="mt-5 max-w-xl leading-relaxed text-paper/85">
+            <p className="mt-5 max-w-xl leading-relaxed text-ink-soft">
               {hero.credibilityCue.body}
             </p>
             <div className="mt-8">
-              <ButtonLink
-                href="/contact"
-                size="lg"
-                className="pop-btn !bg-none !bg-paper !text-forest hover:!bg-white"
-              >
+              <ButtonLink href="/contact" size="lg" className="pop-btn">
                 {cta.primary}
               </ButtonLink>
             </div>

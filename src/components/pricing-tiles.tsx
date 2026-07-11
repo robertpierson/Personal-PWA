@@ -13,9 +13,11 @@ function money(n: number) {
  * Pricing tiers with the psychology tactics named in DESIGN_NOTES.md:
  * anchoring (cost-of-alternative line), center-stage/decoy (middle tier
  * dominant), Von Restorff isolation (highlighted tier gets a distinct
- * surface + badge), charm vs. round pricing (entry tier keeps its existing
- * charm price; the two higher tiers are round numbers — Meridian sells
- * credibility), day-rate framing, and a loss-aversion annual toggle.
+ * surface + badge), round pricing throughout (no ragged charm decimals —
+ * see site.config.ts), day-rate framing, and a loss-aversion annual toggle.
+ * The annual price is rounded to the nearest whole dollar too — a raw
+ * price/12 division produces exactly the kind of ugly decimal ($16.66,
+ * $49.17) the round-pricing rule exists to avoid.
  *
  * `compact` renders the condensed homepage version (no toggle, no
  * guarantee/capacity copy, fewer features) — same tiers, same prices.
@@ -70,7 +72,7 @@ export function PricingTiles({ compact = false }: { compact?: boolean }) {
         {pricing.tiers.map((tier, i) => {
           const monthlyPrice = tier.price;
           const annualTotal = monthlyPrice * 10; // 2 months free
-          const displayPrice = annual ? annualTotal / 12 : monthlyPrice;
+          const displayPrice = annual ? Math.round(annualTotal / 12) : monthlyPrice;
           const perDay = displayPrice / 30;
           const savings = monthlyPrice * 12 - annualTotal;
 
@@ -85,61 +87,53 @@ export function PricingTiles({ compact = false }: { compact?: boolean }) {
           return (
             <Wrapper key={tier.name} {...wrapperProps}>
               {tier.highlighted && (
-                <span className="badge-pop absolute -top-4 right-6 z-10 rounded-full bg-gold px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-ink shadow-card">
+                <span className="badge-pop absolute -top-4 right-6 z-10 rounded-full bg-gold px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-paper shadow-card">
                   {tier.badge}
                 </span>
               )}
               <div
-                className={`flex h-full flex-col rounded-[calc(var(--radius-card)+4px)] border p-7 transition-transform duration-200 ${
+                className={`relative flex h-full flex-col overflow-hidden rounded-[calc(var(--radius-card)+4px)] border p-7 transition-transform duration-200 ${
                   tier.highlighted
-                    ? "scale-[1.03] border-forest bg-gradient-to-br from-forest to-forest-ink text-paper shadow-glow-blue"
+                    ? "scale-[1.03] border-gold/40 bg-panel shadow-glow-gold"
                     : "border-line bg-panel hover:-translate-y-1 hover:shadow-lift"
                 }`}
               >
-                <h3 className="font-serif text-xl tracking-tight">
+                {tier.highlighted && (
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute -top-16 -right-16 h-56 w-56 rounded-full bg-gold/20 blur-3xl"
+                  />
+                )}
+                <h3 className="relative font-serif text-xl tracking-tight text-ink">
                   {tier.displayName}
                 </h3>
-                <p
-                  className={`mt-1 text-sm ${tier.highlighted ? "text-paper/80" : "text-ink-faint"}`}
-                >
+                <p className="relative mt-1 text-sm text-ink-faint">
                   {tier.tagline}
                 </p>
 
-                <div className="mt-5 flex items-baseline gap-1.5">
-                  <span className="figure text-4xl font-semibold">
-                    {money(Math.round(displayPrice * 100) / 100)}
+                <div className="relative mt-5 flex items-baseline gap-1.5">
+                  <span className="figure text-4xl font-semibold text-ink">
+                    {money(displayPrice)}
                   </span>
-                  <span
-                    className={tier.highlighted ? "text-paper/70" : "text-ink-faint"}
-                  >
-                    /mo
-                  </span>
+                  <span className="text-ink-faint">/mo</span>
                 </div>
-                <p
-                  className={`mt-1 text-xs ${tier.highlighted ? "text-paper/60" : "text-ink-faint"}`}
-                >
+                <p className="relative mt-1 text-xs text-ink-faint">
                   ≈ {money(Math.round(perDay * 100) / 100)}/day
                   {annual && ` · billed $${Math.round(annualTotal)}/yr`}
                 </p>
                 {annual && (
-                  <p
-                    className={`mt-1 text-xs font-medium ${tier.highlighted ? "text-gold-soft" : "text-forest"}`}
-                  >
+                  <p className="relative mt-1 text-xs font-medium text-gold">
                     Don&apos;t lose ${Math.round(savings)}/yr — save it instead
                   </p>
                 )}
 
                 {!compact && (
-                  <ul
-                    className={`mt-6 flex-1 space-y-2.5 border-t pt-5 text-sm ${
-                      tier.highlighted ? "border-paper/20" : "border-line"
-                    }`}
-                  >
+                  <ul className="relative mt-6 flex-1 space-y-2.5 border-t border-line pt-5 text-sm text-ink-soft">
                     {tier.features.map((f) => (
                       <li key={f} className="flex items-start gap-2.5">
                         <span
                           className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${
-                            tier.highlighted ? "bg-gold-soft" : "bg-forest"
+                            tier.highlighted ? "bg-gold" : "bg-ink-faint"
                           }`}
                         />
                         {f}
@@ -151,11 +145,7 @@ export function PricingTiles({ compact = false }: { compact?: boolean }) {
                 <ButtonLink
                   href="/contact"
                   size="lg"
-                  className={`pop-btn mt-6 w-full ${
-                    tier.highlighted
-                      ? "!bg-none !bg-paper !text-forest hover:!bg-white"
-                      : ""
-                  }`}
+                  className="pop-btn relative mt-6 w-full"
                   variant={tier.highlighted ? "primary" : "secondary"}
                 >
                   {tier.cta}

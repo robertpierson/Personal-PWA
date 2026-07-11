@@ -3,7 +3,6 @@ import { getCreditsUsage, getNotifications } from "@/lib/data/dashboard";
 import { Sidebar, type NavItem } from "@/components/dashboard/sidebar";
 import { NotificationsMenu } from "@/components/dashboard/notifications-menu";
 import { CreditsMenu } from "@/components/dashboard/credits-menu";
-import { ThemeInit } from "@/components/dashboard/theme-init";
 
 const ownerNav: NavItem[] = [
   { label: "Overview", href: "/dashboard", icon: "overview" },
@@ -17,10 +16,10 @@ const ownerNav: NavItem[] = [
 
 // Workers get a limited, metrics-focused view (no designs, deliverables, or
 // invoices — see the tenancy/roles decision). Settings is included for
-// everyone since it now also holds personal, per-device preferences
-// (theme, notifications) — the business-sensitive panels inside it
-// (organization, connected accounts, team access) are still gated to
-// owners at the page level.
+// everyone since it now also holds personal, per-device notification
+// preferences — the business-sensitive panels inside it (organization,
+// connected accounts, team access) are still gated to owners at the page
+// level.
 const workerNav: NavItem[] = [
   { label: "Overview", href: "/dashboard", icon: "overview" },
   { label: "Content calendar", href: "/dashboard/calendar", icon: "calendar" },
@@ -43,11 +42,7 @@ export default async function DashboardLayout({
   ]);
 
   return (
-    <div className="min-h-full bg-paper text-ink" data-app-theme>
-      {/* Applies the stored theme before first paint, avoiding a flash of
-          the wrong theme. Scoped to this wrapper only (via data-app-theme),
-          never the marketing site — see globals.css. */}
-      <ThemeInit />
+    <div className="min-h-full text-ink">
       <Sidebar session={session} nav={nav} />
       <div className="lg:pl-72">
         {session.demo && (

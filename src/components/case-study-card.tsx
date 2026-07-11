@@ -1,9 +1,9 @@
 import type { CaseStudy } from "@/content/case-studies";
 
 const accentMap: Record<CaseStudy["accent"], string> = {
-  forest: "from-forest to-forest-deep text-paper",
+  forest: "from-panel to-paper-2 text-ink",
   gold: "from-gold to-gold-deep text-paper",
-  ink: "from-ink to-ink-deep text-paper",
+  ink: "from-paper-2 to-panel text-ink",
 };
 
 /**

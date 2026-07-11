@@ -69,7 +69,7 @@ export default async function InvoicesPage() {
                   <td className="px-5 py-4 text-ink-soft">
                     {formatDate(inv.dueDate)}
                   </td>
-                  <td className="px-5 py-4 font-medium text-ink">
+                  <td className="px-5 py-4 font-medium tabular-nums text-ink">
                     {formatCurrency(inv.amountCents, inv.currency)}
                   </td>
                   <td className="px-5 py-4">

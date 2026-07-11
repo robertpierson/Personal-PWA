@@ -67,20 +67,20 @@ export function BookingForm() {
 
   if (status === "success") {
     return (
-      <div className="rounded-[var(--radius-card)] border border-forest/25 bg-forest px-7 py-12 text-paper">
-        <div className="grid h-12 w-12 place-items-center rounded-full bg-paper/15">
+      <div className="rounded-[var(--radius-card)] border border-gold/30 bg-panel px-7 py-12">
+        <div className="grid h-12 w-12 place-items-center rounded-full bg-gold/15">
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
             <path
               d="M4 11.5l4.5 4.5L18 6"
-              stroke="var(--color-gold-soft)"
+              stroke="var(--color-gold)"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           </svg>
         </div>
-        <h3 className="mt-6 font-serif text-2xl">{contact.successTitle}</h3>
-        <p className="mt-3 max-w-md leading-relaxed text-paper/85">
+        <h3 className="mt-6 font-serif text-2xl text-ink">{contact.successTitle}</h3>
+        <p className="mt-3 max-w-md leading-relaxed text-ink-soft">
           {contact.successBody}
         </p>
         <button
@@ -89,7 +89,7 @@ export function BookingForm() {
             setStatus("idle");
             setStep(0);
           }}
-          className="mt-6 text-sm font-medium text-gold-soft underline underline-offset-4 hover:text-paper"
+          className="mt-6 text-sm font-medium text-gold underline underline-offset-4 hover:text-ink"
         >
           Send another request
         </button>
@@ -224,7 +224,7 @@ export function BookingForm() {
       </div>
 
       {status === "error" && (
-        <p className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <p className="rounded-lg border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-400">
           {error}
         </p>
       )}

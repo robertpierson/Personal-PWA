@@ -82,7 +82,7 @@ export function NotificationsMenu({ initial }: { initial: Notification[] }) {
           <path d="M13.73 21a2 2 0 0 1-3.46 0" />
         </svg>
         {unreadCount > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 grid h-4 w-4 place-items-center rounded-full bg-gold text-[10px] font-bold text-ink">
+          <span className="absolute -right-0.5 -top-0.5 grid h-4 w-4 place-items-center rounded-full bg-gold text-[10px] font-bold text-paper">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}

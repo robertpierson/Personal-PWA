@@ -26,7 +26,7 @@ export const isEncryptionConfigured = Boolean(process.env.TOKEN_ENCRYPTION_KEY);
 export const isDemoMode = !isSupabaseConfigured;
 
 /** Cookie set when a visitor enters the demo dashboard without real auth. */
-export const DEMO_SESSION_COOKIE = "meridian_demo_session";
+export const DEMO_SESSION_COOKIE = "marquee_demo_session";
 
 /**
  * In demo mode there's no database to write to, so edits made on the
@@ -34,7 +34,7 @@ export const DEMO_SESSION_COOKIE = "meridian_demo_session";
  * bundled demo org on read — lets the "editable" settings form actually work
  * locally without Supabase configured.
  */
-export const DEMO_ORG_OVERRIDE_COOKIE = "meridian_demo_org_override";
+export const DEMO_ORG_OVERRIDE_COOKIE = "marquee_demo_org_override";
 
 /** Emails allowed into the operator admin panel (comma-separated env). */
 export const operatorEmails = (process.env.OPERATOR_EMAILS ?? "")

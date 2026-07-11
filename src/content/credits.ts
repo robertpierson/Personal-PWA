@@ -33,6 +33,11 @@ export const CREDIT_COSTS: Record<CreditUsageKey, number> = {
   deepDiveReport: 50,
 };
 
+/** Shown wherever a bare credit count appears (menu button, tooltip) — a
+ * credit count with no meaning attached is a defect, not a style choice. */
+export const CREDIT_EXPLAINER =
+  "1 credit ≈ one unit of delivered work — see the breakdown below.";
+
 export const CREDIT_LABELS: Record<CreditUsageKey, string> = {
   post: "Designed social post",
   calendarManagement: "Monthly content calendar",

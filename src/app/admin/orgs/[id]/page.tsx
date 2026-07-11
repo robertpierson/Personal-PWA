@@ -29,7 +29,7 @@ export const metadata: Metadata = { title: "Operator · Manage client" };
 const fc =
   "w-full rounded-lg border border-line-strong bg-panel px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-forest focus:outline-none focus:ring-2 focus:ring-forest/20";
 const del =
-  "text-xs font-medium text-red-600 hover:underline disabled:opacity-40";
+  "text-xs font-medium text-red-400 hover:underline disabled:opacity-40";
 const submitBtn =
   "justify-self-start rounded-full bg-forest px-4 py-2 text-sm font-medium text-paper transition-colors duration-200 hover:bg-forest-deep focus:outline-none focus:ring-2 focus:ring-forest/20";
 

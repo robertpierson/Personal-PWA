@@ -99,8 +99,6 @@ such as Resend.
 
 ## Before real launch — checklist
 
-- [ ] Replace the placeholder brand name "Meridian" (all strings in
-      `src/lib/site.ts`).
 - [ ] Have `Privacy` and `Terms` reviewed by counsel (Meta review requires a
       privacy policy URL).
 - [ ] Set `TOKEN_ENCRYPTION_KEY` before storing any real Instagram tokens.

@@ -1,6 +1,6 @@
 @AGENTS.md
 
-# Meridian — Local Presence Studio (PWA)
+# Marquee — Local Presence Studio (PWA)
 
 Marketing-services platform for local nonprofits, community orgs, and small
 businesses. Deliverables: branded design, a content calendar, and **legitimate**
@@ -63,20 +63,32 @@ webpack, which fights Next 16's default Turbopack. See `public/sw.js` +
   logs + appends to `.data/intro-requests.jsonl` (gitignored). Wire `deliver()`
   to email/CRM/Supabase at deploy time — that's the only spot to change.
 - `src/app/offline/page.tsx` — SW navigation fallback (precached).
-- `src/components/` — UI. `src/lib/site.ts` — all brand/nav strings (swap here
-  when the real brand is chosen). `src/content/` — placeholder case studies.
+- `src/components/` — UI. `src/content/brand.config.ts` — brand name + accent
+  color, the one place to edit to rebrand. `src/content/site.config.ts` — all
+  other copy/nav/pricing strings (`src/lib/site.ts` re-exports a subset for
+  back-compat). `src/content/` also holds illustrative case studies.
 - `public/icon.svg` is the source mark; `npm run icons` regenerates the PNG/ICO
   set (`scripts/generate-icons.mjs`, uses dev-only sharp + png-to-ico).
 
 ## Design system
 
-Editorial "paper" palette, light-only (intentional, for brand consistency).
-Tokens live in `globals.css`: `paper`/`ink`/`forest`/`gold` families. Display
-serif = **Fraunces** (`font-serif`), UI/body = **Geist** (`font-sans`). Use the
-`.eyebrow` label and `Reveal` scroll-in helper for consistency.
+Dark-premium: warm near-black (`--color-paper`, `#0B0B0C`) + one warm-gold
+accent, no blue, no cream, sitewide (marketing site and dashboard share one
+theme — there's no light/dark toggle). Tokens live in `globals.css`'s
+`@theme` block: `paper`/`panel`/`ink`/`line` (surfaces, text, borders) plus
+`forest`/`gold` (both repoint to the single accent — see the comment at the
+top of `globals.css` for why two token names survive). `brand.config.ts`'s
+`accent` is mirrored onto `<html>` as inline CSS vars in `layout.tsx`, which
+is the actual runtime source of truth for the accent color.
+
+Fonts: display = **Clash Display** (`font-serif` utility — self-hosted via
+`next/font/local`, files in `src/app/fonts/`), body/UI = **General Sans**
+(`font-sans`), eyebrows/labels/stat units = **JetBrains Mono** (`font-mono`,
+uppercase, gold). Use the `.eyebrow` label and `Reveal` scroll-in helper for
+consistency. Status pills use one 3-bucket system (gold = attention, muted
+off-white = done, faint = idle) — see `StatusBadge` in
+`components/dashboard/primitives.tsx` — never introduce a fourth color.
 
 ## Commands
 
 `npm run dev` · `npm run build` · `npm run lint` · `npm run icons`
-
-Brand is a **placeholder** ("Meridian") until the user picks a real name.
