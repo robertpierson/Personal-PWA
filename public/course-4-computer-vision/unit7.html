@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 7 · Generative vision models: GANs and diffusion — Computer Vision</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Computer Vision · Unit 7 of 8</p>
+  <h1>Generative vision models: GANs and diffusion</h1>
+  <p class="lede">You've spent six units teaching networks to look at images and say what's there. This unit flips the arrow: networks that <em>produce</em> images — for design mockups, for synthetic training data when the real examples are too rare or too risky to collect, and for the deepfake problem that inevitably rides along with any technology this good.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. Generative modelling and GANs</a></li>
+      <li><a href="#lesson-2">2. Diffusion models</a></li>
+      <li><a href="#lesson-3">3. Conditioning, control, and the honest limits</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>Generative modelling and GANs</h2>
+
+    <p class="opening">A <span class="term">discriminative model</span> answers a narrower question than people give it credit for. Every classifier in Units 1–6 — the defect detector, the segmentation U-Net, the object detector — learns <code>p(y | x)</code>: given this image, what's the label, mask, or box? It never has to know what a valid image <em>looks like</em>, only how to carve up the ones it's handed. A <span class="term">generative model</span> is answering the harder, symmetric question: it estimates <code>p(x)</code>, the distribution the images themselves were drawn from, well enough to draw new samples from it. That's a qualitatively bigger ask. A discriminative model can cheat by learning a decision boundary that happens to work; a generative model has to internalize enough of the structure of "photograph of a product on a shelf" or "microscope slide with a tumor margin" that it can hallucinate a convincing new instance from scratch. If it gets the joint statistics wrong — plausible textures assembled into an impossible object — the fakery shows.</p>
+
+    <p>Three families have taken serious runs at <code>p(x)</code>, and it's worth a fast map before diving into the one this lesson spends its time on. <span class="term">Variational autoencoders (VAEs)</span> extend the encoder/decoder you met in Unit 5: an encoder maps an image to a distribution over a latent code (typically a mean and variance for each latent dimension, not a single point), you sample from that distribution, and a decoder reconstructs an image from the sample. Training combines a reconstruction loss (does the decoded image match the input?) with a KL-divergence term that pulls the encoded distribution toward a standard normal, which is what makes the latent space usable for sampling — you can draw a fresh <code>z ~ N(0, I)</code> at generation time and decode it without ever having seen that exact code during training. The catch is well known: VAE samples are characteristically <span class="term">blurry</span>. Minimizing reconstruction error with a pixel-wise loss (typically mean squared error) rewards the average of plausible outputs over any single sharp one, so fine texture — the grain in a fabric, the crisp edge of a label print — gets smoothed away. <span class="term">Autoregressive models</span> like PixelCNN take the opposite approach: generate the image one pixel at a time, each conditioned on every pixel already generated, using a masked convolution so the model can never see "future" pixels during training. This produces sharp, high-fidelity samples but at a brutal cost — generating a 256×256 image means 65,536 sequential network evaluations, which is why autoregressive pixel models never scaled to production image generation the way they did to text.</p>
+
+    <h3>The GAN game</h3>
+    <p><span class="term">Generative adversarial networks</span> (Goodfellow et al., 2014) sidestep both problems with a trick that doesn't estimate <code>p(x)</code> explicitly at all. Two networks are trained against each other: a <span class="term">generator</span> <code>G</code> maps random noise <code>z</code> to an image <code>G(z)</code>, and a <span class="term">discriminator</span> <code>D</code> looks at an image and outputs the probability it's real rather than generator-produced. <code>D</code> is trained to get better at telling real product photos from generated ones; <code>G</code> is trained to fool <code>D</code>. Neither network ever computes a likelihood — the training signal is entirely "did the other network get fooled." This is the <span class="term">minimax game</span>:</p>
+    <p class="math">min_G max_D  E[log D(x)] + E[log(1 − D(G(z)))]</p>
+    <p>At the (theoretical) equilibrium, <code>G</code> produces samples indistinguishable from real data and <code>D</code> outputs 0.5 everywhere — it can no longer do better than a coin flip. In practice this equilibrium is notoriously hard to reach, and the failure modes are specific enough to name. <span class="term">Mode collapse</span> is the generator finding one or a handful of outputs that reliably fool the current discriminator and producing only those — for a synthetic-defect generator this looks like every generated "scratch" defect being a near-identical diagonal line, useless for augmenting a classifier that needs variety. <span class="term">Non-convergence</span> is the two networks oscillating rather than settling — <code>G</code> learns to beat last round's <code>D</code>, <code>D</code> adapts, <code>G</code> shifts again, forever, with no fixed point. <span class="term">Vanishing gradients</span> happen when <code>D</code> becomes too good too early: if <code>D</code> confidently rejects every generated sample, <code>log(1 − D(G(z)))</code> saturates and its gradient with respect to <code>G</code>'s parameters shrinks toward zero, so <code>G</code> stops receiving useful signal to improve — the discriminator's competence starves its own training partner.</p>
+
+    <h3>Stabilizing the game</h3>
+    <p>The fixes that stuck target the loss geometry directly rather than tweaking learning rates. <span class="term">Wasserstein GAN (WGAN)</span> replaces the original JS-divergence-flavored objective with the Earth Mover's (Wasserstein) distance between real and generated distributions, which stays smooth and informative even when the two distributions barely overlap — exactly the regime where the original loss vanishes. Enforcing the Lipschitz constraint the Wasserstein formulation requires was originally done by clipping discriminator weights, a coarse hack; <span class="term">WGAN-GP</span> (gradient penalty) instead penalizes the discriminator whenever the gradient norm of its output with respect to interpolated real/fake inputs strays from 1, which is both more stable and doesn't cripple the discriminator's capacity the way weight clipping does. <span class="term">Spectral normalization</span> is a complementary fix applied directly to the discriminator's weight matrices: dividing each weight matrix by its largest singular value at every forward pass caps the Lipschitz constant of each layer without any extra loss term, and it composes cleanly with almost any GAN variant. On top of a stabilized base, <span class="term">conditional GANs</span> feed a class label or embedding into both <code>G</code> and <code>D</code> so generation can be steered ("generate a scratch defect on brushed aluminum" rather than "generate something"), and <span class="term">StyleGAN</span>'s contribution was architectural: injecting the latent code at every resolution level of the generator via adaptive instance normalization, which disentangles coarse structure (pose, layout) from fine detail (texture, color) and gives a designer separate knobs for each.</p>
+
+    <pre><code>def gan_training_step(G, D, real_images, opt_G, opt_D, z_dim=128):
+    batch_size = real_images.shape[0]
+    z = torch.randn(batch_size, z_dim)
+
+    # --- 1. Discriminator step ---
+    # D learns to separate real product photos from G's fakes.
+    fake_images = G(z).detach()          # detach: no generator grad here
+    d_real = D(real_images)
+    d_fake = D(fake_images)
+    loss_D = -(torch.log(d_real + 1e-8).mean()
+               + torch.log(1 - d_fake + 1e-8).mean())
+    opt_D.zero_grad(); loss_D.backward(); opt_D.step()
+
+    # --- 2. Generator step ---
+    # G learns to make D(G(z)) large -- i.e. fool the discriminator.
+    z = torch.randn(batch_size, z_dim)
+    fake_images = G(z)
+    d_fake = D(fake_images)
+    loss_G = -torch.log(d_fake + 1e-8).mean()   # non-saturating variant
+    opt_G.zero_grad(); loss_G.backward(); opt_G.step()
+
+    return loss_D.item(), loss_G.item()</code></pre>
+    <p class="caption">Two separate backward passes per step, one per network. Note <code>fake_images.detach()</code> in the discriminator step — it stops gradient from flowing into G during D's update — and the non-saturating <code>-log(D(G(z)))</code> generator loss, which avoids the vanishing-gradient failure of the original <code>log(1 - D(G(z)))</code> formulation when D is already confident.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Generative vs. discriminative is a distribution question:</strong> discriminative models learn <code>p(y|x)</code>, generative models learn (or learn to sample from) <code>p(x)</code> — a strictly harder target, which is why generative failures look like "plausible pieces, impossible whole" rather than a wrong label.</li>
+        <li><strong>VAEs trade sharpness for a well-behaved latent space</strong> via the reconstruction+KL objective; their blur is a direct consequence of pixel-wise reconstruction loss, not a fixable bug.</li>
+        <li><strong>GAN failure modes have names because they have causes:</strong> mode collapse (generator exploits a narrow trick), non-convergence (no fixed point), vanishing gradients (an over-strong discriminator starves its own signal) — each has a matched fix (minibatch discrimination / diversity losses, WGAN-GP, non-saturating loss).</li>
+        <li><strong>WGAN-GP and spectral normalization stabilize training by controlling the discriminator's Lipschitz constant</strong>, not by changing the generator architecture at all.</li>
+        <li><strong>StyleGAN's disentangled per-resolution latent injection</strong> is what makes "same layout, different texture" controllable generation possible — a capability plain GANs don't offer.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Diffusion models</h2>
+
+    <p class="opening">Picture a sculptor who starts not with marble but with a block of pure static — visual noise with no structure at all — and works backward, one small correction at a time, coaxing a recognizable form out of the mess. Nudge the noise slightly toward "less noisy," repeat a few hundred times, and a coherent image emerges at the end. That is, almost literally, how a <span class="term">diffusion model</span> generates an image, and it is the mechanism behind essentially every state-of-the-art image generator as of this writing — Stable Diffusion, Midjourney's and DALL·E's underlying samplers, and the synthetic-data engines increasingly used to manufacture rare-class training examples all sit on this same backbone.</p>
+
+    <p>The trick starts in reverse from how you'd generate: define a fixed, un-learned <span class="term">forward noising process</span> that takes a real image <code>x₀</code> and, over <code>T</code> steps (often 1,000), adds a small amount of Gaussian noise at each step until <code>x_T</code> is indistinguishable from pure noise. Because each step just adds Gaussian noise, there's a closed-form shortcut to jump straight from <code>x₀</code> to any noise level <code>t</code> without simulating every intermediate step: <code>x_t = √(ᾱ_t)·x₀ + √(1−ᾱ_t)·ε</code>, where <code>ε ~ N(0,I)</code> is the noise actually added and <code>ᾱ_t</code> is a scheduled constant that decreases from near 1 (barely noised) to near 0 (almost pure noise) as <code>t</code> grows. The generative half is the <span class="term">reverse process</span>: a neural network learns to undo one small noising step at a time, starting from pure noise at <code>t=T</code> and working down to <code>t=0</code>.</p>
+
+    <h3>Why predict the noise</h3>
+    <p>You could ask the network to predict the clean image <code>x₀</code> directly at every step, but in practice it works much better to have it predict <span class="term">the noise <code>ε</code> that was added</span> — this is <span class="term">epsilon-prediction</span>, and it's the standard parameterization from the original DDPM paper (Ho et al., 2020). Once you know <code>ε</code>, recovering an estimate of <code>x₀</code> or taking one reverse step is simple algebra from the forward equation above; predicting the noise also keeps the target roughly zero-mean and unit-variance at every timestep, which is a much friendlier regression target than a raw image whose statistics shift as <code>t</code> changes. The training objective falls out to something almost embarrassingly simple: sample a real image, sample a random timestep, add the corresponding amount of noise, and train the network to predict that noise with plain mean squared error.</p>
+    <p class="math">L = E_{t, x₀, ε} [ ‖ ε − ε_θ(x_t, t) ‖² ]</p>
+    <p>The network doing the predicting, <code>ε_θ</code>, is almost always the <span class="term">U-Net</span> from Unit 5 — the same encoder-decoder-with-skip-connections shape, because denoising needs exactly what segmentation needed: coarse global context (what object, what layout) fused back with fine spatial detail (where exactly the edges are) via the skip connections. The one addition is <span class="term">timestep conditioning</span>: the current step <code>t</code> is embedded (typically a sinusoidal position embedding, echoing Course 2's positional encodings) and injected into every U-Net block, usually by modulating the normalization statistics, so a single network can denoise a nearly-clean image at <code>t=5</code> and a nearly-pure-noise image at <code>t=950</code> with the same weights, just conditioned differently.</p>
+
+    <h3>Sampling: slow but composable</h3>
+    <p>Generation means running the reverse process: start from <code>x_T ~ N(0,I)</code> and repeatedly predict the noise, subtract a scheduled fraction of it, and (for most of the trajectory) add a controlled amount of fresh noise back in — that last part matters, because without it the sampler behaves more deterministically than the model's training distribution assumes and samples degrade. Doing this the original way, <span class="term">DDPM sampling</span>, uses all <code>T</code> steps and is exactly why diffusion's biggest practical weakness relative to GANs is speed: a GAN generates an image in a single forward pass through <code>G</code>; a naive DDPM sampler needs on the order of 1,000 sequential network evaluations for one image. <span class="term">DDIM</span> (denoising diffusion implicit models) reformulates the reverse process as non-Markovian, which permits skipping steps — sampling with 20-50 steps instead of 1,000 while staying close to DDPM quality — and it's the default in virtually every production system today. Even at 20-50 steps, that's still 20-50x more network evaluations than a GAN's one, which is the honest trade-off: diffusion models are typically more stable to train and produce higher-fidelity, more diverse samples, but they are markedly slower at inference, which matters directly for a design tool where a user is waiting on a preview.</p>
+
+    <p><span class="term">Classifier-free guidance</span> is the mechanism that lets you dial how strongly a diffusion model obeys a conditioning signal (a text prompt, a class label) versus how strongly it just produces "any plausible image." During training, the conditioning is randomly dropped some fraction of the time, so the same network learns both a conditional <code>ε_θ(x_t, t, c)</code> and an unconditional <code>ε_θ(x_t, t)</code>. At sampling time you compute both and extrapolate away from the unconditional prediction toward the conditional one: <code>ε̂ = ε_θ(x_t,t) + w·(ε_θ(x_t,t,c) − ε_θ(x_t,t))</code>, where guidance weight <code>w > 1</code> pushes samples to match the condition more aggressively, at some cost to diversity and, past a point, to realism (oversaturated colors, artifacts). Finally, running full diffusion in pixel space is expensive simply because images are big — a 512×512×3 tensor denoised 50 times is a lot of compute. <span class="term">Latent diffusion</span> (the technique behind Stable Diffusion) sidesteps this by first compressing the image with a VAE-style encoder (much like Lesson 1's VAE, though usually without the KL term dominating) into a much smaller latent grid — say 64×64×4 instead of 512×512×3 — running the entire noising/denoising process in that compressed latent space, and only decoding back to pixels once, at the very end. This is what made high-resolution text-to-image generation tractable on consumer hardware.</p>
+
+    <pre><code>def diffusion_training_step(unet, x0, opt, T=1000, alpha_bar=None):
+    batch_size = x0.shape[0]
+
+    # 1. sample a random timestep per image in the batch
+    t = torch.randint(0, T, (batch_size,))
+
+    # 2. sample noise and build the noised image x_t
+    eps = torch.randn_like(x0)
+    a_bar_t = alpha_bar[t].view(-1, 1, 1, 1)      # per-sample schedule value
+    x_t = torch.sqrt(a_bar_t) * x0 + torch.sqrt(1 - a_bar_t) * eps
+
+    # 3. U-Net predicts the noise, conditioned on t
+    eps_pred = unet(x_t, t)
+
+    # 4. plain MSE between true and predicted noise
+    loss = torch.mean((eps - eps_pred) ** 2)
+
+    opt.zero_grad(); loss.backward(); opt.step()
+    return loss.item()</code></pre>
+    <p class="caption">One network, one loss, no adversary — contrast this with the two-optimizer dance in Lesson 1's GAN step. The only moving part is which timestep <code>t</code> gets sampled, which is why diffusion training is markedly more stable than GAN training in practice.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>The forward process is fixed and un-learned</strong> — only the reverse denoising process is a trained network — and the closed-form shortcut <code>x_t = √ᾱ_t·x₀ + √(1−ᾱ_t)·ε</code> lets training sample any timestep directly.</li>
+        <li><strong>Epsilon-prediction plus plain MSE</strong> is the whole training objective; it works because predicting zero-mean noise is a better-conditioned regression target than predicting a raw image whose statistics vary with <code>t</code>.</li>
+        <li><strong>The U-Net backbone is unchanged from Unit 5</strong> except for timestep conditioning injected into every block — the same coarse+fine fusion that served segmentation now serves denoising.</li>
+        <li><strong>DDIM's non-Markovian reformulation buys a 20-50x sampling speedup</strong> over DDPM by skipping steps, but diffusion is still far slower per image than a GAN's single forward pass — a real deployment cost, not a footnote.</li>
+        <li><strong>Latent diffusion moves the entire denoising loop into a compressed VAE latent space</strong>, which is the difference between "runs on a data-center cluster" and "runs on a single consumer GPU."</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Conditioning, control, and the honest limits</h2>
+
+    <p class="opening">Two people want two very different things from the same generator, and neither wants "any plausible image." A designer at a furniture brand needs a photoreal render of <em>this exact armchair</em>, in walnut, on a specific studio backdrop, not a generic armchair the model invented. A machine-learning engineer building a defect classifier for weld inspection needs synthetic images of the rare defect class that actually resemble the real defects a camera will see on the line — not images that merely look plausible to a human but teach the downstream classifier to key off some artifact of the generator instead of the real physical signature. Both problems are conditioning problems, and both have a failure mode where the output "looks right" until you check whether it's right for the actual task.</p>
+
+    <h3>Steering generation</h3>
+    <p>The core mechanism for text-to-image conditioning is <span class="term">cross-attention</span>, a direct reuse of the attention mechanism from Course 2: at each U-Net layer, the image features act as queries, and the text prompt's token embeddings (from a frozen or co-trained text encoder) act as keys and values, so every spatial location in the denoising U-Net can attend to whichever words in the prompt are relevant to it. This is strictly more flexible than the single class-embedding conditioning from Lesson 1's conditional GANs, because it lets different regions of the image respond to different parts of an open-ended sentence. But a text prompt alone can't pin down "this exact armchair on this exact backdrop" — text is too coarse an interface for pixel-precise control. Three techniques close that gap. <span class="term">Inpainting</span> masks out a region of an existing image and runs the diffusion process only on the masked pixels, conditioned on the surrounding unmasked context, so you can swap a background while leaving the product untouched. <span class="term">img2img</span> starts the reverse process not from pure noise but from a partially-noised version of a real reference image, so the output stays structurally anchored to that reference while still being subject to the text conditioning. <span class="term">ControlNet</span> goes further: it attaches a trainable copy of (part of) the U-Net that takes an auxiliary structural signal — an edge map, a depth map, a pose skeleton — and injects it into the frozen base model's activations, giving pixel-level layout control (this armchair's silhouette, at this exact angle) while text conditioning still handles style and material.</p>
+
+    <h3>Synthetic data's domain-gap trap</h3>
+    <p>The rare-defect use case looks like a clean win on paper — generate a thousand synthetic images of a defect you've only photographed twelve times, augment the training set, done. The trap is that a generative model trained on those twelve real examples (or, worse, on a generic pretrained model fine-tuned lightly on them) doesn't just learn "what this defect looks like," it also learns whatever quirks are specific to the generator's own architecture and sampling process — slightly-too-smooth noise textures, characteristic color-channel correlations, subtle checkerboard artifacts from certain upsampling schemes. If the downstream defect classifier is trained on a mix heavy with synthetic images, it can learn to detect <em>those generator fingerprints</em> rather than the physical defect signature, which means it performs beautifully on held-out synthetic data and unpredictably on real camera images from the production line — a <span class="term">sim-to-real domain gap</span> that doesn't show up in ordinary validation because the validation set is contaminated with the same synthetic-only artifacts. The mitigation isn't exotic: keep the real-to-synthetic ratio high, validate exclusively on held-out real images never touched by the generative pipeline, and treat any accuracy jump from adding synthetic data with the same suspicion you'd apply to a suspiciously large accuracy jump from any other data change.</p>
+
+    <p>Evaluating generative quality at all is harder than it looks, which is worth being direct about. <span class="term">FID</span> (Fréchet Inception Distance) passes real and generated images through a pretrained Inception network, fits a Gaussian to the feature activations of each set (mean and covariance), and reports the Fréchet distance between the two Gaussians — lower is better, meaning the generated feature distribution sits closer to the real one. <span class="term">Inception Score</span> instead looks only at generated images, rewarding samples that an Inception classifier labels confidently (sharp, recognizable) and that are diverse across classes as a batch. Both have well-documented flaws: FID's Gaussian assumption is a crude approximation to feature distributions that aren't actually Gaussian, both scores are sensitive to which pretrained network and which image preprocessing you use (numbers aren't comparable across papers that used different implementations), and neither score can catch the domain-gap problem above — a generator producing consistent, Inception-flattering fingerprints can score well on FID while still teaching a downstream classifier the wrong thing. <span class="term">Precision-recall for generative models</span> partially addresses FID's blind spot by separating two questions FID conflates into one number: precision asks whether generated samples fall inside the real data manifold (are they realistic?), recall asks whether generated samples cover the full real data manifold (is anything missing — is this the mode collapse problem from Lesson 1, just measured explicitly?). None of these metrics substitute for checking whether the actual downstream task — the defect classifier, the design review — improves; they're diagnostics, not a proof of usefulness.</p>
+
+    <h3>The authenticity problem</h3>
+    <p>None of this technology is neutral, and the same conditioning and control tools that let a designer swap a product's backdrop let anyone swap a real person's face or voice into a fabricated scene — the deepfake problem is a direct, unavoidable extension of everything in this unit, not a separate topic bolted on. Three lines of defense exist, none complete. <span class="term">Watermarking</span> embeds a signal into generated images — sometimes visible, more often an imperceptible perturbation baked into the generation process itself, so it survives common edits — that a matching detector can read back later; it works only for content generated by cooperating systems, since nothing stops a bad actor from stripping a watermark or using a generator that never adds one. <span class="term">Content provenance</span> standards (such as C2PA) instead attach signed, cryptographic metadata recording an image's origin and edit history to the file — closer to a chain of custody than a mark on the pixels — but metadata is trivially lost the moment an image is re-screenshotted or re-exported through a pipeline that doesn't preserve it. <span class="term">Deepfake detection</span> — classifiers trained to spot generator artifacts, essentially the mirror image of the domain-gap problem above — is explicitly an <span class="term">arms race</span>: each detection technique that publishes its method teaches the next generation of generators exactly which artifact to eliminate, and every generational improvement in fidelity (precisely the kind of progress from GANs to diffusion to latent diffusion charted across this unit) shrinks the artifacts detectors rely on. Recall the hard rule from the top of this course: legitimate use here means design tooling and synthetic training data with a human reviewing anything that leaves the building, never automated impersonation, and never a client-facing deliverable that could pass as an unaltered photograph of a real person without disclosure.</p>
+
+    <pre><code>def classifier_free_guidance_step(unet, x_t, t, cond_emb, w=7.5):
+    # Two forward passes per step: unconditional and conditional.
+    eps_uncond = unet(x_t, t, cond=None)
+    eps_cond   = unet(x_t, t, cond=cond_emb)
+
+    # Extrapolate away from unconditional, toward conditional.
+    # w > 1 sharpens adherence to the prompt at some cost to diversity.
+    eps_guided = eps_uncond + w * (eps_cond - eps_uncond)
+    return eps_guided   # fed into the normal DDIM/DDPM update rule</code></pre>
+    <p class="caption">Notice this doubles inference cost per step (two U-Net passes, not one) — a second, separate speed tax layered on top of the multi-step sampling cost from Lesson 2, and one more reason a real product weighs guidance strength against latency.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Cross-attention conditions on open-ended text; ControlNet/inpainting/img2img condition on pixel-precise structure</strong> — text alone can't specify an exact product silhouette, which is why production pipelines stack these techniques rather than picking one.</li>
+        <li><strong>Synthetic training data can teach a classifier generator fingerprints instead of the real signal</strong> — a domain gap that inflates validation accuracy on synthetic-contaminated test sets while degrading real-world performance, catchable only by validating on real-only held-out data.</li>
+        <li><strong>FID and Inception Score are widely reported and widely flawed</strong> — a Gaussian approximation, sensitivity to the scoring network, and no ability to detect generator-fingerprint learning — so treat them as one signal, not a verdict.</li>
+        <li><strong>Precision-recall for generative models separates realism from coverage</strong>, giving a way to name mode collapse (low recall) as distinct from poor sample quality (low precision) — FID alone conflates the two.</li>
+        <li><strong>Watermarking, provenance metadata, and detection are each partial and each defeatable</strong>; deepfake detection specifically is a genuine arms race that improves as generation improves, never a solved problem to check off.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 7 quiz</h2>
+    <p class="quiz-intro">Eight questions covering GAN dynamics, diffusion mechanics, conditioning, and the synthetic-data/authenticity trade-offs — several require chaining two ideas together.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A team training a GAN to generate synthetic weld-defect images notices that after epoch 40, every generated "porosity" defect looks almost pixel-identical — same size, same position, same shape. Discriminator and generator losses both look numerically stable. What is this, and what's the most direct fix?</p>
+      <ol class="choices" type="A">
+        <li>Vanishing gradients; lower the discriminator's learning rate.</li>
+        <li>Mode collapse; add a diversity-encouraging term (e.g. minibatch discrimination) or switch to a loss less prone to it, like WGAN-GP.</li>
+        <li>Non-convergence; the losses oscillating means training hasn't started yet, so just train longer.</li>
+        <li>Overfitting; add dropout to the generator.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> A generator collapsing to near-identical outputs while losses stay numerically stable is the textbook signature of mode collapse — the generator found a narrow trick that reliably fools the current discriminator and stopped exploring. WGAN-GP's smoother loss landscape and explicit diversity-encouraging techniques are the standard countermeasures.</p>
+          <p>Vanishing gradients (A) present as the generator failing to improve at all, with the discriminator near-perfectly confident — not as a diverse-looking loss curve paired with collapsed outputs. Non-convergence (C) is misdiagnosed here: the losses are described as stable, not oscillating, which is the opposite signature, and "train longer" is not a fix for either problem. Dropout (D) targets overfitting to individual training examples, not collapse onto a narrow output mode; it doesn't address the adversarial dynamic causing this.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Because a VAE's decoder is trained with a pixel-wise reconstruction loss, VAE samples are typically blurrier than GAN or diffusion samples at comparable resolution.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: True.</strong> Minimizing a pixel-wise loss like MSE rewards predicting the average of multiple plausible outputs when the model is uncertain, which systematically smooths away fine texture and sharp edges — this is a direct, structural consequence of the objective, not an incidental training artifact that better hyperparameters would fix.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">In DDPM-style diffusion training, the network is trained to predict the <span class="blank">&nbsp;</span> that was added to the image at the sampled timestep, using a <span class="blank">&nbsp;</span> loss between the true and predicted values.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: noise (ε); mean squared error (MSE).</strong> Epsilon-prediction gives the network a roughly zero-mean, unit-variance regression target at every timestep, which trains more stably than predicting the clean image directly, and the objective reduces to a plain MSE between the true and predicted noise.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A product team wants to swap a diffusion pipeline from DDPM sampling with 1,000 steps to DDIM sampling with 40 steps for a faster interactive preview. What should they expect?</p>
+      <ol class="choices" type="A">
+        <li>Identical sample quality with a 25x speedup, since DDIM is mathematically equivalent to DDPM at any step count.</li>
+        <li>A speedup, with quality close to (though not always exactly matching) the full-step DDPM result, because DDIM's non-Markovian reformulation permits skipping steps.</li>
+        <li>No speedup, because the U-Net still has to process the full image at every one of the 1,000 original noise levels regardless of sampler.</li>
+        <li>A speedup only if they also switch to a GAN, since diffusion samplers cannot be accelerated below 1,000 steps.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> DDIM's reformulation of the reverse process as non-Markovian is precisely what allows it to skip intermediate steps while approximating the same trajectory, typically getting most of DDPM's quality in a fraction of the steps — but "approximating" is the operative word; it is not mathematically identical output.</p>
+          <p>A overstates the guarantee — DDIM is an approximation, not an equivalence, and quality can degrade at very low step counts. C misunderstands what changes: DDIM changes how many reverse steps are actually run, not merely how they're labeled. D is simply false; DDIM is exactly a same-model acceleration technique that does not require switching architectures.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">A junior engineer wrote this classifier-free guidance step, but samples come out barely responsive to the prompt no matter how high they set <code>w</code>. Find the bug.</p>
+      <pre><code>def guidance_step(unet, x_t, t, cond_emb, w=7.5):
+    eps_cond   = unet(x_t, t, cond=cond_emb)
+    eps_uncond = unet(x_t, t, cond=cond_emb)   # reuse the same call
+    eps_guided = eps_uncond + w * (eps_cond - eps_uncond)
+    return eps_guided</code></pre>
+      <ol class="choices" type="A">
+        <li>The guidance weight <code>w</code> should be a value less than 1, not greater.</li>
+        <li>The unconditional pass is called with <code>cond=cond_emb</code> instead of <code>cond=None</code>, so <code>eps_cond</code> and <code>eps_uncond</code> are identical and the guidance term collapses to zero regardless of <code>w</code>.</li>
+        <li>The two U-Net calls should share one forward pass to save compute.</li>
+        <li>The extrapolation direction is reversed — it should be <code>eps_cond - w*(eps_cond - eps_uncond)</code>.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Both lines call the U-Net with the identical conditioning embedding, so <code>eps_cond - eps_uncond</code> is exactly zero every time, no matter what <code>w</code> is — the model is silently only ever seeing <code>eps_uncond</code> (which happens to equal <code>eps_cond</code> here), which matches the reported symptom of prompt-blindness at any guidance strength. The unconditional call needs <code>cond=None</code> to actually train the divergence between the two predictions that guidance extrapolates along.</p>
+          <p>A is wrong — the standard useful range for <code>w</code> is greater than 1 (values below 1 under-weight the condition, but that's not the bug reported: at <em>no</em> value of <code>w</code> would this code respond to the prompt). C describes a real optimization some implementations make (batching both passes together), but doing two separate calls correctly would still work, just slower — it isn't the cause of the reported bug. D proposes a different, also-valid-looking formula, but it doesn't address the actual defect, which is that the two branches are identical inputs, not a wrong arithmetic sign.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A hospital-imaging team generates synthetic X-rays of a rare fracture pattern with a fine-tuned diffusion model to augment a scarce real dataset. After adding the synthetic images, their held-out test accuracy (drawn from the same synthetic pipeline) jumps from 81% to 97%. What should this jump make them suspicious of?</p>
+      <ol class="choices" type="A">
+        <li>Nothing — a 16-point jump confirms the augmentation worked and the classifier is ready to deploy.</li>
+        <li>That the FID score of the generator must have been poor, since FID would have caught this.</li>
+        <li>That the classifier may have learned to key off generator-specific artifacts shared between the synthetic training and synthetic test images, rather than the real fracture signature — the held-out set is contaminated with the same synthetic fingerprints.</li>
+        <li>That classifier-free guidance was set too low during generation.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> A large accuracy jump on a test set that itself contains synthetic images is exactly the domain-gap trap: the classifier can be rewarded for detecting shared generator fingerprints rather than the true physical signature, and this failure is invisible until validated against real images the generator never touched.</p>
+          <p>A ignores the specific risk named in the lesson — a suspicious jump warrants scrutiny of the evaluation set's composition, not automatic celebration. B is wrong on the mechanics: FID measures how close generated images are to real ones in feature-statistic space, and it specifically cannot detect a classifier learning to exploit shared fingerprints between synthetic train and synthetic test data — that's a blind spot named explicitly in the lesson, not something FID screens for. D is a non sequitur; guidance strength affects prompt adherence and sample diversity, not this particular contamination failure mode.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">True / false</span></p>
+      <p class="q-stem">FID and Inception Score, computed correctly, are sufficient on their own to certify that a set of generated images will actually improve a downstream classifier's real-world performance.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> Both metrics assess how statistically close generated images look to real ones in a pretrained feature space (or how confidently/diversely an Inception classifier labels them) — neither one evaluates whether a downstream task actually improves, and neither can detect a classifier learning generator fingerprints instead of genuine signal. They're diagnostics that correlate loosely with usefulness, not a substitute for measuring the actual downstream metric on real held-out data.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">Complete the missing line in this ControlNet-style sketch so the auxiliary structural signal (an edge map) actually influences the frozen base U-Net's output, per the mechanism described in Lesson 3.</p>
+      <pre><code>def controlnet_forward(base_unet, control_branch, x_t, t, edge_map):
+    base_features = base_unet.encode(x_t, t)
+    control_features = control_branch(edge_map, t)
+    # ??? combine control_features with base_features before
+    # passing into the base U-Net's decoder
+    combined = ____________
+    return base_unet.decode(combined, t)</code></pre>
+      <ol class="choices" type="A">
+        <li><code>base_features</code> (ignore <code>control_features</code> entirely)</li>
+        <li><code>base_features + control_features</code></li>
+        <li><code>control_features</code> (ignore <code>base_features</code> entirely)</li>
+        <li><code>torch.cat([base_features, control_features], dim=0)</code> (stack along the batch dimension)</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> ControlNet's trainable branch is injected into the frozen base model's activations additively (the original paper zero-initializes the injection so it starts as a no-op and gradually learns useful contributions), so the base network's learned image priors and the auxiliary structural signal both influence the decoder.</p>
+          <p>A discards the entire point of ControlNet — without adding <code>control_features</code> in, the edge map has no path to affect generation at all. C discards the base model's pretrained generative knowledge, which would degrade to generating structure from the edge map with none of the base model's learned texture/lighting/material priors. D is a shape error dressed as a plausible-looking answer: concatenating along the batch dimension doubles the batch size rather than fusing the two feature maps at each spatial location, which would break the decoder's expected input shape entirely.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Computer Vision · Unit 7 of 8 — Next: Unit 8 wires these building blocks — detection, segmentation, and generation — into deployed vision pipelines.</p>
+</footer>
+</body>
+</html>

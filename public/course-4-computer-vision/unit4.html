@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 4 · Object detection fundamentals — Computer Vision</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Computer Vision · Unit 4 of 8</p>
+  <h1>Object detection fundamentals</h1>
+  <p class="lede">Your Unit 3 classifier can tell you a picture contains a truck. A self-driving car needs to know <em>where</em> the truck is, where the pedestrian half-hidden behind it is, and how many other things share the frame — this unit is where "what" becomes "what, and exactly where, and how many."</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. From classification to localization: the detection problem</a></li>
+      <li><a href="#lesson-2">2. Two-stage detectors: the R-CNN family</a></li>
+      <li><a href="#lesson-3">3. One-stage detectors: YOLO, SSD, and the modern picture</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>From classification to localization: the detection problem</h2>
+    <p class="opening"><span class="term">Object detection</span> is the task of producing, for an input image, a variable-length list of (class label, bounding box, confidence score) triples — one entry per object instance present. That definition is doing more work than it looks like. A classifier from Course 4 Unit 3 outputs one fixed-size vector: a softmax over <code>C</code> classes, always the same shape no matter what's in the image. A detector's output has no fixed size at all. A highway scene at 3pm might contain two vehicles and a sign; the same intersection ninety seconds later might contain eleven vehicles, four pedestrians, three cyclists, and two signs. The network has to somehow emit "eleven vehicles" without knowing in advance that eleven is the right number, and it has to say precisely where each one is, in pixel coordinates, not just that it's present somewhere.</p>
+    <p>This variable-count, variable-location property is the entire reason detection is a distinct subfield rather than "classification plus a bit more." Every architectural idea in this unit and the next — region proposals, anchors, grid cells, set prediction — is a different engineering answer to the same underlying question: how do you get a fixed-size neural network (fixed number of layers, fixed weight tensors) to emit an unbounded, unordered set of detections?</p>
+    <h3>Parameterizing a box</h3>
+    <p>Before anything else, a bounding box needs a numeric representation the network can regress. The two common conventions are <code>(x_min, y_min, x_max, y_max)</code> — opposite corners — and <code>(x_center, y_center, width, height)</code> — center plus extent. Corner form is convenient for computing overlap; center form is convenient for a network to predict as an offset from some reference point (you'll see exactly this in the YOLO decoding in Lesson 3). In an autonomous-driving pipeline, boxes are typically defined in the coordinate frame of the current camera frame, in pixels, at whatever resolution the sensor feeds the network — say 1920×1208 for a forward-facing camera, downsampled to something like 640×384 before the backbone. A box for a distant traffic sign might be <code>(x_min=910, y_min=340, x_max=926, y_max=358)</code> — sixteen by eighteen pixels. A box for the truck stopped directly ahead might span <code>(x_min=120, y_min=180, x_max=1400, y_max=1100)</code> — most of the frame. That huge dynamic range in object scale, within a single image, is one of the defining hard problems of this domain and will resurface constantly.</p>
+    <h3>Intersection over Union</h3>
+    <p><span class="term">Intersection over Union (IoU)</span> is the single metric that makes everything else in detection possible: it answers "how well does this predicted box match that ground-truth box?" with one number between 0 and 1. Compute the area of overlap between two boxes, divide by the area of their union.</p>
+    <p class="math">IoU(A, B) = area(A ∩ B) / area(A ∪ B)</p>
+    <p>Worked example. Say a detector predicts a cyclist box at <code>(x_min=200, y_min=300, x_max=280, y_max=420)</code> — 80 pixels wide, 120 tall, area 9,600. The ground-truth box, hand-labeled from the same frame, is <code>(x_min=210, y_min=290, x_max=270, y_max=410)</code> — 60 wide, 120 tall, area 7,200. The intersection rectangle takes the max of the two <code>x_min</code>s (210), the max of the two <code>y_min</code>s (300), the min of the two <code>x_max</code>s (270), the min of the two <code>y_max</code>s (410). That's a box 60 pixels wide (270−210) and 110 tall (410−300), area 6,600. Union is area(A) + area(B) − intersection = 9,600 + 7,200 − 6,600 = 10,200. IoU = 6,600 / 10,200 ≈ 0.647. Under the common 0.5 threshold this prediction counts as a correct match — a "true positive" localization — even though it isn't pixel-perfect. Under the stricter 0.75 threshold used in some benchmarks, it would not.</p>
+    <h3>Precision, recall, AP, and mAP</h3>
+    <p>Detection evaluation layers two separate questions: did you find the right class, and did you put the box in the right place? A predicted detection is only counted as a <span class="term">true positive</span> if its class matches the ground-truth object <em>and</em> its IoU with that ground truth clears the threshold (0.5 is standard for PASCAL VOC-style scoring, COCO averages over 0.5 through 0.95). Everything else is a false positive: a wrong-class box, a right-class box with too little overlap, or a duplicate box matched to an object another prediction already claimed. Every ground-truth object with no matching detection is a false negative — in this domain, an undetected pedestrian is exactly this failure mode, and it is the single most dangerous error class a detector can make, because a false positive costs a wasted brake check while a false negative costs a life.</p>
+    <p>Sweep the confidence threshold from high to low and you trace a precision-recall curve per class: at a strict threshold you keep only the detections the model is most sure about (high precision, low recall — you miss things); loosen it and recall climbs as precision falls (you catch more real objects but also more false alarms). <span class="term">Average Precision (AP)</span> is the area under that curve for one class — a single number summarizing the whole precision/recall trade-off rather than picking one operating point. <span class="term">mean Average Precision (mAP)</span> is the average of AP across all classes: vehicle, pedestrian, cyclist, traffic sign. A model can post a strong mAP while quietly being much worse on pedestrians than vehicles — vehicles are large and common in training data, pedestrians are smaller and rarer — so a responsible evaluation always reports AP per class, not just the mean, and treats the pedestrian AP as the number that actually gates deployment.</p>
+    <h3>Non-maximum suppression</h3>
+    <p>Dense detectors (and even region-proposal networks) routinely fire multiple overlapping boxes on the same physical object — a truck fifty pixels wide might trigger a dozen candidate boxes all shifted a few pixels from each other, all scoring above the confidence threshold. <span class="term">Non-maximum suppression (NMS)</span> collapses that redundancy into one box per object. The algorithm, greedily: take the highest-confidence remaining box, keep it, then discard every other remaining box whose IoU with it exceeds a threshold (commonly 0.5); repeat until nothing is left.</p>
+    <h3>Anchors as a trick for variable count and scale</h3>
+    <p>The remaining puzzle is architectural: how does a network with a fixed set of output neurons express "there might be zero objects here, or eleven"? The answer used by nearly every classic detector is <span class="term">anchors</span> (also called priors): a dense, fixed grid of candidate boxes at multiple scales and aspect ratios, tiled across the image (or the feature map) in advance, before the network sees any particular image. Instead of predicting a box from scratch, the network predicts, for every anchor, whether it contains an object and — if so — a small correction to that anchor's coordinates. A tall thin anchor is a natural fit for a pedestrian; a wide anchor suits a car viewed broadside; a tiny anchor at a distant grid location suits a far-off traffic sign. The fixed-count problem dissolves: the network always outputs a fixed number of anchor predictions (thousands of them), most scored near-zero objectness, and NMS plus a confidence threshold prune that fixed haystack down to the variable-length list of real detections. This is the single idea that both the R-CNN family and YOLO/SSD build on, and it's why Lesson 2 and Lesson 3 will keep returning to it.</p>
+    <pre><code>def iou(box_a, box_b):
+    # boxes as (x_min, y_min, x_max, y_max)
+    xa1, ya1, xa2, ya2 = box_a
+    xb1, yb1, xb2, yb2 = box_b
+
+    inter_x1, inter_y1 = max(xa1, xb1), max(ya1, yb1)
+    inter_x2, inter_y2 = min(xa2, xb2), min(ya2, yb2)
+    inter_w = max(0, inter_x2 - inter_x1)
+    inter_h = max(0, inter_y2 - inter_y1)
+    inter_area = inter_w * inter_h
+
+    area_a = (xa2 - xa1) * (ya2 - ya1)
+    area_b = (xb2 - xb1) * (yb2 - yb1)
+    union = area_a + area_b - inter_area
+    return inter_area / union if union > 0 else 0.0
+
+
+def nms(boxes, scores, iou_threshold=0.5):
+    # boxes: list of (x_min,y_min,x_max,y_max); scores: matching confidences
+    order = sorted(range(len(boxes)), key=lambda i: scores[i], reverse=True)
+    keep = []
+    while order:
+        current = order.pop(0)          # highest remaining score
+        keep.append(current)
+        order = [
+            i for i in order
+            if iou(boxes[current], boxes[i]) <= iou_threshold
+        ]
+    return keep
+
+# five overlapping candidates on the same truck, one on a separate car
+boxes  = [(100,100,300,300), (108,95,305,298), (400,150,520,280),
+          (95,110,290,305), (410,148,522,282)]
+scores = [0.91, 0.87, 0.76, 0.63, 0.71]
+print(nms(boxes, scores, 0.5))   # -> [0, 2]  (box 0 suppresses 1 and 3; box 2 suppresses 4)</code></pre>
+    <p class="caption">Greedy NMS trace: box 0 (score 0.91) is kept and removes boxes 1 and 3 for overlapping it past 0.5 IoU; box 2 (0.76) survives as the next-highest score and removes box 4; the result is exactly two final boxes — one truck, one car — from five raw candidates.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Detection outputs a variable-length list</strong> of (class, box, score) triples per image — the core architectural challenge is making a fixed-size network emit an unbounded set.</li>
+        <li><strong>IoU</strong> is intersection area over union area; it is the yardstick for "is this predicted box a match" at a chosen threshold (commonly 0.5).</li>
+        <li><strong>mAP averages per-class AP</strong>, which itself summarizes the precision-recall trade-off — always inspect per-class AP separately, since a strong mean can hide a weak, safety-critical pedestrian class.</li>
+        <li><strong>NMS greedily removes duplicate boxes</strong> by suppressing lower-scoring boxes that overlap a kept box past an IoU threshold.</li>
+        <li><strong>Anchors are a fixed grid of candidate boxes</strong> at multiple scales/ratios that let a fixed-size network handle a variable number of objects at variable scale, by predicting objectness plus a coordinate correction per anchor.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Two-stage detectors: the R-CNN family</h2>
+    <p class="opening">In 2014, Ross Girshick and colleagues published <span class="term">R-CNN</span> (Regions with CNN features), and it was, by the standards of the time, a triumph — nearly doubling detection accuracy on PASCAL VOC over the best prior hand-engineered pipelines by doing something almost embarrassingly simple: run an off-the-shelf region-proposal algorithm called <span class="term">selective search</span> over the image to guess roughly 2,000 candidate regions that might contain an object, crop each one out, warp it to a fixed size, and run it through a full CNN classifier — architecturally, exactly the Unit 3 backbone — to decide what's in it. It worked. It was also brutally slow: 2,000 independent forward passes of a full CNN, per image, meant R-CNN ran at roughly 47 seconds per frame on the hardware of the day. A car doing 30 meters per second cannot wait 47 seconds to notice a pedestrian. The entire subsequent history of two-stage detectors is the story of eliminating that redundancy, one bottleneck at a time, without losing the accuracy that made region proposals worth having.</p>
+    <h3>Fast R-CNN: share the convolutions</h3>
+    <p>The obvious waste in R-CNN is that those 2,000 warped crops overlap enormously — a pedestrian near a car generates dozens of proposal boxes that all cover mostly the same pixels — yet each one triggers a completely separate CNN forward pass, recomputing near-identical convolutional features thousands of times per image. <span class="term">Fast R-CNN</span> (2015) fixed this by inverting the order of operations: run the CNN backbone over the <em>entire</em> image exactly once, producing one shared feature map, and only then, for each of the ~2,000 region proposals, extract the relevant slice of that already-computed feature map rather than re-running the network. The mechanism for extracting a fixed-size slice from an arbitrary-sized proposal region is called <span class="term">RoI pooling</span> (Region of Interest pooling): divide the proposal's region of the feature map into a fixed grid (say 7×7), and max-pool within each grid cell, regardless of the proposal's original size or aspect ratio. A tiny sign proposal and a huge truck proposal both come out as the same 7×7×<code>channels</code> tensor, ready to feed into shared fully-connected classification and box-regression heads. This single change took inference from tens of seconds to under two seconds per image and, because the backbone was now trained end-to-end with the heads via a shared loss, actually improved accuracy too.</p>
+    <h3>RoI pooling's rounding problem, and RoI Align's fix</h3>
+    <p>RoI pooling has a subtle flaw: mapping a proposal's continuous image coordinates onto the feature map's coarser grid requires dividing by the backbone's stride (if the backbone downsamples by 16x, a feature map pixel corresponds to a 16×16 block of the original image), and the naive implementation rounds that division to the nearest integer at two separate points — once when locating the RoI's boundary on the feature map, and again when splitting that boundary into pooling bins. Two roundings compound: for a small, precisely-located object like a distant traffic sign, a few pixels of quantization error on the feature map can be the difference between the pooled region actually covering the sign or clipping half of it. <span class="term">RoI Align</span>, introduced with Mask R-CNN in 2017, removes the rounding entirely: it computes exact (fractional) coordinates and uses bilinear interpolation to sample feature values at those non-integer locations. This is a small mechanical change with an outsized real-world payoff for the huge-object-to-tiny-object range this domain demands, since small objects are exactly where quantization error bites hardest.</p>
+    <h3>Faster R-CNN: learn the proposals</h3>
+    <p>Fast R-CNN still depended on selective search — an external, non-learned, CPU-bound algorithm — to generate region proposals, and that step alone took roughly two seconds per image, now the dominant cost. <span class="term">Faster R-CNN</span> (2015) replaced it with a <span class="term">Region Proposal Network (RPN)</span>: a small additional head bolted onto the same shared backbone feature map, which slides a small network over every position, using anchors (from Lesson 1) at multiple scales and aspect ratios, to directly predict "is there an object here" and a rough box for each anchor. Those top-scoring anchor-based proposals — now generated by the same GPU-resident network in milliseconds rather than by a CPU algorithm in seconds — feed into the identical RoI pooling/classification/regression pipeline as before. This is the point at which the whole detector became one differentiable network, trainable end-to-end, and it's also the point at which the "two-stage" name crystallizes: stage one (the RPN) proposes candidate object locations, stage two (the RoI-pooled classifier head) says what's in each one and refines its box. That two-stage separation of "where might something be" from "what precisely is it" is what gives this family its enduring accuracy edge over single-stage designs, at a real latency cost.</p>
+    <h3>The accuracy/speed profile</h3>
+    <p>Faster R-CNN runs at roughly 5-17 frames per second depending on backbone and hardware — a huge improvement over R-CNN's 47 seconds per frame, but still short of the 30+ FPS a forward-facing perception stack needs to keep pace with highway speeds, and still built around two sequential learned stages plus RoI extraction in between. For offline map-building, dataset curation, or a slower auxiliary sensor stream, that's a perfectly reasonable trade: two-stage detectors remain some of the most accurate general-purpose detectors available, particularly on small and heavily-occluded objects, precisely because the RPN's first pass filters the search space before the expensive classification stage ever runs. But for the primary real-time front-camera path in a self-driving stack, that latency is usually the deciding factor against them — which is exactly the gap Lesson 3's one-stage detectors were built to close.</p>
+    <p>It's worth being precise about where the two-stage design's latency actually goes, because it isn't evenly distributed. The RPN itself is cheap — it's a thin head sliding over an already-computed feature map, adding a small fraction of the backbone's own cost. The expense is downstream: each of the few hundred proposals the RPN keeps after its own NMS pass still has to go through RoI Align and then a full classification-and-regression head, and that per-proposal cost, multiplied by a few hundred proposals, is what actually dominates the frame budget. Halving the number of proposals kept after the RPN's filtering stage is a common practical lever for trimming Faster R-CNN's latency — at the cost of occasionally dropping a real object whose only proposal box didn't make the cut, which is precisely the kind of trade-off that reads fine in an aggregate mAP number and terribly the one time it's a pedestrian.</p>
+    <p>This is also why "two-stage" and "one-stage" are best understood as a spectrum of how much work happens before versus after the network commits to a shortlist of candidate regions, rather than two hard categories. A two-stage detector spends its first stage narrowing an enormous search space (every pixel, every scale) down to a few hundred plausible regions, then spends its second stage doing careful, per-region work only on that shortlist. That's a good bargain when the shortlist is reliable and the per-region work catches details a cheaper pass would miss — small objects, heavy occlusion, cluttered urban scenes with a cyclist partly hidden behind a bus. It's a bad bargain when milliseconds matter more than the last few points of average precision, which is exactly the environment the next lesson's one-stage detectors are designed for.</p>
+    <pre><code>def map_proposal_to_feature_map(proposal_box, image_size, feature_size):
+    """
+    proposal_box: (x_min, y_min, x_max, y_max) in original image pixels,
+                  e.g. a region-proposal-network output over a 1920x1208 frame
+    image_size:   (img_w, img_h) of the input the backbone consumed
+    feature_size: (feat_w, feat_h) of the backbone's output feature map
+    Returns the RoI-Align coordinates on the feature map, WITHOUT rounding
+    (unlike RoI pooling, which would floor/round these).
+    """
+    img_w, img_h = image_size
+    feat_w, feat_h = feature_size
+    scale_x = feat_w / img_w   # e.g. 40 / 1920 = 0.02083...
+    scale_y = feat_h / img_h
+
+    x_min, y_min, x_max, y_max = proposal_box
+    return (
+        x_min * scale_x,   # fractional feature-map coordinates —
+        y_min * scale_y,   # bilinear sampling reads these directly,
+        x_max * scale_x,   # no floor()/round() the way RoI pooling does
+        y_max * scale_y,
+    )
+
+# a distant traffic-sign proposal, 18x22 px, on a 1920x1208 frame
+# backbone stride 32 -> feature map is 60 x 38 (1920/32, 1208/32)
+sign_box = (910, 340, 928, 362)
+mapped = map_proposal_to_feature_map(sign_box, (1920, 1208), (60, 38))
+print(mapped)   # -> (28.4375, 10.6875, 29.0, 11.34375)
+# RoI pooling would round these to (28, 11, 29, 11) -- a zero-height slice!
+# RoI Align keeps the fraction and bilinearly samples a real 0.65 x 0.66-cell region.</code></pre>
+    <p class="caption">Notice how the naive rounded version would collapse this small sign's proposal to a zero-height box on the feature map (<code>y_min</code> and <code>y_max</code> both rounding to 11) — exactly the failure mode RoI Align's fractional, interpolated sampling avoids, which matters disproportionately for the distant-and-small end of this domain's object-scale range.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>R-CNN (2014)</strong> ran a full CNN forward pass per region proposal (~2,000 per image) — accurate but ~47 seconds/frame, unusable for real-time perception.</li>
+        <li><strong>Fast R-CNN</strong> shares one backbone pass across all proposals and uses <strong>RoI pooling</strong> to extract a fixed-size feature slice per variable-size proposal, cutting inference to under two seconds per image.</li>
+        <li><strong>Faster R-CNN's Region Proposal Network</strong> replaces external selective search with a learned, anchor-based, GPU-resident proposal step, making the whole detector end-to-end differentiable.</li>
+        <li><strong>RoI Align</strong> removes RoI pooling's coordinate-rounding error via bilinear interpolation — the fix that matters most for small, distant objects like traffic signs.</li>
+        <li>Two-stage detectors trade real-time speed for accuracy, particularly on small/occluded objects — a defensible choice offline, usually not for a 30+ FPS front-camera path.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>One-stage detectors: YOLO, SSD, and the modern picture</h2>
+    <p class="opening">A self-driving car's perception stack has a hard latency budget: at highway speed the vehicle covers roughly 30 meters every second, so a detector that takes 200 milliseconds to process one frame has already let the car travel six meters blind before it even finishes deciding what was in the previous frame. Faster R-CNN's two sequential learned stages — propose, then classify-and-refine — impose exactly this kind of latency, typically landing well under 30 frames per second on embedded automotive hardware. The question one-stage detectors answer is blunt: can you skip the proposal stage entirely and predict every box, class, and confidence in a single forward pass?</p>
+    <h3>The single-shot idea: dense prediction over a grid</h3>
+    <p><span class="term">YOLO</span> (You Only Look Once, Redmon et al., 2016) answered yes by reframing detection as a direct regression problem. Divide the image into an S×S grid (the original YOLO used 7×7; later versions use finer, multi-scale grids). Each grid cell is responsible for predicting: a fixed number of candidate boxes anchored at that cell, an objectness score for each (how confident the network is that a box actually contains something), a set of class probabilities, and box-offset coordinates relative to the cell. All of it — every cell, every anchor, every class — comes out of one CNN forward pass, with no separate proposal network and no per-region re-processing. Where Faster R-CNN's RPN proposes maybe 300 candidate regions and then classifies each one, YOLO evaluates every anchor at every grid cell simultaneously, in parallel, as one dense tensor of predictions, then applies NMS (Lesson 1) once at the end to collapse duplicates. That structural simplification — one pass, not two — is what buys the speed: early YOLO ran at 45+ FPS, and later versions (YOLOv3 through the current YOLOv8/v9/v10 lineage) push both accuracy and speed further using progressively deeper backbones (frequently a Unit 3-style residual CNN) and multi-scale prediction heads.</p>
+    <h3>SSD: predicting at multiple feature-map scales</h3>
+    <p><span class="term">SSD</span> (Single Shot Detector, Liu et al., 2016) tackled the huge-truck-versus-tiny-sign scale problem head-on by attaching detection heads to <em>several</em> feature maps at different depths of the backbone, not just one. Early, high-resolution feature maps (large spatial size, small receptive field) predict small objects well — a distant traffic sign, a far-off pedestrian — because their finer grid resolution and smaller anchors match small object footprints. Later, low-resolution feature maps (small spatial size, large receptive field, having been downsampled repeatedly) predict large objects well — the truck filling half the frame — because each grid cell there has "seen" a much larger patch of the original image. Predicting at one single scale (as the original YOLO did) forces a trade-off between the anchor sizes needed for tiny distant signs and the anchor sizes needed for huge nearby vehicles; SSD's multi-scale heads sidestep that trade-off by giving each object size its own natural home in the feature pyramid. This idea — a feature pyramid with detection heads at every level — became close to universal in later one-stage designs, including later YOLO versions.</p>
+    <h3>Class imbalance and focal loss</h3>
+    <p>Dense, grid-based prediction has a cost that two-stage detectors mostly avoid: at every grid cell and every anchor and every scale, the overwhelming majority of candidates correspond to background — road surface, sky, guardrail — with real objects (vehicle, pedestrian, cyclist, sign) making up a tiny fraction. A typical dense detector might evaluate 100,000 anchors per image, of which perhaps a few dozen actually overlap a labeled object. Standard cross-entropy loss (the same loss from Unit 1's classifiers, recall) treats every anchor equally, so the flood of easy, correctly-classified background anchors dominates the gradient and drowns out the learning signal from the rare, hard, actually-useful object anchors. <span class="term">Focal loss</span>, introduced with <span class="term">RetinaNet</span> (Lin et al., 2017), fixes this by down-weighting the loss contribution of examples the model already classifies confidently, via a modulating factor:</p>
+    <p class="math">FL(p_t) = -(1 - p_t)^γ · log(p_t)</p>
+    <p>where <code>p_t</code> is the model's estimated probability for the true class and <code>γ</code> (commonly 2) controls how aggressively easy examples get down-weighted. An easy background anchor the model already scores at <code>p_t = 0.99</code> contributes a loss term multiplied by <code>(1 - 0.99)^2 = 0.0001</code> — effectively silenced — while a hard, misclassified pedestrian anchor at <code>p_t = 0.2</code> keeps a multiplier of <code>(1 - 0.2)^2 = 0.64</code>, barely reduced. RetinaNet, a one-stage detector using focal loss plus a feature pyramid (directly building on both SSD's multi-scale idea and the residual-backbone lineage from Course 4 Unit 3), was the first one-stage design to match two-stage accuracy, precisely because it fixed the class-imbalance problem that had previously limited one-stage detectors' precision.</p>
+    <h3>Anchor-free detectors and the transformer turn</h3>
+    <p>Anchors themselves carry design baggage: their scales and aspect ratios are hyperparameters that must be hand-tuned per dataset (a good anchor set for highway traffic differs from one for dense urban driving), and most anchors at most locations are wasted negative predictions. <span class="term">CenterNet</span> and <span class="term">FCOS</span> (2019) dropped anchors entirely, instead predicting object centers (or per-pixel distances to a box's edges) directly on the feature map — a genuinely anchor-free formulation that simplifies the design space without sacrificing much accuracy. More recently, <span class="term">DETR</span> (Detection Transformer, 2020) reframed detection again, using the transformer architecture from Course 2 to treat the whole problem as direct set prediction — a fixed number of learned "object queries" attend over image features and each one outputs one final detection, with a matching loss during training standing in for NMS entirely. It's elegant and removes hand-designed anchors and NMS both, but its attention mechanism's compute cost and slower convergence have kept it, so far, more common in offline and research settings than in latency-critical automotive perception.</p>
+    <h3>The honest trade for real-time safety</h3>
+    <p>None of this erases the underlying trade-off: one-stage detectors are faster because they skip the proposal-and-refine structure that gives two-stage detectors their edge on small, occluded, and rare objects — exactly the categories a distant pedestrian half-behind a parked car falls into. Modern one-stage designs (YOLO's later versions, RetinaNet-style focal loss, feature pyramids) have closed most, not all, of that accuracy gap, and production automotive stacks typically compensate with redundancy the model alone can't provide: multiple cameras with overlapping fields of view, radar and lidar fusion, and temporal tracking across frames so a single missed detection in one frame doesn't mean an object is invisible to the whole system for the full second it's in view. The detector's job is not to be perfect alone; it's to be fast enough to run every frame while feeding a larger, redundant safety system.</p>
+    <pre><code>import math
+
+def sigmoid(x):
+    return 1 / (1 + math.exp(-x))
+
+def decode_yolo_cell(tx, ty, tw, th, t_obj, class_logits,
+                      cell_x, cell_y, cell_size, anchor_w, anchor_h):
+    """
+    Decode one grid cell's raw network output into an image-space box
+    plus a final confidence = objectness * best class probability.
+    tx, ty, tw, th, t_obj, class_logits: raw (pre-activation) network outputs
+    cell_x, cell_y: this cell's column/row index in the grid
+    cell_size: pixels per grid cell (image_size / grid_size)
+    anchor_w, anchor_h: this anchor's prior width/height, in pixels
+    """
+    # center = cell origin + sigmoid-squashed offset within the cell
+    box_cx = (cell_x + sigmoid(tx)) * cell_size
+    box_cy = (cell_y + sigmoid(ty)) * cell_size
+    # size = anchor prior scaled by an exponential of the predicted offset
+    box_w = anchor_w * math.exp(tw)
+    box_h = anchor_h * math.exp(th)
+
+    objectness = sigmoid(t_obj)
+    class_probs = [sigmoid(c) for c in class_logits]   # multi-label per class
+    best_class_idx = max(range(len(class_probs)), key=lambda i: class_probs[i])
+    confidence = objectness * class_probs[best_class_idx]
+
+    x_min = box_cx - box_w / 2
+    y_min = box_cy - box_h / 2
+    x_max = box_cx + box_w / 2
+    y_max = box_cy + box_h / 2
+    return (x_min, y_min, x_max, y_max), best_class_idx, confidence
+
+# grid cell (12, 7) on a 20x12 grid over a 640x384 image (cell_size = 32px)
+# raw outputs for one anchor tuned to pedestrian-like proportions (24x60 px)
+box, cls_idx, conf = decode_yolo_cell(
+    tx=0.3, ty=-0.6, tw=0.1, th=0.25, t_obj=2.8,
+    class_logits=[3.1, -1.2, 0.4, -2.0],   # vehicle, pedestrian, cyclist, sign
+    cell_x=12, cell_y=7, cell_size=32, anchor_w=24, anchor_h=60,
+)
+print(box, cls_idx, round(conf, 3))
+# -> roughly (376.6, 231.9, 402.2, 305.6), class 0 (vehicle), confidence ~0.94</code></pre>
+    <p class="caption">Notice the two different transforms at play: the center coordinates use a <code>sigmoid</code> to keep the predicted offset inside the current cell (never letting a box's center "escape" to a neighboring cell), while width and height use <code>exp</code> to scale the anchor prior up or down multiplicatively — a network output of 0 leaves the anchor's size unchanged, positive values grow it, negative values shrink it. Final confidence multiplies objectness by the winning class probability, so a box can have high objectness but still be filtered out if no class scores well.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>One-stage detectors</strong> (YOLO, SSD, RetinaNet) predict boxes, objectness, and class in a single dense forward pass over a grid — no separate proposal network — trading some accuracy for the speed real-time perception requires.</li>
+        <li><strong>SSD's multi-scale feature maps</strong> assign small objects to early, high-resolution layers and large objects to later, low-resolution layers, directly addressing the huge-truck-to-tiny-sign scale range.</li>
+        <li><strong>Dense prediction creates severe class imbalance</strong> (background anchors vastly outnumber object anchors); <strong>focal loss</strong> down-weights easy examples so hard, rare object anchors dominate the gradient.</li>
+        <li><strong>Anchor-free detectors</strong> (CenterNet, FCOS) predict centers directly instead of refining hand-tuned anchor priors; <strong>DETR</strong> reframes detection as transformer-based set prediction, removing NMS entirely at a compute-latency cost.</li>
+        <li>Closing the one-stage/two-stage accuracy gap does not remove the need for redundancy — multi-camera coverage, sensor fusion, and temporal tracking — in a safety-critical stack.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 4 quiz</h2>
+    <p class="quiz-intro">Eight questions covering IoU computation, NMS tracing, the two-stage/one-stage architectural split, and a bug fix — all set in the autonomous-driving perception domain.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">A predicted box has area 4,000 px², a ground-truth box has area 5,000 px², and their intersection area is 2,000 px². The IoU between them is <span class="blank">&nbsp;</span> (as a decimal rounded to two places).</p>
+      <ol class="choices" type="A">
+        <li>0.20</li>
+        <li>0.29</li>
+        <li>0.40</li>
+        <li>0.50</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: 0.29.</strong> Union = area(A) + area(B) − intersection = 4,000 + 5,000 − 2,000 = 7,000. IoU = 2,000 / 7,000 ≈ 0.2857, which rounds to 0.29.</p>
+          <p>0.40 (option C) is a common mistake from dividing intersection by only the predicted box's area (2,000/5,000) instead of the union — that's a "containment" ratio, not IoU, and it isn't symmetric the way IoU must be.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A detector scores three overlapping boxes on the same nearby vehicle: Box A (confidence 0.95), Box B (confidence 0.88, IoU with A = 0.72), Box C (confidence 0.60, IoU with A = 0.35, IoU with B = 0.55). Running greedy NMS with an IoU threshold of 0.5, which boxes survive?</p>
+      <ol class="choices" type="A">
+        <li>Only A</li>
+        <li>A and B</li>
+        <li>A and C</li>
+        <li>A, B, and C</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C. A and C.</strong> NMS picks the top-scoring box A first and removes any remaining box whose IoU with A exceeds 0.5 — that's B (0.72 &gt; 0.5), so B is discarded before C is ever compared to it. C's IoU with A is only 0.35, under threshold, so C survives and becomes the next kept box.</p>
+          <p>Option D is wrong because it ignores that B gets suppressed by A in the very first step; C's IoU with B (0.55) is irrelevant to that decision because B is already gone by the time C is considered. Option A is wrong because C's overlap with the box that's actually still standing (A) is below threshold, so nothing removes it.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">True / false</span></p>
+      <p class="q-stem">A model can report a strong mAP across the vehicle, pedestrian, cyclist, and sign classes while still being meaningfully unsafe to deploy, because mAP averages away a large class-specific weakness.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: True.</strong> mAP is the mean of per-class AP. If vehicle AP is 0.95 and pedestrian AP is 0.55, a simple average can still land around 0.80 — a number that reads as "good" while hiding a pedestrian-detection weakness that is the single most safety-relevant number in the whole report.</p>
+          <p>This is exactly why Lesson 1 stresses reporting AP per class rather than only the mean — the mean is a convenient summary statistic, not a safety gate.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Your perception team is choosing a detector for the primary 30+ FPS front-camera pipeline versus an offline tool for re-labeling a logged dataset with high-quality boxes for small, occluded objects. Which pairing makes sense?</p>
+      <ol class="choices" type="A">
+        <li>Faster R-CNN for the real-time path, YOLO for offline re-labeling</li>
+        <li>YOLO (or another one-stage detector) for the real-time path, Faster R-CNN for offline re-labeling</li>
+        <li>Selective search alone for both, since it's simplest</li>
+        <li>DETR for the real-time path, since transformers are always the modern choice</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> One-stage detectors trade some accuracy for the speed the 30+ FPS real-time budget demands; two-stage detectors like Faster R-CNN spend more latency but tend to do better on small and occluded objects, which is exactly what you want for careful offline dataset curation where latency doesn't matter.</p>
+          <p>Option A has the pairing backwards — it would put the slower, more accurate detector where speed is the hard constraint. Option D is wrong because DETR's attention cost and convergence behavior have kept it out of latency-critical automotive real-time paths so far, despite being architecturally modern.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">In Faster R-CNN, the component that replaced selective search by directly predicting object proposals from the shared backbone feature map is called the <span class="blank">&nbsp;</span>.</p>
+      <ol class="choices" type="A">
+        <li>RoI pooling layer</li>
+        <li>Region Proposal Network (RPN)</li>
+        <li>Focal loss head</li>
+        <li>Feature pyramid</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B. Region Proposal Network (RPN).</strong> The RPN slides over the shared feature map using anchors to predict objectness and rough box coordinates directly, replacing the CPU-bound external selective-search algorithm and making the whole detector end-to-end trainable.</p>
+          <p>RoI pooling (option A) is a downstream step that extracts a fixed-size feature slice for each proposal — it doesn't generate the proposals themselves. Focal loss (option C) is a one-stage-detector loss function from Lesson 3, unrelated to proposal generation.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">A junior engineer wrote this focal-loss-inspired weighting function to down-weight easy background anchors, but during training the model's loss on hard, misclassified pedestrian anchors barely moves while easy anchors dominate exactly as before. Find and describe the bug.</p>
+      <pre><code>def focal_weight(p_t, gamma=2):
+    # p_t: model's predicted probability for the TRUE class
+    return p_t ** gamma
+
+# expected: easy anchor (p_t=0.99) -> tiny weight
+#           hard anchor (p_t=0.2)  -> weight close to 1
+print(focal_weight(0.99))  # got 0.9801  (should be ~0.0001)
+print(focal_weight(0.2))   # got 0.04    (should be ~0.64)</code></pre>
+      <ol class="choices" type="A">
+        <li>The exponent should be 1, not <code>gamma</code></li>
+        <li>The function should return <code>(1 - p_t) ** gamma</code>, not <code>p_t ** gamma</code></li>
+        <li>The function needs a <code>log()</code> call that's missing</li>
+        <li>The bug is in how <code>p_t</code> is computed upstream, not in this function</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Focal loss's modulating factor is <code>(1 - p_t)^γ</code>, not <code>p_t^γ</code> — it needs to shrink toward zero as <code>p_t</code> grows toward 1 (an easy, confidently-correct example), and grow toward 1 as <code>p_t</code> shrinks (a hard, wrong example). The buggy version does the opposite: <code>p_t ** gamma</code> is <em>large</em> for easy examples (0.99² ≈ 0.98) and <em>small</em> for hard ones (0.2² = 0.04) — it amplifies exactly the easy background anchors focal loss is meant to silence, and suppresses the rare hard examples that need the gradient signal most.</p>
+          <p>Option A is wrong because the exponent itself isn't the problem — <code>gamma=2</code> is the standard value; it's the base that's inverted. Option C is a distractor: the full focal loss does include a <code>log(p_t)</code> term multiplied by this weight, but that's a separate factor from the modulating weight being asked about here, and adding a log call wouldn't fix the inverted base. Option D is wrong because the bug is fully contained in this function's formula, not in whatever computes <code>p_t</code>.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">SSD attaches detection heads to multiple feature maps at different depths of the backbone rather than just one, as YOLOv1 originally did. What problem does this specifically address?</p>
+      <ol class="choices" type="A">
+        <li>The class-imbalance problem between background and object anchors</li>
+        <li>The rounding error in mapping proposal coordinates onto a feature map</li>
+        <li>The huge scale range between nearby, large objects and distant, small ones</li>
+        <li>The slow, CPU-bound external proposal generation step</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> Early, high-resolution feature maps suit small objects (a distant sign); later, low-resolution feature maps with larger receptive fields suit large objects (a nearby truck). Predicting at only one scale forces an anchor-size compromise between these extremes; multi-scale heads give each object size a natural home.</p>
+          <p>Option A describes what focal loss/RetinaNet addresses, not SSD's multi-scale heads specifically. Option B describes RoI Align's fix from Lesson 2, a two-stage-detector concern unrelated to SSD. Option D describes what the Faster R-CNN RPN solved, not a one-stage-detector concept at all.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">Complete the missing line in this RoI-Align-style coordinate mapping, which converts a proposal box from image pixels to feature-map coordinates given the backbone's stride, without rounding.</p>
+      <pre><code>def to_feature_coords(x_min, y_min, x_max, y_max, stride):
+    # stride: pixels of input image per one feature-map cell (e.g. 16)
+    # ______ FILL IN: compute fractional feature-map coordinates ______
+    return fx_min, fy_min, fx_max, fy_max</code></pre>
+      <ol class="choices" type="A">
+        <li><code>fx_min, fy_min, fx_max, fy_max = round(x_min/stride), round(y_min/stride), round(x_max/stride), round(y_max/stride)</code></li>
+        <li><code>fx_min, fy_min, fx_max, fy_max = x_min/stride, y_min/stride, x_max/stride, y_max/stride</code></li>
+        <li><code>fx_min, fy_min, fx_max, fy_max = x_min*stride, y_min*stride, x_max*stride, y_max*stride</code></li>
+        <li><code>fx_min, fy_min, fx_max, fy_max = int(x_min/stride), int(y_min/stride), int(x_max/stride), int(y_max/stride)</code></li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Converting image pixels to feature-map units means dividing by the stride, and RoI Align's entire point is to keep the result fractional (not rounded or truncated) so bilinear interpolation can sample at the exact non-integer location — critical for small objects where rounding could collapse a box to zero width or height.</p>
+          <p>Options A and D both round or truncate to integers, which is exactly the older RoI-pooling behavior Lesson 2 showed failing on a small traffic-sign proposal. Option C multiplies instead of dividing, which would scale coordinates the wrong direction entirely (image pixels are larger than feature-map units, so converting to feature-map space requires shrinking the numbers, not growing them).</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Computer Vision · Unit 4 of 8 — Unit 5 moves from boxes to pixels: semantic and instance segmentation.</p>
+</footer>
+</body>
+</html>

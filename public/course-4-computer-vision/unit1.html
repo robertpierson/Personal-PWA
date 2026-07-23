@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 1 · Image representation and preprocessing fundamentals — Computer Vision</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Computer Vision · Unit 1 of 8</p>
+  <h1>Image representation and preprocessing fundamentals</h1>
+  <p class="lede">Before any model can look at a picture, that picture has to become a grid of numbers a computer can add and multiply. This unit re-grounds vision from scratch, using satellite imagery — where the numbers go far past red, green, and blue — to build the vocabulary and pipeline every later unit depends on.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. How an image becomes numbers</a></li>
+      <li><a href="#lesson-2">2. Color spaces, channels, and spectral indices</a></li>
+      <li><a href="#lesson-3">3. Preprocessing and normalisation for vision models</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>How an image becomes numbers</h2>
+    <p class="opening">A digital image is a rectangular array of numbers, nothing more mystical than that. Each position in the array is called a <span class="term">pixel</span> (short for "picture element"), and each pixel holds one or more numeric values describing the brightness or color measured at that location on a sensor. Everything else in computer vision — convolutions, embeddings, attention maps — is built on top of this one fact, so it's worth being exact about the shape and meaning of that array before doing anything clever with it.</p>
+    <p>For an ordinary photograph, the array has three dimensions: height, width, and <span class="term">channels</span>. A 512×512 RGB photo is stored as a tensor of shape <code>(512, 512, 3)</code> — 512 rows, 512 columns, and 3 channels per pixel (red, green, blue). This is called <span class="term">channel-last</span> or <code>HWC</code> ordering, and it's what you get from most image-loading libraries and from raw camera files. Deep learning frameworks, however, often prefer <span class="term">channel-first</span> or <code>CHW</code> ordering — shape <code>(3, 512, 512)</code> — because it groups each channel's pixels contiguously in memory, which plays nicer with how convolution kernels sweep across a single channel at a time. PyTorch defaults to <code>CHW</code>; TensorFlow and most image libraries (Pillow, OpenCV, matplotlib) default to <code>HWC</code>. A shocking number of bugs in real vision pipelines trace back to feeding a <code>HWC</code> array into a model expecting <code>CHW</code>, or vice versa — the array doesn't error, it just silently treats width as channels and produces garbage. Always check the convention a library expects before shipping data into it.</p>
+    <p>Satellite imagery follows the exact same <code>(H, W, C)</code> skeleton, but the channel axis carries far more information than three visible-light values. The European Space Agency's <span class="term">Sentinel-2</span> mission — twin satellites that revisit most of Earth's land surface every five days — captures <strong>13 spectral bands</strong> per tile, spanning wavelengths from 443 nanometers (deep blue) out to 2190 nanometers (shortwave infrared, well past what human eyes or ordinary cameras register). Bands 2, 3, and 4 correspond to blue, green, and red and can be combined into a familiar-looking RGB composite, but bands like 8 (near-infrared, NIR) and 11–12 (shortwave infrared, SWIR) are where a lot of the useful signal for land monitoring actually lives, because live vegetation, bare soil, water, and cloud all reflect those wavelengths very differently even when they look similar in visible light.</p>
+    <h3>Bit depth and dynamic range</h3>
+    <p>A consumer photo typically stores each channel at <span class="term">8-bit depth</span>: 256 possible values (0–255) per pixel per channel. That's plenty for a screen, whose own display range is limited, but it's a coarse instrument for scientific measurement. Sentinel-2 data is delivered at <strong>12-bit or 16-bit depth</strong> — values from 0 up to 4095 (12-bit) or stored in 16-bit integer containers with reflectance scaled by a factor of 10,000. The reason is <span class="term">dynamic range</span>: the difference between the darkest shadow and the brightest sunlit surface a sensor can distinguish. An 8-bit sensor imaging a scene that spans deep-shadow forest canopy to sun-glinting water would have to compress that whole range into 256 buckets, crushing subtle differences between, say, healthy and drought-stressed crops into the same bucket. A 12-bit sensor has 16 times as many buckets (4096 vs. 256) to spread that same range across, preserving gradations that 8-bit would flatten. This matters enormously for anything measuring vegetation health or water content, where the meaningful signal is often a small percentage difference in reflectance.</p>
+    <p>Spatial resolution is the other axis that determines what a tile can actually show. Sentinel-2's visible and NIR bands are captured at <strong>10 meters per pixel</strong>; some bands (like red-edge and SWIR) are captured at 20 m, and atmospheric bands at 60 m. A 10 m pixel means one number in the array represents everything reflected off a 10×10 meter patch of ground — roughly a third of a soccer pitch. That's enough to distinguish a farm field from a forest, or to track a clear-cut logging scar, but nowhere near enough to identify an individual tree or a single building, which is why very-high-resolution commercial satellites (sub-meter) exist for tasks Sentinel-2 can't do, at a much higher cost per image and far worse revisit frequency. Resolution is a budget: coarser pixels cover more ground per file and revisit more often, finer pixels see more detail but cost more to store, transmit, and label.</p>
+    <h3>Memory footprint of a multiband tile</h3>
+    <p>Channel count and bit depth combine directly into storage cost. An 8-bit RGB tile of 512×512 pixels is <code>512 × 512 × 3 = 786,432 bytes</code>, under a megabyte. A Sentinel-2 tile of the same spatial footprint but all 13 bands stored as 16-bit integers is <code>512 × 512 × 13 × 2 bytes = 6,815,744 bytes</code> — about 6.8 MB, nearly nine times larger for the same ground area. Multiply that by the thousands of tiles needed to cover a country, and it's clear why satellite pipelines are built around lazy loading, tiling, and compressed formats (like Cloud-Optimized GeoTIFF) rather than loading whole scenes into memory at once — a habit this unit's third lesson returns to directly.</p>
+    <pre><code>import numpy as np
+
+# Simulate a Sentinel-2 tile: 512x512 pixels, 13 spectral bands,
+# stored as 16-bit unsigned integers (raw digital numbers, not yet
+# converted to physical reflectance).
+H, W, BANDS = 512, 512, 13
+tile = np.random.randint(0, 4096, size=(H, W, BANDS), dtype=np.uint16)
+
+print(tile.shape)          # (512, 512, 13)  -- channel-last (HWC)
+print(tile.dtype)          # uint16
+print(tile.nbytes / 1e6)   # ~6.82 MB
+
+# Sentinel-2 band indices (0-based) used below:
+#   band 3 = Red   (B4, ~665 nm)
+#   band 7 = NIR   (B8, ~842 nm)
+red = tile[:, :, 3].astype(np.float32)
+nir = tile[:, :, 7].astype(np.float32)
+
+# NDVI: Normalized Difference Vegetation Index.
+# Healthy vegetation reflects strongly in NIR, weakly in red,
+# so NDVI trends toward +1 for dense healthy canopy and toward
+# 0 or negative for bare soil, water, or stressed plants.
+epsilon = 1e-6  # guards the all-zero denominator case
+ndvi = (nir - red) / (nir + red + epsilon)
+
+print(ndvi.min(), ndvi.max())  # roughly in [-1, 1]</code></pre>
+    <p class="caption">Building an (H, W, bands) satellite tile and computing per-pixel NDVI from two of its 13 channels.</p>
+    <p>Notice what the NDVI line actually does: it operates on the full <code>512×512</code> plane at once via NumPy broadcasting, producing a new single-channel array of the same spatial shape. This is the pattern behind almost every spectral index — pull two or three channels out of the stack, combine them arithmetically pixel-by-pixel, and get back a map rather than a single number. The <code>epsilon</code> term is a small but real detail: NIR and red can both be zero over a masked-out or no-data pixel, and dividing zero by zero produces <code>NaN</code>, which silently poisons any statistic computed over the tile afterward.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Images are (H, W, C) tensors</strong>, and the channel axis position (last for most libraries, first for PyTorch) is a convention you must match to whatever code consumes the array.</li>
+        <li><strong>Bit depth sets dynamic range</strong>: 8-bit (256 levels) is fine for display, but satellite sensors use 12–16 bit (thousands of levels) to preserve subtle reflectance differences that matter for measurement, not just viewing.</li>
+        <li><strong>Multispectral means more than RGB</strong> — Sentinel-2's 13 bands extend into near-infrared and shortwave infrared, wavelengths invisible to the eye but diagnostic for vegetation, water, and soil.</li>
+        <li><strong>Spatial resolution (meters/pixel) sets a hard ceiling on detectability</strong> — 10 m Sentinel-2 pixels can separate a field from a forest but not one tree from another.</li>
+        <li><strong>Channel count and bit depth multiply directly into file size</strong>, which is why multiband satellite pipelines are architected around tiling rather than whole-scene loading.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Color spaces, channels, and spectral indices</h2>
+    <p class="opening">Point an RGB composite of a farm at a agronomist and ask them to spot the drought-stressed rows before the damage is visible to the naked eye, and they can't — because by the time chlorophyll loss shows up as a color shift in red, green, and blue, the plant has already been stressed for days. RGB is a three-number summary tuned to human color perception, and human color perception was never built to detect early plant stress or to separate a cloud from a bright patch of sand. This is the practical problem that spectral indices exist to solve: RGB throws away exactly the wavelengths — red-edge and near-infrared — where the physically real signal about vegetation health actually lives, and no amount of clever thresholding on brightness alone can get it back.</p>
+    <p>It helps to be precise about what a <span class="term">color space</span> is: a coordinate system for describing color, with each space designed around a different goal. <strong>RGB</strong> mirrors the additive color receptors in cameras and screens — good for display, bad for many analysis tasks because brightness, hue, and saturation are all tangled together across the three channels (dimming a light changes all three RGB values, not just one). <strong>HSV</strong> (hue, saturation, value) untangles that: hue is a single number for "what color," saturation for "how vivid," value for "how bright." This makes HSV useful for tasks like isolating water bodies by hue regardless of how bright or dark the water appears in a given scene, or for cloud detection, where clouds tend to have low saturation (they look washed-out white-gray) regardless of the underlying terrain's hue. <strong>Lab</strong> (also written CIELAB) is built to match human perceptual distance — two colors that are numerically far apart in Lab actually look far apart to a human eye, which RGB and HSV don't guarantee. Lab shows up in tasks like matching printed colors or benchmarking image quality, less so in raw satellite band math, but it's worth knowing it exists as the "perceptually honest" option.</p>
+    <table class="tbl">
+      <tr><th>Space</th><th>What it separates</th><th>Good for</th><th>Weak for</th></tr>
+      <tr><td>RGB</td><td>Nothing — brightness, hue, saturation all mixed per channel</td><td>Display, familiar composites</td><td>Illumination-robust thresholding</td></tr>
+      <tr><td>HSV</td><td>Hue / saturation / brightness</td><td>Cloud and water masking by hue or saturation</td><td>Fine spectral discrimination (only 3 channels, still visible-light)</td></tr>
+      <tr><td>Lab</td><td>Lightness / perceptual color axes</td><td>Perceptual similarity, color matching</td><td>Physical reflectance interpretation</td></tr>
+      <tr><td>Raw multispectral (13-band)</td><td>Wavelength, band by band</td><td>Vegetation/water/soil indices, band math</td><td>Direct human viewing (needs a composite first)</td></tr>
+    </table>
+    <h3>Reading a scene through per-channel histograms</h3>
+    <p>Before reaching for any index, the fastest diagnostic is a <span class="term">per-channel histogram</span>: a count of how many pixels in a tile fall into each value bucket, plotted separately for each band. A histogram of the red band over a healthy agricultural scene tends to be tightly clustered at low-to-mid reflectance values, because live vegetation absorbs most incoming red light; the same scene's NIR histogram spreads toward higher values and often shows a second cluster, separating vegetated pixels from bare soil or roads. A cloud-covered tile shows the opposite signature across every visible band at once — a spike bunched at the high end, because clouds are uniformly bright regardless of what's underneath them, which is a quick way to flag a tile as unusable before running any further analysis on it. Histograms are also the standard way to catch a calibration problem early: if a band's histogram is unexpectedly flat, clipped hard at its maximum value, or shifted entirely compared to a neighboring tile from the same date, that's a sign of sensor saturation or a preprocessing bug, not a real property of the ground being imaged. Comparing histograms across bands, and across tiles that should look similar, is cheap and should happen before any index or model touches the data.</p>
+    <h3>Why domain indices beat raw bands</h3>
+    <p>A single raw band — say, NIR alone — tells you how much near-infrared light bounced off the ground, but that number is confounded by illumination angle, soil brightness, and atmospheric haze; a bright sandy field and a healthy dense crop can both produce a high NIR value for different reasons. A <span class="term">spectral index</span> fixes this by combining two bands so that the confounding factors partly cancel out, leaving a number that tracks the property you actually care about. NDVI, introduced in Lesson 1, works because healthy chlorophyll absorbs red light for photosynthesis while its cell structure strongly scatters NIR — so the red/NIR *contrast*, not either band alone, is what correlates with live vegetation. Two fields with different overall brightness (one shadowed, one sunlit) can still land at similar NDVI if their red/NIR ratio is similar, which is exactly the invariance raw brightness can't offer.</p>
+    <p>The same logic produces other indices tuned to other materials. <span class="term">NDWI</span> (Normalized Difference Water Index) swaps in green and NIR: <code>NDWI = (Green − NIR) / (Green + NIR)</code>. Water strongly absorbs NIR and reflects green, the opposite of vegetation, so NDWI trends high over open water and low over vegetated land — useful for flood mapping or tracking reservoir levels over time. Soil-focused indices lean on SWIR bands, which are sensitive to moisture content in bare ground. The general pattern — <span class="term">band math</span> — is: pick two bands whose physical response to the target material differs in sign or magnitude, take a normalized difference, and you get a single-channel map where the target material clusters at one end of the range and everything else clusters elsewhere. This is cheaper, more interpretable, and more robust than asking a classifier to learn the same distinction from 13 raw bands with less data.</p>
+    <h3>The cloud-masking problem</h3>
+    <p>Clouds are the single most disruptive artifact in optical satellite imagery, and naive brightness thresholding handles them badly. A simple rule like "flag any pixel above brightness X as cloud" also flags snow, bright sand, salt flats, and sun-glinted water — anything reflective — while missing thin, semi-transparent cirrus cloud that only partially brightens the pixel underneath it. Real pipelines instead combine multiple signals: high reflectance *and* low NDVI *and* characteristic behavior in specific bands (clouds are bright and cold-looking in certain SWIR/thermal combinations, distinguishing them from bright bare soil which is not). Sentinel-2 products ship with an algorithmically generated cloud mask band for exactly this reason — cloud detection is treated as its own preprocessing subproblem, not something to bolt on with a single threshold, and any downstream NDVI or land-cover calculation should mask out flagged cloud pixels first, or a "field" that's actually a cloud edge will silently corrupt the vegetation statistics for that tile.</p>
+    <pre><code>import numpy as np
+
+# tile: (H, W, 13) uint16 Sentinel-2 reflectance-scaled tile, as before
+def to_reflectance(tile):
+    # Sentinel-2 L2A digital numbers are scaled by 10000
+    return tile.astype(np.float32) / 10000.0
+
+refl = to_reflectance(tile)
+blue, green, red, nir = refl[...,1], refl[...,2], refl[...,3], refl[...,7]
+
+# --- Color space conversion: RGB composite -> HSV, per pixel ---
+def rgb_to_hsv(r, g, b):
+    maxc, minc = np.maximum(np.maximum(r, g), b), np.minimum(np.minimum(r, g), b)
+    v = maxc
+    delta = maxc - minc + 1e-8
+    s = np.where(maxc > 0, delta / (maxc + 1e-8), 0)
+    return s, v  # hue omitted here; s and v are enough for cloud/haze checks
+
+sat, val = rgb_to_hsv(red, green, blue)
+
+# --- NDVI, then a vegetation mask that also excludes cloud-like pixels ---
+ndvi = (nir - red) / (nir + red + 1e-6)
+cloud_like = (val > 0.35) & (sat < 0.20)          # bright AND washed-out
+vegetation_mask = (ndvi > 0.4) & (~cloud_like)     # healthy canopy, minus clouds</code></pre>
+    <p class="caption">Converting an RGB slice to HSV's saturation/value axes, then combining NDVI with a simple cloud heuristic to produce a cleaner vegetation mask.</p>
+    <p>Notice the mask is a boolean AND of two conditions computed in two different representations — NDVI from the raw multispectral bands, cloud-likeness from an HSV-derived brightness/saturation pair. Real pipelines stack even more conditions (SWIR-based haze checks, the shipped Sentinel-2 cloud probability layer), but the core idea is visible here already: no single channel or single space solves the whole problem, so tasks combine representations rather than picking one "best" space.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>RGB entangles brightness, hue, and saturation</strong>; HSV and Lab untangle them for different purposes — HSV for hue/brightness-based masking, Lab for perceptual color matching.</li>
+        <li><strong>Vegetation stress is often invisible in RGB</strong> but visible in the red/NIR contrast, because that's the physical mechanism (chlorophyll absorption vs. cell-structure scattering) the stress actually disrupts.</li>
+        <li><strong>Spectral indices are normalized differences between two bands</strong> chosen because a target material responds to them with opposite sign or magnitude — NDVI (red/NIR) for vegetation, NDWI (green/NIR) for water.</li>
+        <li><strong>Band math beats raw bands</strong> because it cancels out shared confounders (illumination, atmosphere) that a single band can't separate from the signal of interest.</li>
+        <li><strong>Cloud masking needs multiple signals</strong>, not a brightness threshold — bright snow, sand, and glint all fool naive rules that only look at one channel.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Preprocessing and normalisation for vision models</h2>
+    <p class="opening">Think of feeding raw satellite tiles straight into a neural network like handing a chef ingredients that arrive in wildly different units — some measured in cups, some in grams, some in whole crates — and expecting a consistent recipe to come out the other end. A model's weights are initialized assuming inputs live in some roughly predictable range; if one input channel swings from 0 to 4095 while another swings from -1 to 1, the network has to spend its early training just learning to compensate for that scale mismatch before it can learn anything about land cover at all. Preprocessing is the standardized set of prep steps — washing, chopping, portioning — that gets heterogeneous raw material into a shape and scale the recipe actually expects, and getting it wrong quietly degrades everything downstream without ever throwing an error.</p>
+    <h3>Resizing and interpolation</h3>
+    <p>Models expect fixed input dimensions, but source tiles rarely arrive at exactly that size, so images get resized — and resizing means inventing pixel values that were never measured. <span class="term">Nearest-neighbor</span> interpolation just copies the closest existing pixel's value, which is fast and preserves exact original values (important when resizing a categorical label mask, where averaging two class IDs would produce a meaningless third class) but produces blocky, jagged results. <span class="term">Bilinear</span> interpolation takes a weighted average of the four nearest pixels, giving smoother results appropriate for continuous-valued imagery. <span class="term">Bicubic</span> extends that averaging to a 4×4 neighborhood with a smoother weighting curve, typically sharper than bilinear at the cost of more compute. For satellite work, the sharper choice isn't automatically the right one: upsampling a categorical land-cover mask must use nearest-neighbor or you invent fictional class values, while downsampling continuous reflectance data with anything other than an area-averaging method risks <span class="term">aliasing</span> — high-frequency detail (a fence line, a narrow irrigation channel one pixel wide) that gets skipped over rather than blended when you sample too sparsely, producing a shimmering, incorrect pattern that looks like real texture but isn't. The safe rule: for downsampling, average over the area being collapsed (or apply a blur before subsampling) rather than picking single representative pixels; for upsampling, match the interpolation to whether the data is continuous (bilinear/bicubic) or categorical (nearest).</p>
+    <h3>Per-channel standardisation, and why ImageNet stats don't apply</h3>
+    <p>Almost every vision tutorial normalizes RGB images using ImageNet's precomputed per-channel mean and standard deviation — roughly mean <code>(0.485, 0.456, 0.406)</code>, std <code>(0.229, 0.224, 0.225)</code> on a 0–1 scale — because a huge fraction of published RGB models were trained on data preprocessed exactly that way, and matching it lets you reuse pretrained weights. Those three numbers describe the color statistics of a large web-photo dataset. They have no relationship whatsoever to Sentinel-2's 13 bands: there is no ImageNet mean for shortwave infrared because ImageNet has no shortwave infrared channel, and even for the three bands that loosely correspond to red/green/blue, satellite reflectance statistics (dominated by soil, water, and vegetation) look nothing like a distribution of indoor and outdoor photographs of people, objects, and pets. Applying ImageNet stats to a 13-band satellite stack is a category error — you'd be centering ten channels around numbers that were never computed from anything resembling those channels, and stretching real variation in SWIR reflectance by a std-dev borrowed from photographs of golden retrievers.</p>
+    <p>The fix is to compute your own per-channel mean and standard deviation from a representative sample of your actual training data, then apply <code>(x − mean) / std</code> per channel before the data reaches the model. This is exactly the same z-score standardisation used on tabular features elsewhere in machine learning, just applied channel-by-channel across a spatial grid instead of column-by-column across rows. The 12-bit-to-model-input scaling step usually happens first: convert the raw digital numbers (0–4095, or 0–10000 for scaled reflectance products) into a bounded range like 0–1 by dividing by the sensor's known maximum, and only then compute or apply standardisation statistics — mixing up the order (standardizing raw 16-bit integers, or scaling after already having z-scored) silently produces the wrong numbers even though nothing crashes.</p>
+    <h3>The normalisation-leakage bug, and tiling large scenes</h3>
+    <p>Course 1 Unit 8 covered a general version of this bug for tabular and text data: computing normalisation statistics (mean, std, min/max) over the *entire* dataset — including validation and test examples — before splitting, so that information from data the model should never see during training quietly leaks into the numbers used to preprocess the training set. The satellite-specific version is identical in spirit and easy to fall into by accident: compute channel mean/std from every tile in a directory, then split into train/test — the test tiles already influenced the normalisation the model was trained under, silently inflating validation performance relative to what the model will actually achieve on truly unseen scenes. The fix is unchanged: split first, compute statistics only from the training partition, and apply those frozen numbers to validation and test data without recomputing anything from them.</p>
+    <p>Large satellite scenes also can't be fed to a model whole — a single Sentinel-2 scene covers roughly 100×100 km, which at 10 m resolution is a 10,980×10,980-pixel array per band, far larger than any model's input size and too large to hold many of in memory at once. The standard approach is <span class="term">tiling</span>: cut the scene into fixed-size patches (say 256×256 pixels) for the model to consume individually. Tiling with zero overlap creates a subtler problem at the seams — a land-cover boundary or a cloud edge that falls exactly on a patch border gets truncated differently in each neighboring patch, and a model with limited receptive field can lose context right at that boundary. The fix is <span class="term">overlapping patches</span>: extract patches with, say, a 32-pixel overlap between neighbors, run inference on all of them, and either discard the overlapping border predictions or average predictions in the overlap zone, so no pixel's final prediction depends on a patch edge falling exactly on top of it.</p>
+    <pre><code>import numpy as np
+
+def preprocess_tile(raw_tile, train_mean, train_std, sensor_max=10000.0):
+    """raw_tile: (H, W, 13) uint16. train_mean/std: (13,) precomputed
+    from the TRAINING split only -- never from val/test tiles."""
+    scaled = raw_tile.astype(np.float32) / sensor_max      # 12-bit -> [0,1]-ish
+    return (scaled - train_mean) / (train_std + 1e-6)      # per-channel z-score
+
+def extract_overlapping_patches(scene, patch=256, overlap=32):
+    """scene: (H, W, C). Yields (row, col, patch_array) for a large
+    georeferenced scene, striding less than `patch` so neighbors overlap."""
+    H, W, C = scene.shape
+    stride = patch - overlap
+    for r in range(0, H - patch + 1, stride):
+        for c in range(0, W - patch + 1, stride):
+            yield r, c, scene[r:r+patch, c:c+patch, :]
+
+# Correct order: split scenes into train/test FIRST, then compute stats
+# only on the training scenes, then preprocess everything with those
+# frozen numbers -- this is what avoids normalisation leakage.
+train_mean = raw_tile.astype(np.float32).mean(axis=(0, 1)) / 10000.0
+train_std  = raw_tile.astype(np.float32).std(axis=(0, 1)) / 10000.0
+clean = preprocess_tile(tile, train_mean, train_std)
+
+patches = list(extract_overlapping_patches(clean, patch=256, overlap=32))
+print(len(patches), patches[0][2].shape)   # e.g. 4 (256, 256, 13)</code></pre>
+    <p class="caption">A full preprocessing pipeline: scale raw digital numbers, standardise with training-only statistics, then tile a scene into overlapping patches.</p>
+    <p>Notice that <code>train_mean</code> and <code>train_std</code> are computed once, from designated training data, and then reused as fixed constants for every subsequent call to <code>preprocess_tile</code> — including on validation or test scenes. That single design choice is what separates a leak-free pipeline from one that quietly overstates its own accuracy.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Match interpolation to data type</strong>: nearest-neighbor for categorical masks, bilinear/bicubic for continuous reflectance, and always area-average (or blur first) when downsampling to avoid aliasing.</li>
+        <li><strong>ImageNet normalisation statistics are wrong for satellite data</strong> — compute your own per-channel mean and std from your actual training tiles, especially for bands (NIR, SWIR) ImageNet never had.</li>
+        <li><strong>Scale before you standardise</strong>: convert 12/16-bit digital numbers to a bounded range first, then apply z-score normalisation, not the other way around.</li>
+        <li><strong>Normalisation leakage happens when statistics are computed across train and test data together</strong> — always split first, then compute stats only from the training partition.</li>
+        <li><strong>Huge georeferenced scenes must be tiled with overlap</strong>, not cut into abutting patches, or predictions near patch borders lose context and degrade at the seams.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 1 quiz</h2>
+    <p class="quiz-intro">Seven questions covering tensor shapes, bit depth, spectral indices, color spaces, and preprocessing — mixing multiple choice, true/false, fill in the blank, and code fixes.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A Sentinel-2 tile is stored as a NumPy array with shape <code>(512, 512, 13)</code>. What does this ordering tell you?</p>
+      <ol class="choices" type="A">
+        <li>It's channel-first (CHW), the default PyTorch expects.</li>
+        <li>It's channel-last (HWC): 512 rows, 512 columns, 13 bands per pixel.</li>
+        <li>It has 512 bands and only 13 spatial pixels.</li>
+        <li>The shape doesn't indicate ordering; that's set by the file format alone.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> With height and width equal (512, 512) and a distinct trailing value (13) that matches Sentinel-2's known band count, the channel axis is last — HWC, the common convention for image libraries and raw satellite products.</p>
+          <p>A is wrong because CHW would put 13 first, i.e. <code>(13, 512, 512)</code> — the opposite of what's shown. The array's axis order is a real property of how it was constructed, not something fixed by the file format alone (option D), and reading it correctly matters because feeding HWC into a CHW-expecting model silently misinterprets width as channels.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Because satellite sensors use 12-bit or 16-bit depth rather than 8-bit, they can capture a wider range of colors than a normal camera.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> Higher bit depth doesn't widen the range of physical values captured (that's set by the sensor's dynamic range and the wavelengths it samples) — it increases the number of distinct levels used to represent whatever range is captured, preserving finer gradations rather than crushing them into fewer buckets.</p>
+          <p>The tempting reasoning is that "more bits = sees more," but bit depth is about precision within a range, not the breadth of the range itself; a 12-bit sensor and an 8-bit sensor imaging the same scene can cover the identical brightness range, the 12-bit one just resolves subtler differences within it (4096 levels vs. 256).</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">NDVI is computed as (NIR − Red) / (NIR + Red). A field of dense, healthy crops will show a NDVI value that trends toward <span class="blank">&nbsp;</span> because healthy chlorophyll strongly scatters NIR while absorbing red light for photosynthesis.</p>
+      <ol class="choices" type="A">
+        <li>−1</li>
+        <li>0</li>
+        <li>+1</li>
+        <li>It's undefined for vegetation</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C, +1.</strong> Healthy vegetation reflects far more NIR than red, so the numerator (NIR − Red) is large and positive relative to the denominator, pushing the ratio toward its upper bound of +1.</p>
+          <p>0 (option B) is closer to what bare soil or built-up surfaces produce, where red and NIR reflectance are more similar; −1 (option A) would require NIR to be much lower than red, which happens for surfaces like clear water, not vegetation. The index isn't undefined for vegetation — it's undefined only if both bands read zero, which real canopy pixels don't.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Which color space is the best fit for isolating cloud-like pixels by their washed-out, low-saturation appearance, independent of how bright the underlying terrain is?</p>
+      <ol class="choices" type="A">
+        <li>RGB, thresholding on the blue channel alone</li>
+        <li>HSV, thresholding on low saturation and high value</li>
+        <li>Lab, thresholding on the a* axis</li>
+        <li>The raw 13-band stack with no conversion needed</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> HSV separates saturation (how vivid/washed-out a pixel is) from brightness, so clouds — bright and low-saturation — can be picked out with a rule that isn't confused by how bright the ground itself is in RGB.</p>
+          <p>RGB (A) tangles brightness and color together in every channel, so a brightness-only rule also flags bright sand and glint. Lab's a*/b* axes (C) describe perceptual color position, not the saturation/washed-out distinction that actually characterizes cloud appearance. Raw bands (D) can support cloud detection too (via SWIR/thermal behavior), but that's a different signal, not a substitute for the saturation cue HSV makes explicit.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">True / false</span></p>
+      <p class="q-stem">It's fine to normalize a 13-band Sentinel-2 tile using the standard ImageNet per-channel mean and standard deviation values, since normalisation is normalisation regardless of the data.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> ImageNet's mean/std were computed from three-channel RGB web photographs; they describe that dataset's color statistics specifically, and a 13-band satellite stack has ten channels (like NIR and SWIR) with no ImageNet equivalent at all, plus different statistics even in the three roughly-corresponding channels.</p>
+          <p>The appeal of "it's just normalisation" ignores that the whole point of computing mean/std is to center and scale a dataset using numbers descriptive of *that* dataset — reusing numbers from an unrelated distribution reintroduces the same scale mismatch normalisation is meant to fix, just with extra unearned confidence that it's been handled.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">This function is meant to preprocess satellite tiles without normalisation leakage, but it has a bug. Identify the problem.</p>
+      <pre><code>def build_dataset(all_tiles, all_labels):
+    # all_tiles: list of (H, W, 13) arrays covering every scene,
+    # train and test both, gathered from one region.
+    stacked = np.stack(all_tiles)
+    mean = stacked.mean(axis=(0, 1, 2))
+    std = stacked.std(axis=(0, 1, 2))
+
+    train_tiles, test_tiles, train_labels, test_labels = train_test_split(
+        all_tiles, all_labels, test_size=0.2
+    )
+    train_norm = [(t - mean) / std for t in train_tiles]
+    test_norm  = [(t - mean) / std for t in test_tiles]
+    return train_norm, test_norm, train_labels, test_labels</code></pre>
+      <ol class="choices" type="A">
+        <li>The mean/std are computed over all axes at once instead of per-channel.</li>
+        <li>The mean and std are computed from <code>all_tiles</code> before the train/test split, leaking test statistics into training normalisation.</li>
+        <li>The split should happen before the tiles are stacked into an array.</li>
+        <li>Standard deviation should never be added with a small epsilon.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> <code>mean</code> and <code>std</code> are computed from <code>stacked</code>, which includes every tile before the split — so the test set's own pixel statistics have already influenced the numbers used to normalise the training set. The fix: call <code>train_test_split</code> first, then compute <code>mean</code>/<code>std</code> only from <code>train_tiles</code>, and apply those same frozen values to both splits.</p>
+          <p><code>axis=(0,1,2)</code> is actually correct here — it collapses the tile-index, height, and width axes while keeping the channel axis (axis 3) intact, which is the per-channel behavior you want, so A misdescribes working code as buggy. C describes a real constraint (splitting should happen early) but the actual defect is the *order* of split vs. stats, not where the stacking occurs. D is a real omission (dividing by exactly zero std is a latent risk) but it isn't the leakage bug the question is asking about.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">Complete the missing line so that <code>extract_patches</code> yields overlapping 256×256 patches with a 32-pixel overlap between neighbors, matching the tiling approach from Lesson 3.</p>
+      <pre><code>def extract_patches(scene, patch=256, overlap=32):
+    H, W, C = scene.shape
+    ____________________          # compute the stride between patch starts
+    for r in range(0, H - patch + 1, stride):
+        for c in range(0, W - patch + 1, stride):
+            yield scene[r:r+patch, c:c+patch, :]</code></pre>
+      <ol class="choices" type="A">
+        <li><code>stride = patch + overlap</code></li>
+        <li><code>stride = patch // overlap</code></li>
+        <li><code>stride = patch - overlap</code></li>
+        <li><code>stride = overlap</code></li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> Advancing the window by <code>patch − overlap</code> pixels each step means each new patch shares exactly <code>overlap</code> pixels with the previous one — a 256-pixel patch with 32-pixel overlap advances by 224 pixels per step, so patches at positions 0 and 224 share columns/rows 224–255.</p>
+          <p><code>patch + overlap</code> (A) would skip ground entirely, leaving gaps rather than overlaps. <code>overlap</code> alone (D) makes the stride far too small, producing enormous redundant overlap (224 shared pixels instead of 32) and far more patches than intended. <code>patch // overlap</code> (B) isn't dimensionally meaningful here at all — it doesn't correspond to any real spacing between patch origins.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Computer Vision · Unit 1 of 8 — Unit 2 turns to edge detection and classical hand-crafted features, the last stop before convolutional architectures in Unit 3.</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 2 · Classical computer vision: edges, filters, features — Computer Vision</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Computer Vision · Unit 2 of 8</p>
+  <h1>Classical computer vision: edges, filters, features</h1>
+  <p class="lede">Before a single neural net enters the picture, decades of hand-designed operators already solve most of what a production line needs: convolutional filters that clean up sensor noise, gradient operators that find edges, and descriptors that recognize a part despite rotation and lighting drift. This unit builds that toolbox on inspection imagery.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. Convolution, filtering, and the frequency view</a></li>
+      <li><a href="#lesson-2">2. Edge and corner detection</a></li>
+      <li><a href="#lesson-3">3. Feature descriptors and the classical recognition pipeline</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>Convolution, filtering, and the frequency view</h2>
+
+    <p class="opening">A <span class="term">linear filter</span> is a small numerical grid, called a <span class="term">kernel</span>, that slides across an image and replaces each pixel with a weighted sum of its neighborhood. Formally, for an image <code>I</code> and kernel <code>K</code> of size <code>(2k+1)×(2k+1)</code>, the filtered output at position <code>(x, y)</code> is:</p>
+    <p class="math">O(x,y) = Σ_i Σ_j  I(x+i, y+j) · K(i,j),  for i,j ∈ [-k, k]</p>
+    <p>That sum-of-products-over-a-sliding-window operation is what Course 1 Unit 6 called <span class="term">convolution</span> when it was the operation a CNN learns the weights for. Here the weights are not learned — an engineer chooses them by hand, based on what frequency content or spatial pattern they want to keep or discard. Same arithmetic, opposite origin story: one side derives the kernel from gradient descent on millions of labeled images, the other derives it from signal-processing theory and a whiteboard.</p>
+
+    <h3>Convolution versus correlation</h3>
+    <p>Strictly, the formula above is <span class="term">cross-correlation</span> — the kernel is applied in the same orientation it is written. True mathematical <span class="term">convolution</span> flips the kernel 180° first: <code>O(x,y) = Σ I(x-i, y-j)·K(i,j)</code>. For symmetric kernels like a Gaussian blur, flipping changes nothing, so the two terms get used interchangeably in vision code and papers — including "convolutional" neural networks, which technically perform correlation. The distinction matters only for asymmetric kernels (a directional edge detector, say), where flipping reverses the sign convention. On a production line this rarely bites you because most classical filters — box, Gaussian, Laplacian — are symmetric, but it is worth knowing which operation a library actually implements before you trust a sign.</p>
+
+    <h3>Smoothing: box and Gaussian</h3>
+    <p>The simplest smoothing kernel is the <span class="term">box filter</span>: every entry in a <code>k×k</code> window is <code>1/k²</code>, so the output is a plain local average. It is cheap and it removes high-frequency noise, but it has an ugly property — a hard-edged window in the spatial domain corresponds to a <em>ringing</em>, oscillating response in the frequency domain (the sinc function), which can introduce faint false edges near real ones. On a solder-paste inspection image this shows up as a subtle halo around bright reflective blobs after blurring, which is exactly the kind of artifact that trips up a downstream edge detector.</p>
+    <p>The <span class="term">Gaussian filter</span> fixes this. Its weights follow the bell curve <code>G(x,y) = (1/2πσ²)·exp(-(x²+y²)/2σ²)</code>, so pixels near the center of the window count more than pixels near the edge, and the falloff is smooth with no hard cutoff — no ringing, no false edges. It is also the only 2-D filter that is simultaneously rotationally symmetric (no directional bias when a scratch could run at any angle) and separable (next section). There's a deeper reason Gaussian shows up everywhere in imaging: the point-spread function of a real lens, and the sum of many small independent noise sources on a sensor, both tend toward a Gaussian shape by the central limit theorem — so a Gaussian blur is a reasonable physical model of "what would this look like slightly out of focus or slightly noisier," not just a mathematically convenient choice.</p>
+
+    <h3>Separability and the speed win</h3>
+    <p>A 2-D Gaussian kernel can be written as the outer product of two 1-D Gaussians: <code>G(x,y) = g(x)·g(y)</code>. That means you never actually need to build and slide a full <code>k×k</code> grid — you convolve each row with a 1-D kernel of length <code>k</code>, then convolve each column of the result with the same 1-D kernel. The cost per pixel drops from <code>O(k²)</code> multiply-adds to <code>O(2k)</code>. For a 15×15 kernel that is 225 operations collapsing to 30 — a 7.5× speedup, and the gap only widens as kernel size grows. On an inspection line running at 40 frames per second with a hard latency budget before the reject gate, this is not an academic nicety; it's frequently the difference between a filter you can afford to run on every frame and one you can't. Box filters are separable too (and can be computed even faster with running sums via integral images), but Gaussian's separability combined with its lack of ringing is why it's the default smoothing choice in essentially every classical pipeline.</p>
+
+    <h3>The frequency view: low-pass and high-pass</h3>
+    <p>Every image can be decomposed into spatial frequencies — how fast intensity changes as you move across it. Flat, slowly-varying regions (the matte surface of a plastic housing) are low frequency; sharp transitions (a scratch edge, screen-printed text, component leads) are high frequency, and so is sensor noise. A smoothing kernel like the Gaussian is a <span class="term">low-pass filter</span>: it attenuates high frequencies and passes low ones through, which is why it blurs edges along with removing noise — from a frequency standpoint, both edges and noise live in the same band, and a plain smoother cannot fully tell them apart. A <span class="term">high-pass filter</span> does the reverse: it suppresses the slowly-varying background and emphasizes rapid transitions, which is exactly what makes edge detectors (Lesson 2) and sharpening kernels work. A common sharpening trick, <span class="term">unsharp masking</span>, literally computes <code>original + α·(original − blurred)</code> — it isolates the high-frequency residual by subtracting a low-pass copy, then adds that residual back to boost edge contrast. You do not need to run a Fourier transform to use this framework day to day; it's enough to look at any kernel and ask whether its weights sum to preserve the average (low-pass, smoothing) or emphasize local differences (high-pass, sharpening or edge-finding).</p>
+
+    <h3>Boundary handling</h3>
+    <p>A kernel centered on a pixel near the image border needs neighbor values that don't exist. The common strategies are: <span class="term">zero-padding</span> (treat missing pixels as black, which darkens filtered results near edges — a real problem when your part fills most of the frame and defects near its boundary are common, like edge chips on a PCB); <span class="term">replicate</span> padding (repeat the border pixel outward, avoiding false darkening but potentially stretching a real edge feature); <span class="term">reflect</span> padding (mirror the image across its border, which best preserves local statistics for smooth content); and <span class="term">crop</span> (simply don't compute output where the full kernel doesn't fit, shrinking the output image by the kernel radius on each side). For fixed-camera QA rigs where the part is calibrated to sit in a known region of the frame with margin to spare, crop or replicate is usually safest — you don't want a boundary artifact masquerading as a defect signal three pixels in from an edge you don't even care about inspecting.</p>
+
+    <pre><code>import numpy as np
+
+def convolve2d(img, kernel):
+    kh, kw = kernel.shape
+    ph, pw = kh // 2, kw // 2
+    padded = np.pad(img, ((ph, ph), (pw, pw)), mode="reflect")
+    out = np.zeros_like(img, dtype=np.float64)
+    for y in range(img.shape[0]):
+        for x in range(img.shape[1]):
+            region = padded[y:y+kh, x:x+kw]
+            out[y, x] = np.sum(region * kernel)
+    return out
+
+# 5x5 Gaussian, sigma ~ 1.0 (rounded, unnormalized then normalized)
+gaussian_5x5 = np.array([
+    [1,  4,  7,  4, 1],
+    [4, 16, 26, 16, 4],
+    [7, 26, 41, 26, 7],
+    [4, 16, 26, 16, 4],
+    [1,  4,  7,  4, 1],
+], dtype=np.float64)
+gaussian_5x5 /= gaussian_5x5.sum()
+
+# 3x3 sharpening kernel: identity plus a scaled Laplacian
+sharpen_3x3 = np.array([
+    [ 0, -1,  0],
+    [-1,  5, -1],
+    [ 0, -1,  0],
+], dtype=np.float64)
+
+solder_joint = np.load("solder_joint_gray.npy")   # (H, W) grayscale crop, 0-255
+smoothed  = convolve2d(solder_joint, gaussian_5x5)
+sharpened = convolve2d(solder_joint, sharpen_3x3)
+</code></pre>
+    <p class="caption">The Gaussian kernel's weights peak at the center and taper outward, approximating the bell curve on a discrete grid; note it sums to 1 so average brightness is preserved. The sharpen kernel is the identity (a center weight of 5 keeps the original pixel dominant) minus its four-neighbor average, which is a discrete Laplacian — boosting the difference between a pixel and its surroundings is what makes solder joint edges pop before a human inspector reviews a borderline reject.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Convolution and correlation differ only by a 180° kernel flip</strong>, and are identical for the symmetric kernels — box, Gaussian, Laplacian — that dominate classical filtering.</li>
+        <li><strong>Gaussian beats box smoothing</strong> because it has no hard cutoff (no ringing/false edges), is rotationally symmetric, and — unlike most smoothing shapes — is separable.</li>
+        <li><strong>Separability turns an O(k²) 2-D convolution into two O(k) 1-D passes</strong>, a real throughput win at line-rate frame rates.</li>
+        <li><strong>Low-pass filters blur (remove high frequency = edges + noise together); high-pass filters sharpen or expose edges</strong> — a filter's behavior is readable straight off whether its weights average or difference neighboring pixels.</li>
+        <li><strong>Boundary handling choice (zero, replicate, reflect, crop) changes pixel values near the frame edge</strong> and should be picked to avoid manufacturing false defect signals near a part's border.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Edge and corner detection</h2>
+
+    <p class="opening">In 1968, Irwin Sobel and Gary Feldman described a pair of small gradient kernels for estimating edge direction and magnitude — the Sobel operator is still the first thing most vision engineers reach for today, over half a century later. In 1986, John Canny formalized what an "optimal" edge detector should satisfy (good detection, good localization, one response per edge) and produced the multi-stage pipeline that bears his name and still ships, largely unchanged, in OpenCV. In 1988, Chris Harris and Mike Stephens extended the same gradient-based thinking from edges to corners, giving machines a way to find stable, trackable points rather than just boundaries. None of these three predates a single modern GPU. All three are still running, today, inside inspection cameras on real production lines — because for a fixed camera, fixed lighting, and a well-defined pass/fail criterion, they are fast, deterministic, and need zero labeled training data.</p>
+
+    <h3>Image gradients: Sobel and Prewitt</h3>
+    <p>An edge is, mathematically, a location where intensity changes rapidly — a large spatial derivative. The <span class="term">Sobel operator</span> estimates the horizontal and vertical derivatives with two 3×3 kernels:</p>
+    <p class="math">Gx = [[-1,0,1],[-2,0,2],[-1,0,1]]   Gy = [[-1,-2,-1],[0,0,0],[1,2,1]]</p>
+    <p>Each kernel is a difference in one direction combined with a smoothing weight (the 1-2-1 pattern) in the perpendicular direction — Sobel is quietly doing a small Gaussian-like blur and a derivative in the same pass, which is why it's more noise-robust than the plain <span class="term">Prewitt operator</span>, whose kernels use flat 1-1-1 weights instead of 1-2-1 and so give every row or column equal say with no central emphasis. Convolving an image with <code>Gx</code> and <code>Gy</code> gives two output images: how fast intensity changes left-to-right, and top-to-bottom, at every pixel.</p>
+
+    <h3>Gradient magnitude and orientation</h3>
+    <p>Combine the two directional derivatives into a single edge strength and a single edge direction per pixel:</p>
+    <p class="math">magnitude = √(Gx² + Gy²)     orientation = atan2(Gy, Gx)</p>
+    <p>Magnitude is what you'd threshold to get a binary edge map; orientation tells you which way the edge runs, perpendicular to the direction of steepest intensity change. On a scratch-detection task, orientation is often the more useful signal — a scratch running diagonally across a brushed-metal surface produces a gradient orientation histogram distinct from the surface's own grain texture, even where raw magnitude alone is ambiguous.</p>
+
+    <h3>The full Canny pipeline</h3>
+    <p>Sobel magnitude alone gives thick, noisy edge bands, not the crisp single-pixel-wide lines a QA system wants to count and measure. Canny's pipeline cleans this up in four stages. First, <span class="term">smooth</span> with a Gaussian (Lesson 1) to suppress sensor noise before differentiating it — differentiation amplifies noise, so this step is not optional. Second, compute the <span class="term">gradient</span> magnitude and orientation via Sobel. Third, apply <span class="term">non-maximum suppression</span>: at each pixel, look along the gradient direction (rounded to one of 8 compass directions) at the two neighboring pixels, and keep the current pixel's magnitude only if it is a local maximum along that direction — otherwise zero it out. This thins a wide ridge of "edge-ish" pixels down to a single-pixel-wide line sitting exactly at the peak of the gradient. Fourth, <span class="term">hysteresis thresholding</span>: pick a high threshold and a low threshold; any pixel above the high threshold is a confirmed edge, any pixel below the low threshold is discarded, and pixels in between are kept only if they connect (via 8-neighbor adjacency) to a confirmed edge. This lets a real edge with a locally weak segment — a shadow crossing a component lead, say — stay connected as one edge instead of fragmenting into disconnected dashes, while genuinely isolated weak responses (noise) get dropped.</p>
+
+    <h3>Harris corners: what "corner" means mathematically</h3>
+    <p>A corner is a location where the image gradient is strong in more than one direction at once — slide a small window over a flat region and nothing changes; slide it along a straight edge and nothing changes if you slide it along the edge's own direction; slide it over a corner and it changes no matter which way you slide it. The <span class="term">Harris detector</span> formalizes this with the <span class="term">structure tensor</span>, a 2×2 matrix built from local gradient products averaged over a window:</p>
+    <p class="math">M = [[Σ Gx², Σ GxGy], [Σ GxGy, Σ Gy²]]</p>
+    <p>The two eigenvalues of <code>M</code>, λ1 and λ2, describe how much the windowed intensity changes along the two principal directions. Both small means a flat region; one large and one small means an edge (change in one direction only); both large means a corner. Computing eigenvalues directly is expensive, so Harris proposed a cheaper response score, <code>R = det(M) − k·trace(M)²</code>, with <code>k</code> a small empirical constant (commonly 0.04–0.06) — <code>R</code> is large and positive at corners, negative at edges, and near zero on flat surfaces, without ever factoring the matrix. On a PCB inspection image, Harris corners cluster reliably at component leads, connector pin tips, and silkscreen text corners — exactly the stable, repeatable landmarks a later alignment step (Lesson 3) wants to lock onto.</p>
+
+    <h3>Blob detection: the bridge to scale</h3>
+    <p>Edges and corners are both essentially point- or line-local; they say nothing about the size of a feature. <span class="term">Blob detection</span> asks a different question — where is there a roughly circular region of contrast at some particular scale — and answers it with the <span class="term">Laplacian of Gaussian</span> (LoG): smooth with a Gaussian at scale σ, then apply the Laplacian (a second-derivative operator, <code>∂²/∂x² + ∂²/∂y²</code>) to find locations where intensity curves sharply in a bowl or dome shape. Because computing LoG at every scale is costly, the practical approximation is the <span class="term">Difference of Gaussians</span> (DoG): subtract two Gaussian-blurred copies of the image at nearby scales, <code>σ</code> and <code>k·σ</code>. A blob that matches the current scale gives the strongest DoG response, and searching across a stack of scales (a scale-space pyramid) locates both a blob's position and its characteristic size. This scale-space machinery — smoothing at increasing σ and differencing adjacent levels — is precisely what Lesson 3's SIFT keypoint detector reuses to find features that survive a change in how close the camera is to the part, or how much a defect has grown.</p>
+
+    <pre><code>import numpy as np
+
+def sobel_gradients(img):
+    Gx = np.array([[-1,0,1],[-2,0,2],[-1,0,1]], dtype=np.float64)
+    Gy = np.array([[-1,-2,-1],[0,0,0],[1,2,1]], dtype=np.float64)
+    gx = convolve2d(img, Gx)   # convolve2d from Lesson 1
+    gy = convolve2d(img, Gy)
+    magnitude = np.sqrt(gx**2 + gy**2)
+    orientation = np.arctan2(gy, gx)   # radians, range (-pi, pi]
+    return magnitude, orientation
+
+def non_max_suppression(mag, orient):
+    H, W = mag.shape
+    out = np.zeros_like(mag)
+    angle = np.rad2deg(orient) % 180   # fold to 0-180 for 4 direction bins
+    for y in range(1, H - 1):
+        for x in range(1, W - 1):
+            a = angle[y, x]
+            # snap to nearest of 0, 45, 90, 135 degrees
+            if a < 22.5 or a >= 157.5:
+                n1, n2 = mag[y, x-1], mag[y, x+1]        # horizontal edge
+            elif a < 67.5:
+                n1, n2 = mag[y-1, x+1], mag[y+1, x-1]     # 45 degrees
+            elif a < 112.5:
+                n1, n2 = mag[y-1, x], mag[y+1, x]         # vertical edge
+            else:
+                n1, n2 = mag[y-1, x-1], mag[y+1, x+1]     # 135 degrees
+            if mag[y, x] >= n1 and mag[y, x] >= n2:
+                out[y, x] = mag[y, x]
+    return out
+
+lead_crop = np.load("component_lead_gray.npy")
+mag, orient = sobel_gradients(lead_crop)
+thinned = non_max_suppression(mag, orient)
+</code></pre>
+    <p class="caption">Sobel gives one magnitude value and one orientation per pixel; non-max suppression then walks each pixel's orientation to the two neighbors that straddle it perpendicular to the edge (rounded to the nearest 45°) and zeroes the pixel unless it is the local peak — the thick gradient band around a component lead collapses to a single-pixel-wide contour ready for hysteresis thresholding.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Sobel estimates directional derivatives with a built-in smoothing weight (1-2-1)</strong>, making it more noise-robust than the flat-weighted Prewitt operator, at the same 3×3 cost.</li>
+        <li><strong>Canny is a four-stage pipeline — smooth, gradient, non-max suppression, hysteresis threshold —</strong> not a single formula; skipping any stage degrades to raw thresholded Sobel with thick, noisy edges.</li>
+        <li><strong>Hysteresis thresholding keeps weak-but-connected edge pixels and drops weak-and-isolated ones</strong>, preserving edges that dip below a single hard threshold in only part of their length.</li>
+        <li><strong>A Harris corner is where both eigenvalues of the local structure tensor are large</strong> — gradient strong in every direction, not just one — approximated cheaply via <code>R = det(M) − k·trace(M)²</code>.</li>
+        <li><strong>Difference of Gaussians across a scale pyramid finds a blob's position and size together</strong>, the same scale-space idea SIFT reuses for scale-invariant keypoints in Lesson 3.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Feature descriptors and the classical recognition pipeline</h2>
+
+    <p class="opening">A reference PCB layout sits in your inspection database as a clean, correctly-populated image captured under ideal lighting. A camera on the line just captured a board that may be rotated two or three degrees in its fixture, lit slightly warmer than the reference shot, and possibly missing a capacitor. The obvious approach — subtract the two images pixel by pixel and flag large differences — fails immediately: a two-degree rotation shifts every edge in the image by several pixels, so the subtraction lights up almost the entire board as "different," burying the one real defect in thousands of false ones caused purely by misalignment. What you actually need is a way to find the same physical points on both images — a specific connector corner, a specific resistor's edge — regardless of the small rotation and lighting shift, align the two images using those matched points, and only then compare them. That's the job of a <span class="term">feature descriptor</span>: a numerical fingerprint computed around a keypoint that stays recognizably similar even when the image around it has been rotated, rescaled, or relit.</p>
+
+    <h3>What makes a good keypoint descriptor</h3>
+    <p>Three properties matter most for QA-style matching. <span class="term">Illumination invariance</span>: a descriptor should not care whether the LED ring light ran a touch brighter today, so it should be built from gradient directions and relative contrast rather than raw pixel brightness. <span class="term">Rotation invariance</span>: the descriptor should be computed relative to a keypoint's own dominant orientation, not relative to the image's fixed x-axis, so a board rotated in its fixture still matches. <span class="term">Scale invariance</span>: the descriptor should be computed at the scale at which the keypoint was actually detected (recall Lesson 2's DoG scale-space), so the same physical feature matches whether the camera is 20 cm or 22 cm from the board. A descriptor that nails all three is expensive to compute; one that only needs some of them (fixed-mount inspection rigs rarely need real scale invariance) can trade accuracy for speed — which is exactly the trade-off separating SIFT, HOG, and ORB below.</p>
+
+    <h3>SIFT: the thorough, expensive baseline</h3>
+    <p><span class="term">SIFT</span> (Scale-Invariant Feature Transform, Lowe 1999/2004) builds a scale-space pyramid of Difference-of-Gaussian images (Lesson 2), finds keypoints as local extrema across both space and scale, then discards low-contrast points and points sitting on an edge rather than a true corner-like blob (using a Harris-style eigenvalue-ratio test) to keep only stable, well-localized keypoints. Each surviving keypoint is assigned a dominant orientation from the local gradient histogram, so everything that follows is measured relative to that orientation, not the image frame — this is where rotation invariance comes from. The descriptor itself samples a 16×16 pixel neighborhood around the keypoint, splits it into a 4×4 grid of cells, and in each cell builds an 8-bin histogram of gradient orientations, weighted by magnitude — 16 cells × 8 bins gives the famous <span class="term">128-dimensional descriptor vector</span>. SIFT is thorough and historically the accuracy benchmark other descriptors were judged against, but it is comparatively slow, and its original patent (expired 2020) kept it out of default OpenCV builds for years — pushing the field toward faster or unencumbered alternatives even before deep learning arrived.</p>
+
+    <h3>HOG: histograms as a shape template</h3>
+    <p><span class="term">HOG</span> (Histogram of Oriented Gradients, Dalal & Triggs 2005) skips keypoint detection entirely and instead computes a dense grid of local gradient-orientation histograms across an entire fixed-size window — originally built for pedestrian detection, but its real strength is capturing overall shape and silhouette rather than fine texture, which makes it a natural fit for defect and component-shape templates in QA: a HOG descriptor computed over a "correctly seated connector" template can be compared against a candidate region to catch a connector that's tilted, only partially inserted, or the wrong part entirely, without needing pixel-level alignment. Because HOG describes a whole patch rather than a single interest point, it pairs naturally with a sliding-window or a classifier (historically an SVM) rather than a point-matching-and-RANSAC pipeline.</p>
+
+    <h3>ORB: fast and free</h3>
+    <p><span class="term">ORB</span> (Oriented FAST and Rotated BRIEF, Rublee et al. 2011) was built explicitly as an unencumbered, low-compute alternative to SIFT. It detects keypoints with <span class="term">FAST</span> (checks a ring of 16 pixels around a candidate for a contiguous arc that's uniformly brighter or darker — cheap enough to run at video rate), assigns each keypoint an orientation from the intensity centroid of its patch, then builds a <span class="term">BRIEF</span> descriptor: a string of a few hundred bits, each bit the result of comparing the brightness of one fixed pair of pixels near the keypoint against another. Because the descriptor is binary, matching two ORB descriptors is a Hamming distance (XOR and popcount) rather than a Euclidean distance over floats — orders of magnitude faster on commodity hardware, and exactly why ORB is the default choice when a QA rig needs feature matching at full frame rate on a CPU rather than a GPU.</p>
+
+    <h3>Matching and RANSAC: geometric verification</h3>
+    <p>Detecting descriptors on both images is only half the job — you then need to pair them up and reject bad pairs. The standard approach compares each reference descriptor against all candidates, keeps the closest match, and applies <span class="term">Lowe's ratio test</span>: accept a match only if the best match is meaningfully closer than the second-best (typically below a 0.7–0.8 ratio), filtering out ambiguous matches in repetitive regions — a real risk on a PCB with dozens of visually identical resistors. Even after the ratio test, some matches will be wrong. <span class="term">RANSAC</span> (Random Sample Consensus) cleans this up: repeatedly sample a minimal set of matches (3–4 point pairs), fit a geometric transform (an affine or perspective homography) from just that sample, then count how many remaining matches agree with it within a small pixel tolerance. The transform with the most agreeing "inliers" across many trials is kept, and only its inliers are trusted — outliers from repeated components or noise are discarded without individual inspection. The recovered transform is also the alignment: warp the captured board onto the reference frame, and a pixel-difference check finally becomes meaningful.</p>
+
+    <h3>The honest bridge to learned features</h3>
+    <p>SIFT, HOG, and ORB were the state of the art for a decade and a half of general-purpose vision, and modern learned features (Unit 3) have since overtaken them on open-world tasks — recognizing arbitrary objects under uncontrolled lighting and viewpoint is where hand-designed gradient histograms run out of expressive power. But controlled industrial QA is a different problem: fixed camera, fixed lighting, one part family, hard latency budget. There, classical descriptors keep three real advantages — single-digit-millisecond CPU runtime with no GPU required, zero labeled training data or retraining when a part revision ships, and a failed match that's fully explainable (you can point to exactly which keypoint pairs disagreed) in a way a CNN's activations are not. That's why ORB-based alignment checks still run alongside CNN-based defect classifiers on the same line — classical vision for the deterministic geometric part, learned features for the part too visually rich to hand-design a descriptor for.</p>
+
+    <pre><code>import numpy as np
+
+def hog_cell_histogram(magnitude, orientation, n_bins=9):
+    """One cell's HOG histogram: gradient orientation binned 0-180deg,
+    each vote weighted by that pixel's gradient magnitude."""
+    bin_width = 180.0 / n_bins
+    angle = np.rad2deg(orientation) % 180
+    hist = np.zeros(n_bins)
+    bins = (angle // bin_width).astype(int) % n_bins
+    for b in range(n_bins):
+        hist[b] = magnitude[bins == b].sum()
+    return hist
+
+def hog_descriptor(mag, orient, cell_size=8, n_bins=9):
+    H, W = mag.shape
+    cells_y, cells_x = H // cell_size, W // cell_size
+    cell_hists = np.zeros((cells_y, cells_x, n_bins))
+    for cy in range(cells_y):
+        for cx in range(cells_x):
+            ys, xs = cy*cell_size, cx*cell_size
+            m = mag[ys:ys+cell_size, xs:xs+cell_size]
+            o = orient[ys:ys+cell_size, xs:xs+cell_size]
+            cell_hists[cy, cx] = hog_cell_histogram(m, o, n_bins)
+    return cell_hists.flatten()   # length = cells_y * cells_x * n_bins
+
+connector_patch = np.load("connector_template_gray.npy")   # e.g. 32x32
+mag, orient = sobel_gradients(connector_patch)
+descriptor = hog_descriptor(mag, orient, cell_size=8, n_bins=9)
+</code></pre>
+    <p class="caption">A 32×32 patch with 8-pixel cells gives a 4×4 grid of cells, each contributing a 9-bin orientation histogram — a 144-length vector describing the connector's shape as "how much edge energy points in each direction, per region," which is far more tolerant of a few degrees of tilt or a slightly different exposure than comparing raw pixels would be.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Pixel-difference comparison fails under any rotation or lighting shift</strong> because it has no notion of "same physical point" — feature matching solves exactly that correspondence problem.</li>
+        <li><strong>A useful descriptor is illumination-, rotation-, and (often) scale-invariant</strong> by construction — built from local gradient orientation and relative contrast, anchored to the keypoint's own dominant direction and detection scale.</li>
+        <li><strong>SIFT's 128-d descriptor (4×4 cells × 8 orientation bins) is thorough but costly</strong>; ORB trades float descriptors and Euclidean distance for binary strings and Hamming distance to run at video rate on a CPU.</li>
+        <li><strong>HOG describes a whole patch's shape as a grid of gradient histograms</strong>, making it suited to template-style matching of component or defect silhouettes rather than sparse point matching.</li>
+        <li><strong>RANSAC finds the geometric transform with the most agreeing matches</strong>, simultaneously rejecting bad correspondences and recovering the alignment needed before a meaningful pixel-level defect comparison.</li>
+        <li><strong>Classical descriptors still win in controlled QA settings</strong> — no GPU, no training data, fully explainable failures — even though learned features have overtaken them for open-world recognition.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 2 quiz</h2>
+    <p class="quiz-intro">8 questions covering convolution and filtering, edge and corner detection, and classical feature descriptors.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Why is a Gaussian kernel generally preferred over a box kernel for smoothing an inspection image before edge detection?</p>
+      <ol class="choices" type="A">
+        <li>The Gaussian kernel is not separable, so it captures diagonal structure the box filter misses.</li>
+        <li>The Gaussian's smooth falloff avoids the ringing/false-edge artifacts a box filter's hard cutoff can introduce, while still being separable for speed.</li>
+        <li>The box filter cannot be implemented as a convolution, only the Gaussian can.</li>
+        <li>The Gaussian kernel always uses fewer multiply-adds than a box kernel of the same size.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> The Gaussian's bell-curve weighting has no hard spatial cutoff, so its frequency response lacks the ringing (false edges) a box filter's rectangular window produces, and it remains separable into two 1-D passes for the same speed benefit as a box filter.</p>
+          <p>A is wrong on two counts: the Gaussian <em>is</em> separable, and separability is precisely why it's fast, not a downside. D is wrong — a box and Gaussian kernel of the same size cost the same number of raw operations before separability is applied; the win is architectural (both are separable), not intrinsic to one shape over the other.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Separating a 2-D Gaussian convolution into two 1-D passes (rows then columns) produces a mathematically different result than applying the full 2-D kernel directly.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> Because a 2-D Gaussian factors exactly as the outer product of two identical 1-D Gaussians, convolving with the two 1-D kernels in sequence produces the identical numerical result as the full 2-D convolution — separability is a computational shortcut, not an approximation.</p>
+          <p>It's tempting to assume any decomposition trades accuracy for speed, but separability here is an algebraic identity: <code>G(x,y) = g(x)·g(y)</code> means the sums simply factor, with no information lost.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">In the Canny edge detector, the stage that thins wide bands of high gradient magnitude down to single-pixel-wide edge lines by keeping only local maxima along the gradient direction is called <span class="blank">&nbsp;</span>.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: non-maximum suppression.</strong> At each pixel, the algorithm checks the two neighbors that lie along the gradient orientation (rounded to the nearest 45°) and zeroes the pixel unless its magnitude is greater than or equal to both.</p>
+          <p>A common confusion is with hysteresis thresholding, which is a separate, later stage — hysteresis decides which already-thinned edge pixels to keep or discard based on high/low thresholds and connectivity, not which pixels to thin in the first place.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Hysteresis thresholding in Canny uses two thresholds instead of one primarily to:</p>
+      <ol class="choices" type="A">
+        <li>Speed up the computation by skipping the gradient magnitude step for weak pixels.</li>
+        <li>Detect corners in addition to edges within the same pass.</li>
+        <li>Keep weak-but-connected edge segments that dip below a single hard cutoff in places, while still discarding isolated weak responses like noise.</li>
+        <li>Replace the need for a prior Gaussian smoothing step.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> A real edge can have a locally weak segment — a shadow crossing it, for instance — that would be lost under one hard threshold. By keeping any weak pixel that connects to a confirmed strong edge, hysteresis preserves that continuity while still dropping isolated weak-only responses, which are more likely noise.</p>
+          <p>D is a common misread: hysteresis thresholding is entirely separate from, and comes after, the Gaussian smoothing stage — smoothing still has to happen first to keep differentiation from amplifying sensor noise.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">The Harris corner response <code>R = det(M) − k·trace(M)²</code> is large and positive at a corner because:</p>
+      <ol class="choices" type="A">
+        <li>Both eigenvalues of the local structure tensor M are large, meaning the windowed intensity changes significantly in every direction, not just one.</li>
+        <li>The gradient magnitude is zero in a flat region, which maximizes det(M).</li>
+        <li>Corners always have a higher raw pixel brightness than edges or flat regions.</li>
+        <li>The trace of M is always negative at corners, driving R positive.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: A.</strong> M's two eigenvalues describe how much windowed intensity varies along the two principal directions; a corner is exactly the case where both are large, giving a large determinant relative to the squared trace, so R is large and positive.</p>
+          <p>D is wrong because trace(M) is a sum of squared gradient terms and is always non-negative by construction — it's never negative, at a corner or anywhere else.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">A teammate's non-max suppression only ever checks the pixel's left and right neighbors, regardless of gradient orientation:</p>
+      <pre><code>def non_max_suppression_buggy(mag, orient):
+    H, W = mag.shape
+    out = np.zeros_like(mag)
+    for y in range(1, H - 1):
+        for x in range(1, W - 1):
+            n1, n2 = mag[y, x-1], mag[y, x+1]
+            if mag[y, x] >= n1 and mag[y, x] >= n2:
+                out[y, x] = mag[y, x]
+    return out</code></pre>
+      <p class="q-stem">What is the concrete effect of this bug on inspection images?</p>
+      <ol class="choices" type="A">
+        <li>It has no visible effect — Canny edges look the same regardless of orientation handling.</li>
+        <li>It only thins horizontal edges correctly; vertical and diagonal edges (e.g. vertical scratches, angled solder bridges) stay several pixels wide because the wrong neighbor pixels are compared.</li>
+        <li>It causes every pixel in the image to be suppressed to zero.</li>
+        <li>It makes the algorithm run non-deterministically.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Non-max suppression must compare each pixel against the two neighbors that straddle it <em>perpendicular</em> to the local gradient orientation. Always checking left/right only correctly thins edges whose gradient runs horizontally; a vertical scratch's gradient points left-right, so its edge, running top-to-bottom, needs the up/down neighbors compared instead — the buggy version leaves those edges wide and unthinned.</p>
+          <p>A is the tempting-but-wrong answer for anyone who's only tested the code on a single horizontal test edge; the failure only becomes visible once you inspect vertical or diagonal defects, which is most of what a real production line produces.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Why is ORB typically chosen over SIFT for a fixed-mount PCB inspection rig that needs to align a captured board to a reference layout at full camera frame rate on a CPU?</p>
+      <ol class="choices" type="A">
+        <li>ORB is more scale-invariant than SIFT, which matters more than speed for a fixed camera distance.</li>
+        <li>ORB's binary descriptor and Hamming-distance matching are far cheaper to compute and compare than SIFT's float descriptors and Euclidean distance, at a small cost in raw matching accuracy.</li>
+        <li>SIFT cannot be computed on grayscale images, only ORB can.</li>
+        <li>ORB does not require any keypoint detection step, unlike SIFT.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> ORB's BRIEF-based binary descriptors compare against each other with XOR and a bit count instead of a full floating-point Euclidean distance, and are built from cheap FAST keypoints — a large speed advantage that matters when a rig has no GPU and a hard frame-rate budget, at some cost in the descriptor's discriminative power versus SIFT's richer 128-d histogram.</p>
+          <p>A is backwards for the scenario described — a fixed camera distance means scale invariance is one of the least important properties here, which is exactly why trading it away for speed is a reasonable choice. D is also wrong: ORB still detects keypoints, using FAST, it just replaces SIFT's DoG-based detector and float descriptor with cheaper alternatives.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">True / false</span></p>
+      <p class="q-stem">RANSAC works by computing a geometric transform from every possible pair of matched keypoints and averaging the results together.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> RANSAC repeatedly samples a small minimal subset of matches, fits a candidate transform from just that subset, and counts how many of the <em>other</em> matches agree with it within a tolerance ("inliers"); the transform with the most inliers across many random trials is kept, and only its inlier matches are trusted going forward.</p>
+          <p>Averaging over every match would be defeated by exactly the bad correspondences RANSAC exists to reject — a handful of wrong matches (common on a PCB full of visually identical resistors) would skew any transform computed from all matches at once, which is the whole reason the random-subsample-and-vote approach exists instead.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Computer Vision · Unit 2 of 8 — Unit 3 picks up where hand-designed filters leave off: convolutional layers that learn their own kernels directly from data.</p>
+</footer>
+</body>
+</html>

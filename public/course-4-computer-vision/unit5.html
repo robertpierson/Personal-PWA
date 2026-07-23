@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 5 · Image segmentation: semantic and instance — Computer Vision</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Computer Vision · Unit 5 of 8</p>
+  <h1>Image segmentation: semantic and instance</h1>
+  <p class="lede">Detection draws a box around a tumor; segmentation traces its edge, voxel by voxel. This unit builds the encoder-decoder architectures, loss functions, and instance-level extensions that make pixel-accurate delineation possible in CT and MRI volumes — where a few millimeters of boundary error can change a surgical margin.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. Semantic segmentation: dense per-pixel prediction</a></li>
+      <li><a href="#lesson-2">2. Loss functions and metrics for imbalanced masks</a></li>
+      <li><a href="#lesson-3">3. Instance and panoptic segmentation</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>Semantic segmentation: dense per-pixel prediction</h2>
+    <p class="opening"><span class="term">Semantic segmentation</span> is the task of assigning a class label to every pixel (or, in a CT volume, every voxel) in an image: liver, kidney, tumor, or background. Where classification in Unit 3 produced one label for the whole image and detection in Unit 4 produced a handful of boxes, segmentation produces an output the same spatial size as the input, with a decision at every location. For a radiologist planning a partial hepatectomy, that dense map is the actual clinical artifact — not "this scan contains a liver" but "this exact set of voxels is liver, and this smaller set inside it is tumor."</p>
+    <p>The natural instinct is to reuse the CNN backbones from Unit 3 — stack convolutions and pooling, let the receptive field grow, and read off a label. That instinct is half right and half wrong. It's right that convolutional feature extraction is still the foundation. It's wrong because standard classification CNNs are built to <em>destroy</em> spatial resolution on purpose. Every pooling or strided-convolution layer downsamples: a 512×512 axial CT slice run through a ResNet-50-style encoder is 16×16 or smaller by the final stage, with each surviving unit averaging information from a 32×32-pixel patch or larger. That's exactly what you want for "does this image contain a tumor" — you want translation invariance and a compact global descriptor. It's exactly what you don't want for "which of these 3 mm-wide pixels belong to the tumor," because the fine boundary information has been pooled away and can't be recovered from the bottleneck alone.</p>
+    <h3>Fully convolutional networks: keeping every layer a spatial map</h3>
+    <p>The fix, introduced by Long, Shelhamer, and Darrell's <span class="term">Fully Convolutional Networks</span> (FCN, 2015), was conceptually simple: replace the final fully-connected classification layers of a CNN with more convolutions, so that the network's output is never a flat vector but always a spatial feature map, all the way through. A classification network ending in "flatten to 2048 features, then a dense layer to 1000 classes" instead ends in "1×1 convolution to C class channels," preserving a (height, width) grid at every stage. The encoder still downsamples aggressively — that's still useful for building a large receptive field and semantic abstraction — but the network now has a well-defined coarse output map (say 16×16×C) that needs to be brought back up to the input resolution (512×512×C) before it means anything as a segmentation.</p>
+    <p>That upsampling step is where FCN's second contribution lives, and where a lot of segmentation networks still differ. The most direct approach is <span class="term">transposed convolution</span> (sometimes loosely called "deconvolution," though it doesn't invert convolution mathematically). A transposed convolution learns a kernel that spreads each input activation out over a larger output region, with overlapping contributions summed — it's a normal convolution's gradient computation run forward, which is why frameworks often implement it that way. The trouble is that when the kernel size isn't evenly divisible by the stride, those overlapping contributions land unevenly, some output pixels getting contributions from more input positions than their neighbors do. The visible symptom is a fine grid pattern of alternating bright and dark pixels — the <span class="term">checkerboard artifact</span> — and in medical imaging that's not just cosmetic ugliness, it can look like texture that a tumor-boundary classifier mistakes for structure, or introduce systematic bias at organ edges. The common workaround is to avoid learned transposed convolutions for upsampling and instead use <span class="term">bilinear upsampling followed by a regular (stride-1) convolution</span> — resize first with a fixed, artifact-free interpolation, then let a normal convolution learn how to refine the resized features. This decouples "get bigger" from "learn a filter," and it's the safer default in most modern segmentation architectures.</p>
+    <h3>Skip connections and U-Net: recovering the boundary</h3>
+    <p>Even with careful upsampling, going from a 16×16 bottleneck straight to 512×512 asks a huge amount of a decoder: it has to hallucinate fine boundary detail from a heavily compressed representation. FCN's answer, refined and made central by <span class="term">U-Net</span> (Ronneberger, Fischer, and Brox, 2015 — originally built for biomedical cell-boundary segmentation and now the default architecture for almost every CT/MRI segmentation task), is the <span class="term">skip connection</span>: at each decoder stage, concatenate the corresponding encoder stage's feature map — the one captured *before* it was downsampled further — onto the upsampled decoder features. The encoder's early layers, still at high resolution, preserve exactly the crisp edge and texture information that pooling destroyed; the decoder's deep layers carry the semantic "this region is tumor-like" signal. Concatenating them lets the decoder combine "what" with "where" at every scale, which is precisely why a U-Net can trace a liver tumor's ragged boundary rather than a blurry oval approximation of one.</p>
+    <p>U-Net's symmetric encoder-decoder "U" shape, with skip connections crossing the middle at every resolution level, has become such a strong default in medical imaging that most modern organ- and lesion-segmentation pipelines are still architecturally a U-Net with a swapped-in backbone (ResNet, EfficientNet, or later a transformer encoder — that generalization is Unit 6's topic, not this one).</p>
+    <h3>Dilated convolutions: growing the receptive field without shrinking the map</h3>
+    <p>A parallel line of work, culminating in the <span class="term">DeepLab</span> family (Chen et al.), attacks the same resolution problem from a different angle: instead of downsampling to grow the receptive field and then paying to upsample back, use <span class="term">dilated (atrous) convolutions</span>, which insert gaps between kernel taps so a 3×3 kernel with dilation rate 2 samples the same 5×5 footprint a normal 5×5 kernel would, but with only 9 learned weights instead of 25, and — crucially — without any stride, so the output resolution matches the input. Stack several dilated convolutions with increasing rates and you get an exponentially growing receptive field while every intermediate feature map stays at full (or near-full) spatial resolution — no pooling to destroy detail, no transposed convolution needed to recover it. DeepLab pairs this with <span class="term">atrous spatial pyramid pooling</span> (parallel dilated convolutions at multiple rates, concatenated) to capture organs and tumors at multiple scales simultaneously, which matters clinically since a kidney and the small cyst inside it live at very different physical scales in the same slice.</p>
+    <p>In practice, U-Net-style skip connections and dilated convolutions aren't mutually exclusive — plenty of production medical segmentation networks use dilated convolutions inside an otherwise U-Net-shaped encoder-decoder. The unifying idea across FCN, U-Net, and DeepLab is the same: a classification backbone throws away exactly the spatial precision that segmentation needs back, and the entire lineage of segmentation architecture is a set of different answers to how you get it back cheaply.</p>
+    <pre><code>import numpy as np
+
+# Toy encoder-decoder step showing a U-Net-style skip connection.
+# Shapes follow (batch, channels, height, width) for a single axial
+# CT slice, 256x256, going through one encoder level and back up.
+
+batch = 4
+
+# --- Encoder: level 2, BEFORE downsampling (this is what we skip) ---
+enc2_features = np.random.randn(batch, 128, 64, 64).astype(np.float32)
+
+# Encoder continues downsampling to the bottleneck (level 4)
+bottleneck = np.random.randn(batch, 512, 16, 16).astype(np.float32)
+
+def bilinear_upsample(x, scale):
+    # stand-in for nn.functional.interpolate(x, scale_factor=scale,
+    # mode="bilinear"): repeats values, real impl interpolates
+    b, c, h, w = x.shape
+    return np.repeat(np.repeat(x, scale, axis=2), scale, axis=3)
+
+def conv1x1(x, out_ch):
+    # stand-in for a learned 1x1 conv that refines channel count
+    b, c, h, w = x.shape
+    return np.random.randn(b, out_ch, h, w).astype(np.float32)
+
+# --- Decoder: upsample bottleneck from 16x16 toward level-2's 64x64 ---
+up = bilinear_upsample(bottleneck, scale=4)          # (4, 512, 64, 64)
+up = conv1x1(up, out_ch=128)                          # (4, 128, 64, 64)
+
+# --- Skip connection: concatenate encoder level 2 onto the decoder ---
+decoder_input = np.concatenate([up, enc2_features], axis=1)
+
+print("upsampled decoder features:", up.shape)
+print("encoder skip features:     ", enc2_features.shape)
+print("concatenated decoder input:", decoder_input.shape)
+# upsampled decoder features:  (4, 128, 64, 64)
+# encoder skip features:      (4, 128, 64, 64)
+# concatenated decoder input: (4, 256, 64, 64)
+</code></pre>
+    <p class="caption">The concatenation doubles channel count (128 + 128 = 256) at matched spatial resolution (64×64) — the decoder gets both the coarse "tumor-like" signal from the bottleneck path and the crisp edges the encoder captured before it pooled them away.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Classification CNNs deliberately destroy spatial resolution</strong> through pooling and strided convolution; segmentation needs a full-resolution output, so the architecture has to actively recover what was thrown away.</li>
+        <li><strong>FCN (2015)</strong> made the output a spatial map at every layer by replacing dense classification layers with 1×1 convolutions, establishing the encoder-decoder shape.</li>
+        <li><strong>Transposed convolution can upsample but risks checkerboard artifacts</strong> when kernel size and stride don't divide evenly; bilinear-upsample-then-convolve avoids this and is the safer default.</li>
+        <li><strong>U-Net's skip connections</strong> concatenate high-resolution encoder features into the matching decoder stage, which is why U-Net (and its many descendants) remains the medical-imaging default — it recovers boundary precision that a bottleneck alone can't.</li>
+        <li><strong>Dilated/atrous convolutions (DeepLab)</strong> grow the receptive field without downsampling at all, trading the recover-detail problem for a compute/memory cost per layer instead.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Loss functions and metrics for imbalanced masks</h2>
+    <p class="opening">A radiologist is segmenting a small hepatocellular carcinoma on an abdominal CT. The tumor occupies maybe 0.5% of the voxels in the region of interest — the rest is liver parenchyma, vessels, and background. Train a U-Net on this with ordinary pixel-wise cross-entropy and something embarrassing happens: the loss curve looks great. Training accuracy climbs past 99%. And the network has learned to predict "background" for every single voxel. It is right 99.5% of the time and clinically useless 100% of the time, because the 0.5% it gets uniformly wrong is the only part anyone cares about.</p>
+    <p>This is <span class="term">class imbalance</span>, and it is the central methodological problem of medical segmentation — far more so than in natural-image segmentation, where foreground objects (a person, a car) often occupy a substantial fraction of the frame. In CT and MRI, the class of clinical interest — a tumor, a lesion, a small vessel — is frequently a tiny minority of voxels against an overwhelming background majority (healthy tissue, air, bone). Pixel-wise cross-entropy, averaged uniformly over every voxel, is dominated by the easy majority class. Its gradient with respect to the rare class is small and gets smaller as training proceeds and the model gets even more confident about background, which is exactly the wrong direction of feedback for the class that matters.</p>
+    <h3>Dice coefficient and Dice loss</h3>
+    <p>The standard fix reframes the objective around overlap rather than per-voxel correctness. The <span class="term">Dice coefficient</span> (also called the Sørensen–Dice index or F1 score in this context) measures the overlap between predicted mask P and ground-truth mask G directly:</p>
+    <p class="math">Dice(P, G) = 2·|P ∩ G| / (|P| + |G|)</p>
+    <p>This ranges from 0 (no overlap) to 1 (perfect overlap), and critically, it's computed only in terms of the regions involved — a model that predicts all-background gets a Dice score of 0 against a nonzero tumor mask, immediately exposing the failure that pixel accuracy hid. Because Dice is differentiable when P is replaced with the model's soft (probability) output instead of a hard threshold, it can be turned directly into a loss:</p>
+    <p class="math">L_Dice = 1 − 2·Σ(pᵢ·gᵢ) / (Σpᵢ + Σgᵢ)</p>
+    <p>where the sums run over voxels, pᵢ is the predicted probability of the foreground class at voxel i, and gᵢ is the binary ground-truth label. Unlike cross-entropy, this loss's gradient doesn't vanish just because background voxels are numerous and easy — it's normalized by the size of the two masks being compared, so a handful of tumor voxels still contribute a meaningful signal relative to the denominator they define.</p>
+    <h3>IoU/Jaccard, and why Dice and IoU nearly always agree</h3>
+    <p>Unit 4 introduced <span class="term">IoU (Intersection over Union)</span>, also called the Jaccard index, for scoring how well a predicted bounding box overlapped a ground-truth box: IoU = |P ∩ G| / |P ∪ G|. The exact same formula applies unchanged to segmentation masks instead of boxes — it's just as natural a metric here, arguably more natural, since a mask's shape is the actual prediction rather than a proxy rectangle. Dice and IoU are related by a monotonic formula (Dice = 2·IoU / (1 + IoU)), so a model that improves on one nearly always improves on the other, and clinical segmentation literature reports both interchangeably; Dice is more common in medical papers by convention, IoU more common in general computer vision, but they're measuring the same underlying overlap.</p>
+    <h3>Tversky and focal Tversky: tuning precision against recall</h3>
+    <p>Dice loss weights false positives and false negatives equally. For a small liver tumor destined for radiotherapy planning, that's often not what you want — missing part of the tumor (a false negative) can leave malignant tissue outside the treatment margin, while a false positive that slightly overestimates the tumor typically costs a bit of extra irradiated healthy tissue, a real but usually smaller harm. The <span class="term">Tversky loss</span> generalizes Dice with two tunable weights, α and β, on false positives and false negatives respectively:</p>
+    <p class="math">Tversky(P, G) = |P ∩ G| / (|P ∩ G| + α·|P − G| + β·|G − P|)</p>
+    <p>Setting α = β = 0.5 recovers plain Dice. Pushing β above α penalizes false negatives more, biasing the model toward recall — appropriate when missing tumor tissue is the costlier error. <span class="term">Focal Tversky loss</span> adds a focusing exponent (borrowed from focal loss's handling of easy vs. hard examples in detection) that further down-weights voxels the model already segments well and concentrates gradient on the hard, usually boundary, voxels — precisely the ones a surgeon needs to be right about.</p>
+    <h3>Combined losses and boundary-aware terms</h3>
+    <p>In practice, most production medical segmentation pipelines don't pick Dice <em>or</em> cross-entropy — they sum them: <code>L = L_CE + L_Dice</code>. Cross-entropy provides a smooth, well-behaved gradient everywhere (useful early in training, when Dice's ratio-of-sums can be numerically unstable near zero), while Dice keeps the small-class signal alive throughout. Some pipelines add a <span class="term">boundary-aware loss</span> term — for instance, weighting voxels near the ground-truth contour more heavily, or using a distance-transform-based penalty — because Dice, being a whole-region overlap measure, can look nearly identical for two masks that differ mainly in a smeared, imprecise boundary versus a crisp, accurate one.</p>
+    <h3>Evaluation honesty: Dice score vs. Hausdorff distance</h3>
+    <p>This same blind spot matters at evaluation time, not just training time. A high Dice score (say 0.92) on a moderately sized organ can coexist with a badly wrong boundary in one localized region — a few voxels of area lost inside a large total volume barely move Dice, but if those voxels are exactly where a surgeon needs a clean margin, Dice has told you the segmentation is "good" when the part that matters clinically is wrong. The <span class="term">Hausdorff distance</span> (or its more robust variant, the 95th-percentile Hausdorff distance, HD95) measures the worst-case distance between the predicted and ground-truth boundaries, rather than an averaged overlap — it directly answers "how far off is the single worst point on this boundary," which is closer to the question a surgical or radiotherapy planning use case actually asks. Reporting Dice alone is common but incomplete; rigorous medical segmentation evaluation reports both an overlap metric (Dice or IoU) and a boundary metric (HD95), because they fail in different, complementary ways.</p>
+    <pre><code>import numpy as np
+
+def dice_loss(probs, target, eps=1e-6):
+    """probs, target: same-shape arrays of voxel probabilities / 0-1 labels."""
+    intersection = np.sum(probs * target)
+    denom = np.sum(probs) + np.sum(target)
+    return 1.0 - (2.0 * intersection + eps) / (denom + eps)
+
+def pixel_ce_loss(probs, target, eps=1e-6):
+    p = np.clip(probs, eps, 1 - eps)
+    return -np.mean(target * np.log(p) + (1 - target) * np.log(1 - p))
+
+# Simulate one imbalanced CT slice: 256x256 = 65536 voxels,
+# tumor is ~0.5% of the slice (~330 voxels)
+np.random.seed(0)
+n = 256 * 256
+target = np.zeros(n)
+tumor_idx = np.random.choice(n, size=330, replace=False)
+target[tumor_idx] = 1
+
+# Model A: predicts background everywhere (the collapse failure mode)
+probs_collapsed = np.full(n, 0.01)   # tiny uniform foreground probability
+probs_collapsed[tumor_idx[:5]] = 0.5  # a token nod toward 5 tumor voxels
+
+# Model B: correctly identifies most of the tumor
+probs_good = np.full(n, 0.01)
+probs_good[tumor_idx] = 0.85
+
+print(f"{'model':<10}{'pixel CE':>12}{'Dice loss':>14}")
+for name, p in [("collapsed", probs_collapsed), ("good", probs_good)]:
+    ce = pixel_ce_loss(p, target)
+    dl = dice_loss(p, target)
+    print(f"{name:<10}{ce:>12.4f}{dl:>14.4f}")
+
+# model         pixel CE    Dice loss
+# collapsed       0.0169        0.9560
+# good            0.0157        0.1264
+</code></pre>
+    <p class="caption">Pixel CE barely distinguishes the two models (0.0169 vs 0.0157 — both look "fine" because background dominates the average), while Dice loss correctly flags the collapsed model as almost completely wrong (0.956, near the 1.0 ceiling) and the good model as strong (0.126) — Dice carries training signal exactly where CE goes flat.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Pixel-wise cross-entropy and accuracy both fail silently on imbalanced masks</strong> — a model that predicts all-background can score 99%+ accuracy while being clinically useless.</li>
+        <li><strong>Dice loss</strong> (1 minus the differentiable Dice coefficient) is normalized by mask size rather than total voxel count, so the rare class keeps a meaningful gradient throughout training.</li>
+        <li><strong>IoU/Jaccard from Unit 4 applies unchanged to masks</strong>; Dice and IoU are monotonically related and usually reported together in medical segmentation papers.</li>
+        <li><strong>Tversky loss</strong> generalizes Dice with separate false-positive/false-negative weights, letting you trade precision for recall when missing a lesion is costlier than over-segmenting it; <strong>focal Tversky</strong> additionally concentrates gradient on hard (usually boundary) voxels.</li>
+        <li><strong>Combined CE+Dice losses</strong> are the common production default, and rigorous evaluation reports a boundary metric (Hausdorff distance / HD95) alongside Dice, since Dice can mask a badly wrong boundary hidden inside a large, otherwise-correct volume.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Instance and panoptic segmentation</h2>
+    <p class="opening">Imagine two radiology residents given the same abdominal CT and asked to describe the kidneys. The first says "these pixels are kidney" and colors both kidneys the same shade — that's <span class="term">semantic segmentation</span>: every pixel gets a class label, full stop, and it has no concept that there are two separate kidney objects rather than one oddly-shaped one. The second resident says "this is the left kidney, and this separate, distinct region is the right kidney" — two individually identified objects of the same class, each with its own outline. That's <span class="term">instance segmentation</span>: not just "kidney," but "kidney #1" and "kidney #2," distinguishable even though they're touching or nearly touching in the slice. If a third resident then also labels the surrounding uncountable tissue — liver, muscle, background fat — with semantic classes while still separating the two kidneys as instances, that combined view is <span class="term">panoptic segmentation</span>: every pixel gets a label, and the countable "thing" classes (organs, tumors, discrete lesions) are additionally split into individual instances, while uncountable "stuff" classes (diffuse tissue, background) are handled purely semantically.</p>
+    <p>This distinction is not academic in medical imaging. Semantic segmentation alone cannot tell a surgeon "there are two enhancing lesions in this liver segment" versus one large one — merging two adjacent tumors into a single blob because they share a class label would misrepresent the actual anatomy and could change a treatment plan. Instance segmentation is what's needed whenever you need to count, individually measure, or individually track separate objects of the same class — two kidneys, three metastatic lesions, a chain of enlarged lymph nodes.</p>
+    <h3>Mask R-CNN: adding a mask head to a detector</h3>
+    <p>The dominant architecture for instance segmentation, <span class="term">Mask R-CNN</span> (He et al., 2017), builds directly on the two-stage detector from Unit 4: <span class="term">Faster R-CNN</span> proposes candidate regions (RoIs) likely to contain an object, then classifies and refines the box for each. Mask R-CNN adds a third, parallel branch: for every RoI that survives, alongside the existing classification head (what object is this?) and box-regression head (refine this box), a small <span class="term">mask head</span> — a compact fully convolutional network — predicts a binary mask for that specific instance, at a fixed small resolution (typically 28×28), which is then resized back up to the RoI's actual pixel extent. Critically, the mask head predicts one mask per class (a class-specific mask), and only the mask channel corresponding to the box's predicted class is used — decoupling "what shape is this region" from "what class is it" turned out to improve both.</p>
+    <p>Getting that mask head to work well exposed a subtlety that Faster R-CNN's detection-only design could get away with ignoring: <span class="term">RoIAlign</span>. Faster R-CNN's original RoI pooling snapped a proposed region's floating-point coordinates to the nearest feature-map grid cell — a rounding operation that a box regression head can tolerate (a box shifted by half a feature-map cell, maybe 8–16 pixels at typical strides, is a minor localization error) but that a per-pixel mask absolutely cannot, since that same rounding misaligns every pixel of the resulting mask relative to the actual anatomy. RoIAlign fixes this by using bilinear interpolation to sample feature values at exact (non-rounded) coordinates, preserving pixel-level spatial correspondence between the RoI's true extent and the features the mask head operates on. This single change — swapping in RoIAlign — was the difference that made instance-level mask prediction viable at all; He et al. reported it alone improved mask accuracy by 10+ points relative to RoI pooling.</p>
+    <h3>Proposal-based vs. proposal-free instance segmentation</h3>
+    <p>Mask R-CNN is <span class="term">proposal-based</span>: it first finds candidate regions, then segments within each one, inheriting both the strengths (mature, well-understood detection machinery) and weaknesses (a hard cap from non-maximum suppression, awkwardness with heavily overlapping or oddly-shaped instances) of two-stage detectors. An alternative family is <span class="term">proposal-free</span> (sometimes called bottom-up) instance segmentation: predict a dense per-pixel embedding or affinity map across the whole image, then cluster pixels into instances afterward, with no explicit box proposal step. Proposal-free approaches can handle instances that don't fit neatly into a bounding box (a long, curving vessel, or two overlapping cell nuclei) more gracefully, at the cost of a trickier, less mature clustering step replacing the well-optimized RoI machinery. In medical imaging, both families see use — Mask R-CNN-style approaches are common for well-separated countable structures like individual metastatic lesions, while proposal-free approaches show up more in dense, crowded settings like segmenting every cell nucleus in a histopathology tile.</p>
+    <h3>Panoptic segmentation and the 3-D reality of volumetric data</h3>
+    <p>Panoptic segmentation architectures typically fuse a semantic segmentation branch (for stuff classes like background tissue) with an instance segmentation branch (for thing classes like individual tumors), merging the two into one consistent per-pixel labeling and resolving conflicts where they disagree. For a full-body or full-organ CT read, a panoptic-style output — background tissue semantically labeled, each of three distinct liver lesions individually numbered — is closer to what actually goes into a structured radiology report than either sub-task alone.</p>
+    <p>One thing every architecture in this unit has glossed over so far: CT and MRI are inherently <span class="term">3-D volumes</span>, not 2-D slices, and treating them slice-by-slice throws away the through-plane context that often disambiguates a hard boundary (a tumor edge that's ambiguous on one axial slice is often obvious once you see it's continuous with a clear tumor region one slice above). <span class="term">3D U-Net</span> extends the same encoder-decoder-with-skip-connections shape from Lesson 1 by replacing every 2-D convolution with a 3-D convolution, operating on a volume directly. The catch is memory: a 3-D convolution's activation tensor and parameter count both grow with an extra spatial dimension, and a full-resolution abdominal CT volume (commonly 512×512×300 or larger) will not fit on a single GPU run through a 3D U-Net at once — recall the GPU memory and batch-size trade-offs from Course 1 Unit 8. The standard workaround is <span class="term">patch-based volumetric processing</span>: train and infer on smaller 3-D patches (say 128×128×64 voxels) cropped from the full volume, then stitch patch predictions back together, usually with overlapping patches and averaged or Gaussian-weighted blending at the seams to avoid visible patch-boundary artifacts in the final mask.</p>
+    <h3>The foundation-model turn: promptable segmentation</h3>
+    <p>Every architecture discussed so far is trained end-to-end for a fixed, predetermined set of classes — a liver-and-tumor segmenter only segments liver and tumor. A more recent development, the <span class="term">Segment Anything Model</span> (SAM, Meta, 2023), inverts this: a single foundation model, trained on over a billion masks, that segments whatever region a user points to with a click, box, or rough scribble — a <em>promptable</em> segmenter rather than a fixed-class one, echoing the general-purpose, prompt-driven foundation models from Course 2. SAM and its medical-imaging adaptations (fine-tuned or prompted variants for CT/MRI) are increasingly used as an interactive annotation aid — a radiologist clicks roughly inside a lesion and gets a candidate mask to refine, cutting manual contouring time — rather than as the sole automated segmenter for a fixed clinical task, since general-purpose prompted masks still lag purpose-trained U-Nets on precise, small, low-contrast structures like early-stage tumors.</p>
+    <pre><code>import numpy as np
+
+# Mask R-CNN mask head, conceptually: one small FCN applied per-RoI,
+# after RoIAlign has extracted a fixed-size feature crop per proposal.
+
+num_rois = 3          # e.g. 3 candidate lesion regions in one CT slice
+roi_feat_ch = 256      # channels coming out of the backbone/FPN
+roi_feat_size = 14     # RoIAlign output: 14x14 feature grid per RoI
+num_classes = 4        # background, liver, kidney, tumor
+
+# RoIAlign output: per-RoI feature crops, spatially aligned (no rounding)
+roi_features = np.random.randn(num_rois, roi_feat_ch, roi_feat_size, roi_feat_size)
+
+def mask_head_forward(x, num_classes):
+    """Small FCN: a few convs (channels unchanged), one upsampling
+    deconv to double resolution, then a 1x1 conv to per-class masks."""
+    n, c, h, w = x.shape
+    # ... 4 conv layers here, shape unchanged: (n, 256, 14, 14) ...
+    upsampled = np.repeat(np.repeat(x, 2, axis=2), 2, axis=3)   # (n, 256, 28, 28)
+    class_masks = np.random.randn(n, num_classes, 28, 28)        # 1x1 conv, C_out=num_classes
+    return class_masks
+
+pred_masks = mask_head_forward(roi_features, num_classes)
+print("RoIAlign features per RoI:", roi_features.shape)
+print("mask head output (all classes):", pred_masks.shape)
+
+# At inference: for each RoI, keep only the mask channel matching
+# that RoI's predicted class (from the sibling classification head)
+predicted_classes = np.array([3, 1, 3])   # e.g. tumor, liver, tumor
+final_masks = pred_masks[np.arange(num_rois), predicted_classes]
+print("final per-instance mask:", final_masks.shape)
+# RoIAlign features per RoI: (3, 256, 14, 14)
+# mask head output (all classes): (3, 4, 28, 28)
+# final per-instance mask: (3, 28, 28)
+</code></pre>
+    <p class="caption">Each RoI gets its own small 28×28 mask prediction per class; only the channel matching that RoI's predicted class (from the classification head) is kept as the final instance mask — the mask head never has to decide what the object is, only what shape it has.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Semantic segmentation labels pixels by class only; instance segmentation additionally separates individual objects</strong> of the same class (two adjacent kidneys, several distinct lesions); panoptic segmentation unifies both, splitting "thing" classes into instances while keeping "stuff" classes purely semantic.</li>
+        <li><strong>Mask R-CNN</strong> extends Faster R-CNN (Unit 4) with a third, parallel mask head that predicts a small class-specific binary mask per RoI, decoupling shape prediction from classification.</li>
+        <li><strong>RoIAlign's bilinear-interpolated feature sampling</strong> (versus RoI pooling's coordinate rounding) was the specific fix that made per-pixel mask accuracy viable — rounding errors a box regressor tolerates are fatal to a mask.</li>
+        <li><strong>Proposal-based (Mask R-CNN) vs. proposal-free (cluster dense embeddings) instance segmentation</strong> trade mature detection machinery against better handling of crowded, non-box-shaped, or heavily overlapping instances.</li>
+        <li><strong>3D U-Net brings the encoder-decoder shape to true volumetric data</strong>, but full-volume 3-D convolution rarely fits in GPU memory, so patch-based processing with overlapping, blended patches is the standard workaround; SAM-style promptable segmentation is a newer, general-purpose complement to purpose-trained models, not yet a replacement for them on small, precise lesions.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 5 quiz</h2>
+    <p class="quiz-intro">Eight questions covering architecture choices, the Dice/CE imbalance problem, a metric computation, and a segmentation-pipeline bug fix.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A standard ResNet classification backbone, run on a 512×512 CT slice, produces a final feature map of 16×16. Why is this a problem specifically for segmentation and not for whole-image classification?</p>
+      <ol class="choices" type="A">
+        <li>The 16×16 map has too many channels for a segmentation head to process efficiently.</li>
+        <li>Classification only needs one global label, so the resolution loss doesn't matter; segmentation needs a decision at every one of the original 512×512 locations, and the fine boundary detail needed for that has been pooled away.</li>
+        <li>A 16×16 feature map cannot represent more than 256 distinct classes, which is insufficient for organ segmentation.</li>
+        <li>ResNet backbones are incompatible with segmentation and must be replaced entirely with a different family of networks.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Downsampling is a deliberate design choice for classification — it builds translation invariance and a compact global descriptor, which is all a single whole-image label needs. Segmentation needs to recover a full-resolution, pixel-accurate map, and the fine detail that pooling discarded (tumor edges, thin vessel walls) generally cannot be reconstructed from the compressed bottleneck alone, which is exactly why skip connections and dilated convolutions exist.</p>
+          <p>Distractor A misreads the problem as a channel-count issue rather than a spatial-resolution issue — channel count is unrelated to how many spatial locations the map represents. Distractor C confuses class count with feature-map size; a network's number of output classes is set by its final channel count, not by the height/width of the map, so 16×16 poses no ceiling on class count. Distractor D overstates things — ResNet backbones are used constantly in segmentation, just wrapped in an encoder-decoder shape rather than a flatten-and-classify head.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Transposed convolution and bilinear-upsample-then-convolve both increase a feature map's spatial resolution, but only transposed convolution is prone to checkerboard artifacts, which is why bilinear-upsample-then-convolve is often preferred in segmentation decoders.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: A. True.</strong> Transposed convolution spreads each input activation over an output region defined by its kernel and stride; when kernel size isn't evenly divisible by stride, overlapping contributions land unevenly across output pixels, producing the visible grid-like checkerboard pattern. Bilinear upsampling is a fixed, non-learned interpolation with no such uneven-overlap mechanism, so the artifact doesn't arise from that step; the subsequent convolution then learns to refine the already-resized map.</p>
+          <p>It's worth noting this doesn't make transposed convolution unusable — careful choice of kernel size and stride (so they divide evenly) avoids the artifact — but bilinear-upsample-then-convolve sidesteps the issue by construction, which is why many architectures default to it rather than tuning around the failure mode.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">In a U-Net, the mechanism that carries high-resolution edge and texture information from an early encoder stage directly into the matching decoder stage, letting the decoder combine "what" (semantic content) with "where" (precise location), is called a <span class="blank">&nbsp;</span>.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: skip connection</strong> (concatenating, not adding, the encoder feature map onto the upsampled decoder feature map at matched resolution). This is the specific mechanism that distinguishes U-Net from a plain FCN encoder-decoder with no cross-connections, and it's why U-Net traces ragged tumor boundaries far better than an encoder-decoder relying on the bottleneck alone.</p>
+          <p>Note that U-Net's skip connections concatenate feature maps channel-wise rather than summing them element-wise (the way a ResNet residual connection does) — a subtlety worth keeping straight, since both are called "skip connections" in the literature but behave differently.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A predicted tumor mask and a ground-truth tumor mask are being compared. Predicted mask area |P| = 400 voxels, ground-truth area |G| = 500 voxels, and the overlap |P ∩ G| = 300 voxels. What is the Dice coefficient?</p>
+      <ol class="choices" type="A">
+        <li>0.60</li>
+        <li>0.67</li>
+        <li>0.75</li>
+        <li>0.50</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B. 0.67.</strong> Dice = 2·|P∩G| / (|P| + |G|) = 2·300 / (400 + 500) = 600 / 900 ≈ 0.667. The formula divides by the <em>sum</em> of the two mask areas, not their union — that's what distinguishes it from IoU.</p>
+          <p>0.75 is the tempting distractor computed as |P∩G|/|P| = 300/400 — that's precision, not Dice, and it ignores that the ground-truth mask is a different size than the prediction. 0.60 is |P∩G|/|G| = 300/500 — that's recall, making the same mistake in the other direction. 0.50 is IoU = |P∩G|/|P∪G| = 300/(400+500−300) = 300/600 — a real, correctly computed overlap metric, just the wrong one for a question asking specifically for Dice. Keep the two formulas' denominators straight: Dice divides by the sum of areas, IoU by their union.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">A colleague's tumor-segmentation training loop is stuck: the loss barely moves and the model outputs all-background masks after 40 epochs. Find the bug in the loss configuration below and explain why it produces exactly this failure mode.</p>
+      <pre><code>def train_step(model, ct_slice, tumor_mask, optimizer):
+    logits = model(ct_slice)              # (batch, 1, 512, 512)
+    probs = sigmoid(logits)
+
+    # tumor occupies ~0.4% of voxels in this dataset
+    loss = binary_cross_entropy(probs, tumor_mask)  # averaged over all voxels
+
+    loss.backward()
+    optimizer.step()
+    return loss.item()</code></pre>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: the loop uses plain pixel-wise binary cross-entropy, uniformly averaged over all voxels, on a mask where the foreground class is only ~0.4% of pixels.</strong> With that imbalance, predicting background everywhere already gets ~99.6% of the per-voxel loss terms right, so the averaged loss is small and its gradient with respect to the rare tumor voxels is a tiny fraction of the total gradient — the optimizer has very little incentive to fix the minority class, and the model settles into the all-background local minimum that got it 99.6% "correct" for free. The fix is to add a Dice loss term (or switch to a combined <code>L = L_CE + L_Dice</code>) whose value is normalized by mask size rather than total voxel count, so the tumor region contributes a meaningful gradient regardless of how small it is relative to the background; class-weighting the cross-entropy term (upweighting the rare class) is a secondary, complementary fix.</p>
+          <p>A tempting but wrong diagnosis is "the learning rate is too low" or "the model needs more capacity" — neither explains why the failure mode is specifically an all-background collapse rather than generic underfitting; a learning-rate or capacity problem would typically show slow but non-degenerate improvement across all classes, not a stable collapse onto the majority class. The imbalance-driven vanishing gradient on the minority class is the specific signature to recognize.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A radiotherapy planning team wants a segmentation model tuned so that it strongly prefers to avoid missing any part of a tumor (false negatives), even if that means slightly over-segmenting healthy tissue at the margin (more false positives). Which loss configuration best matches this goal?</p>
+      <ol class="choices" type="A">
+        <li>Plain Dice loss, since it already balances precision and recall equally.</li>
+        <li>Tversky loss with β (false-negative weight) set higher than α (false-positive weight).</li>
+        <li>Tversky loss with α (false-positive weight) set higher than β (false-negative weight).</li>
+        <li>Plain pixel-wise cross-entropy, since it treats every voxel identically regardless of class.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Tversky loss's β term penalizes false negatives (|G − P|, ground truth not covered by the prediction); raising β relative to α makes the loss more costly whenever the model under-segments, pushing training toward higher recall — exactly the "don't miss any tumor tissue" preference described, at the acceptable cost of some extra false-positive margin.</p>
+          <p>Distractor A is wrong because plain Dice (α = β = 0.5) is precisely the symmetric case that does <em>not</em> express a recall preference — that's the whole reason Tversky exists as a generalization. Distractor C inverts the intended trade-off, penalizing false positives more and biasing toward precision (under-segmenting) instead, the opposite of the stated clinical goal. Distractor D is a non-solution here: cross-entropy has no built-in precision/recall knob at all, and as Question 5 showed, it's also the wrong tool for a severely imbalanced mask in the first place.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">True / false</span></p>
+      <p class="q-stem">A model achieves a Dice score of 0.93 on a kidney segmentation task, so the Hausdorff distance metric is redundant and doesn't need to be reported alongside it.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B. False.</strong> Dice is a whole-region overlap measure averaged across the full mask volume; a large, mostly correct kidney segmentation can have one small but clinically important region — say, near a boundary adjacent to a tumor or vessel — that's badly wrong, and because that error is a small fraction of the kidney's total volume, it barely moves an overlap score like Dice. Hausdorff distance (or HD95) specifically measures worst-case boundary distance, exposing exactly this kind of localized failure that a high aggregate Dice score can hide.</p>
+          <p>This is why rigorous segmentation evaluation reports both an overlap metric and a boundary metric rather than treating a high Dice score as sufficient proof of quality — they're not redundant, they're complementary, catching different failure modes.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A CT slice shows two adjacent, touching enlarged lymph nodes that a radiologist needs individually measured for a treatment-response report. Which segmentation approach is required, and why does Mask R-CNN's RoIAlign matter for it?</p>
+      <ol class="choices" type="A">
+        <li>Semantic segmentation is sufficient, since both nodes belong to the same "lymph node" class and don't need to be distinguished.</li>
+        <li>Instance segmentation is required to separate the two touching nodes into individually measurable objects; RoIAlign matters because its bilinear-interpolated feature sampling avoids the coordinate rounding that would misalign the resulting per-instance mask relative to each node's true pixel extent.</li>
+        <li>Instance segmentation is required, but RoIAlign is irrelevant to mask quality — it only affects bounding-box regression accuracy.</li>
+        <li>Panoptic segmentation is strictly required, since any scene containing more than one object of the same class must be handled panoptically.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Because the report needs each node's own individual measurement, a single merged "lymph node" region (what semantic segmentation alone would produce) loses exactly the information needed — it can't tell you there are two nodes, let alone measure them separately. Mask R-CNN's mask head predicts a mask per RoI, and RoIAlign's precise, non-rounded feature sampling is what keeps that per-RoI mask correctly aligned to the actual node boundary; RoI pooling's coordinate rounding, tolerable for a box, would shift the mask enough to corrupt a per-pixel measurement.</p>
+          <p>Distractor A directly contradicts the stated clinical requirement (individual measurement) — semantic segmentation's whole point is that it doesn't distinguish instances of the same class, which is the opposite of what's needed here. Distractor C wrongly claims RoIAlign only affects boxes; the lesson's core point about RoIAlign is specifically that mask accuracy is far more sensitive to sub-pixel misalignment than box regression is. Distractor D overreaches — panoptic segmentation is a useful unification when you also need "stuff" classes labeled semantically, but a scene with two same-class touching instances only strictly requires instance segmentation; panoptic segmentation isn't a hard requirement just because more than one instance is present.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Computer Vision · Unit 5 of 8 — Unit 6 turns to transformer-based vision architectures (ViT) and what they change about the encoder side of everything built here.</p>
+</footer>
+</body>
+</html>

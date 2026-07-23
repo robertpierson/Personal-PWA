@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 8 · Building Computer Vision Applications — Computer Vision</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Computer Vision · Unit 8 of 8</p>
+  <h1>Building computer vision applications: transfer, deployment, pipelines</h1>
+  <p class="lede">The capstone unit: how a shelf-recognition and checkout-free tracking system actually ships — from a cold-start data problem, through edge deployment under real latency and power budgets, to a full pipeline with monitoring, multimodal fusion, and the responsibility layer that governs it.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. Transfer learning and data strategy in production vision</a></li>
+      <li><a href="#lesson-2">2. Deployment: edge, cloud, latency, and optimization</a></li>
+      <li><a href="#lesson-3">3. End-to-end systems, pipelines, and responsibility</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>Transfer learning and data strategy in production vision</h2>
+    <p class="opening">A regional grocery chain signs a contract for checkout-free shelves in a brand-new store format: taller gondolas, denser SKU packing, a completely different lighting rig than the flagship stores your model was trained on. The store opens in six weeks. There are 2,000 SKUs on the planogram, roughly 140 of them are new products with zero photographs anywhere in your training set, and the vendor who supplies packaging photos for the catalogue is three weeks behind schedule. You do not have six weeks of labelled shelf video. You have two days of raw footage from the empty store during fixture install, and a promise that "real" shopper traffic starts the day the doors open. This is the ordinary starting condition for a production vision system, not an edge case — and it is why data strategy, not model architecture, is usually the deciding factor in whether the launch date holds.</p>
+    <p>The first decision is what to build on. <span class="term">Transfer learning</span> means initializing a network with weights learned on one task and adapting it to another, and the choice of source matters more than any hyperparameter you will tune afterward. An ImageNet-pretrained backbone (Unit 6 covered how these convolutional and ViT backbones form layered feature hierarchies) gives you edges, textures, and object-part detectors for free — useful, but ImageNet is dogs, chairs, and vehicles photographed at eye level in natural light, which is a poor match for a downward-angled shelf camera staring at cardboard and shrink-wrap under fluorescent tubes. A domain-pretrained or self-supervised backbone — trained with a contrastive or masked-image objective (the SimCLR/DINO/MAE family from Course 2 Unit 1's coverage of self-supervised pretraining) on millions of unlabelled retail images your company already has sitting in cold storage from every other store — starts much closer to the target distribution. The practical payoff: a self-supervised retail backbone typically needs a third to a half as many labelled shelf images to hit the same accuracy as an ImageNet backbone, because it has already learned what packaging, occlusion, and shelf clutter look like before it has seen a single label.</p>
+    <h3>Frozen, partial, or full fine-tuning</h3>
+    <p>Course 2 Unit 6 introduced the fine-tuning-versus-frozen spectrum for language models; the same logic governs vision backbones, and the right point on that spectrum shifts as labelled data accumulates. With only the two days of empty-store footage plus a few hundred hand-labelled crops of the 140 new SKUs, freeze the backbone entirely and train only a lightweight classification or embedding head on top — full fine-tuning with a few hundred examples per class will overfit to the specific lighting and camera angle of those two days and collapse the moment real shoppers introduce hands, carts, and motion blur. As the first week of live footage gets labelled through the correction loop described below, unfreeze the last two or three backbone stages and fine-tune with a small learning rate — enough capacity to adapt shelf-specific texture statistics without destroying the general features. Only once tens of thousands of labelled frames exist, typically after the first month, does full end-to-end fine-tuning pay for itself, and even then a lower learning rate on early layers versus later ones (discriminative learning rates) prevents catastrophic forgetting of the pretrained features that still generalize best.</p>
+    <h3>Active learning: spending human attention where it counts</h3>
+    <p>You cannot label everything, and you should not try to — most frames of a shelf are unremarkable restocked inventory the model already classifies correctly. <span class="term">Active learning</span> closes the loop by having the model itself nominate the frames most worth a human's time: run inference on unlabelled shelf crops, compute an uncertainty score (entropy of the softmax distribution, or margin between the top two class probabilities), and route the highest-uncertainty frames to a labelling queue instead of routing frames at random. This is the human-in-the-loop cycle the Marquee-style hard rule about never automating client-facing actions without review generalizes to internally: a model proposing labels for a human to confirm or correct, never a model silently relabelling its own training set. Annotation consistency is the unglamorous failure mode here — if one labeller calls a product "energy drink, 16oz" and another calls the identical SKU "energy drink 16 oz can," you have manufactured two classes out of one, and the model will dutifully learn to split hairs that do not exist. A labelling guideline document with canonical SKU names, a small inter-annotator agreement check on a shared sample, and a periodic audit are cheaper than they sound and prevent months of quietly degraded accuracy.</p>
+    <h3>Synthetic data for the tail</h3>
+    <p>Even with active learning, some of the 140 new SKUs will barely appear in the first weeks of live traffic — a specialty product that sells three units a day generates almost no shelf frames to learn from. Course 4 Unit 7 covered synthetic data generation and domain randomization for exactly this long-tail problem: render the product's 3D packaging scan onto plausible shelf backgrounds with varied lighting, occlusion, and camera angles, and mix synthetic crops into training at a modest ratio — typically 10-30% of a batch — so the model gets exposure to the SKU's appearance without waiting for real shoppers to buy it enough times. Synthetic data should never be the majority of training examples for a class that also has real data, since the sim-to-real gap means synthetic-heavy training tends to overfit to rendering artifacts (perfectly clean edges, unrealistic specular highlights) that never appear on an actual camera feed.</p>
+    <h3>The catalogue never stops changing</h3>
+    <p>The final piece of the strategy is architectural rather than purely a data question: a retail catalogue changes weekly, not once. New packaging redesigns roll in, seasonal SKUs rotate, private-label products get renamed. Retraining the entire classifier from scratch every time a dozen SKUs change is wasteful and risks regressing on the other 1,988 products. The standard pattern is to decouple the embedding model from the classification decision: train a single embedding network to produce a fixed-length feature vector for any product crop (a metric-learning objective, contrastive or triplet loss, is common here), and represent each SKU as a small set of reference embeddings in a nearest-neighbor index. Adding a new SKU means adding new reference embeddings, not retraining the network — and only when catalogue drift becomes large enough that the embedding space itself no longer separates products well does a full embedding-model retrain get scheduled, typically on a monthly or quarterly cadence rather than reactively.</p>
+    <pre><code>import numpy as np
+
+def select_for_labeling(probs, budget, min_gap=0.0):
+    """
+    probs: (N, C) softmax outputs from the current shelf classifier
+           for N unlabeled crops across C known SKU classes.
+    budget: how many frames the human labeling queue can take today.
+    Returns indices of the crops most worth a human's time.
+    """
+    sorted_probs = np.sort(probs, axis=1)          # ascending per row
+    top1 = sorted_probs[:, -1]
+    top2 = sorted_probs[:, -2]
+    margin = top1 - top2                            # small margin = confused model
+    entropy = -np.sum(probs * np.log(probs + 1e-9), axis=1)
+
+    # low margin AND high entropy = genuinely uncertain, not just noisy
+    uncertainty = entropy * (1.0 - margin)
+    uncertainty[margin < min_gap] *= 1.0             # keep near-ties in play
+
+    order = np.argsort(-uncertainty)                 # most uncertain first
+    return order[:budget]
+
+def fold_back_labels(train_embeddings, train_labels,
+                      new_crops_emb, human_labels):
+    """Append human-confirmed labels to the training pool for next fine-tune."""
+    updated_emb = np.concatenate([train_embeddings, new_crops_emb], axis=0)
+    updated_labels = np.concatenate([train_labels, human_labels], axis=0)
+    return updated_emb, updated_labels
+</code></pre>
+    <p class="caption">The uncertainty score combines entropy (spread across all classes) with margin (gap between the top two guesses) so the queue fills with genuinely ambiguous frames — not just noisy ones — and confirmed labels fold straight back into the next fine-tuning round.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Backbone choice sets your data budget.</strong> A self-supervised, domain-pretrained backbone needs roughly a third to a half as many labels as an ImageNet backbone to hit equivalent shelf-recognition accuracy.</li>
+        <li><strong>Freeze early, unfreeze as labels accumulate.</strong> Full fine-tuning on a few hundred examples overfits to a two-day snapshot of an empty store; unfreeze progressively as real labelled volume grows.</li>
+        <li><strong>Active learning spends human labelling time on the frames that move the model</strong> — highest-uncertainty crops, not random sampling — and always folds labels back through human confirmation, never silent self-labelling.</li>
+        <li><strong>Synthetic data fills the long tail</strong> but should stay a minority share of any class's training examples to avoid overfitting to rendering artifacts.</li>
+        <li><strong>Decouple embeddings from classification</strong> so new SKUs are index insertions, not full retrains — reserve full retraining for scheduled cadence, not every catalogue tweak.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Deployment: edge, cloud, latency, and optimization</h2>
+    <p class="opening"><span class="term">Edge deployment</span> means running inference on compute physically located where the data is generated — in this system, a small compute module bolted to the ceiling near each camera cluster — rather than shipping every frame to a data center and waiting for a response. <span class="term">Cloud deployment</span> means the inverse: centralized, elastic compute that trades a network round trip for far more capacity per model. A checkout-free retail system needs both, and the boundary between them is not a stylistic preference — it is forced by three hard constraints. Bandwidth: a single 1080p camera streaming at 15 frames per second raw is several megabits per second, and a mid-size store easily runs 40-80 such cameras; backhauling all of that continuously to the cloud is either prohibitively expensive or simply exceeds the store's uplink. Latency: a shopper's hand needs to be tracked to a product and back to a cart within a few hundred milliseconds for the experience to feel instantaneous rather than laggy, and a round trip to a distant cloud region routinely costs 80-150ms each way before the model even runs. Privacy: continuous video of shoppers' faces and bodies is exactly the kind of sensitive data you want to minimize moving off-premises at all — processing on-site and shipping only derived events (a SKU identifier, a bounding box, an anonymized track ID) is a meaningfully smaller privacy surface than shipping raw video.</p>
+    <p>So the shelf-facing detection and tracking models run on-device, on NPU- or Jetson-class edge accelerators bolted near the cameras, and only aggregated, already-anonymized events — "customer track 4821 removed SKU 88213 from shelf 12 at 14:32:07" — travel to the cloud for basket assembly, billing, and the training loop from Lesson 1. The cloud remains essential for what edge hardware cannot do well: heavyweight retraining, large-scale embedding index maintenance, and cross-store analytics, none of which need millisecond latency.</p>
+    <h3>Shrinking a model to fit the edge</h3>
+    <p>An edge accelerator has a fraction of a cloud GPU's memory and compute, and the efficient-net-style architectures from Course 4 Unit 3 are only the starting point — the network still has to be compressed to fit the actual silicon. <span class="term">Quantization</span> reduces numeric precision, typically from 32-bit floating point to 8-bit integers (INT8), cutting model size roughly 4x and often doubling or better throughput on hardware with dedicated INT8 tensor paths, at a typical cost of half a point to two points of accuracy if done carefully with post-training calibration on representative shelf images; done carelessly (calibrating on the wrong lighting distribution) it can cost far more. <span class="term">Pruning</span> removes weights or entire channels that contribute little to the output, shrinking compute further, though unstructured pruning (removing individual weights) rarely speeds up real hardware unless the runtime specifically supports sparse execution — structured pruning (removing whole channels or filters) is the version that reliably translates into lower latency on commodity accelerators. <span class="term">Knowledge distillation</span> — the technique Course 2 Unit 8 covered for compressing large language models — trains a small "student" detector to mimic the outputs of a larger, more accurate "teacher" detector run in the cloud, often recovering most of the teacher's accuracy in a fraction of its parameter count. Production edge deployments typically stack all three: distill down to a compact architecture, prune the distilled model's least-useful channels, then quantize the result to INT8 for final deployment — each step attacking a different source of waste.</p>
+    <h3>Streaming, not snapshots</h3>
+    <p>A subtlety that trips up teams new to video deployment: shelf cameras produce a continuous stream, and treating each frame as an independent detection problem throws away the cheapest signal available — temporal continuity. A product that the detector is 55% confident about in frame 214 and 60% confident about in frame 215 is very likely the same real object seen twice, not two separate weak detections; a tracker that links detections across frames (Lesson 3 covers the mechanics) lets the system average confidence over several frames before committing to a SKU identity, which is far cheaper than running a bigger, slower single-frame model to get the same reliability. Batching multiple camera streams together for a shared inference call amortizes fixed overhead (kernel launch, memory transfer) across more work, improving throughput — but batching also adds queuing delay while frames wait for a batch to fill, so the batch size is itself a latency-versus-throughput knob, not a free win.</p>
+    <h3>Monitoring for drift once it's live</h3>
+    <p>Course 1 Unit 8 covered debugging a model that trains fine but misbehaves in ways that are hard to diagnose from the loss curve alone, and Course 2 Unit 8 covered monitoring deployed language models for distribution shift; both instincts transfer directly here; here the failure modes are physical rather than textual. A store re-lighting its produce section changes the color statistics every downstream camera sees, silently degrading a classifier calibrated on the old lighting — the fix is monitoring the distribution of model confidence and flagging a sustained drop, not waiting for a customer complaint. A vendor ships a redesigned package for an existing SKU, and the model — never having seen the new box art — either misclassifies it as a different product or dumps it into a low-confidence bucket that piles up in the active-learning queue faster than usual, which is itself a useful drift signal worth alerting on. The discipline is the same one Course 1 built: watch input statistics and output confidence distributions continuously in production, not just accuracy on a fixed validation set, because in a live retail store the "validation set" from six months ago no longer describes today's shelves.</p>
+    <p>Practically, this means instrumenting the edge fleet, not just the cloud training job. A rolling window of mean top-1 confidence per camera, per hour, catches a re-lit aisle within minutes rather than days, since confidence on correctly-lit, familiar packaging sits reliably high while a lighting shift drags the whole distribution down at once rather than affecting one SKU in isolation. A second, cheaper signal — the volume of frames routed to the active-learning queue per store per day — spikes visibly the day a new package design ships, well before anyone files a support ticket, because the model is honestly reporting its own uncertainty back through the same channel Lesson 1 built for labelling. Alerting on both signals, with a threshold tuned from a few weeks of stable baseline rather than a single hand-picked number, turns drift from something discovered by an unhappy customer into something the on-call engineer sees on a dashboard the same morning it starts.</p>
+    <pre><code>def edge_latency_budget(fps_target, num_streams,
+                         base_latency_ms, quant_speedup=1.0,
+                         batch_size=1, per_extra_stream_ms=1.4):
+    """
+    Estimate whether an INT8-quantized detector meets a frame-rate target
+    on a shared edge accelerator serving several camera streams.
+    base_latency_ms: fp32 single-frame latency measured on the device.
+    quant_speedup: throughput multiplier from INT8 quantization (e.g. 2.2).
+    """
+    per_frame_ms = base_latency_ms / quant_speedup
+    # batching amortizes fixed overhead but adds queuing wait for the batch to fill
+    batch_overhead_ms = per_frame_ms * 0.25 * (batch_size - 1)
+    effective_ms_per_frame = (per_frame_ms + batch_overhead_ms) / batch_size
+
+    # extra streams sharing the same accelerator add serialized cost
+    total_ms_per_cycle = effective_ms_per_frame + per_extra_stream_ms * (num_streams - 1)
+
+    required_ms = 1000.0 / fps_target
+    hits_target = total_ms_per_cycle <= required_ms
+    headroom_ms = required_ms - total_ms_per_cycle
+    return {
+        "ms_per_frame": round(total_ms_per_cycle, 2),
+        "required_ms": round(required_ms, 2),
+        "hits_target": hits_target,
+        "headroom_ms": round(headroom_ms, 2),
+    }
+
+result = edge_latency_budget(fps_target=15, num_streams=8,
+                              base_latency_ms=42, quant_speedup=2.3,
+                              batch_size=4)
+</code></pre>
+    <p class="caption">Quantization speedup and batch size trade off against per-stream serialization cost; the function returns a pass/fail against the frame-rate target plus the headroom, which is what actually decides whether eight cameras can share one accelerator.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Edge is forced, not chosen for its own sake:</strong> bandwidth limits, sub-second latency requirements, and minimizing raw video leaving the premises all point the same direction — detect locally, ship only derived events to the cloud.</li>
+        <li><strong>Quantization, pruning, and distillation compound</strong> — distill to a smaller architecture, structurally prune it, then quantize to INT8 — each attacking size and speed from a different angle.</li>
+        <li><strong>Video is temporal, not a pile of independent frames;</strong> tracking across frames lets a cheaper model reach reliability a bigger single-frame model would need brute force to match.</li>
+        <li><strong>Batching trades latency for throughput</strong> — bigger batches cut per-frame compute overhead but add queuing delay, so batch size is a tunable knob, not a default maximum.</li>
+        <li><strong>Drift is physical in this domain</strong> — a re-lit aisle or a redesigned package silently shifts the input distribution — so monitor confidence and input statistics continuously, not accuracy on a stale validation set.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>End-to-end systems, pipelines, and responsibility</h2>
+    <p class="opening">Think of the whole checkout-free system the way you'd think of an assembly line rather than a single clever machine: no single station is impressive on its own, but the line only works if every station hands its output to the next in a format the next station can actually use, and if a bad part anywhere on the line gets flagged before it reaches the customer rather than after. A detector that finds "a hand near a shelf" is nearly useless in isolation; it becomes a checkout-free system only once its output is tracked across frames, re-identified across camera views, aggregated into a shopper's running basket, cross-checked against a confidence threshold, and — when something's uncertain — escalated to a person before the customer gets charged for the wrong item. This unit is the capstone of four courses, and the assembly-line frame is deliberate: everything from Course 1's training loop to Course 3's language models shows up as one station or another on this line.</p>
+    <h3>The pipeline, station by station</h3>
+    <p>Ingest takes raw camera frames and does the boring but essential work — decoding, resizing, timestamp alignment across cameras with slightly different clocks. Detect is the SKU and hand/person detector from Unit 4's object-detection material, now running as the quantized edge model from Lesson 2. Track links detections across consecutive frames into continuous trajectories, typically with a Kalman filter predicting where an object should be next combined with a matching step (IoU overlap or appearance-embedding similarity) that assigns new detections to existing tracks; this is what turns "a hand was seen in frame 214" and "a hand was seen in frame 215" into "the same hand, moving." Re-identification handles the harder problem of the same shopper reappearing under a different camera's view after leaving one camera's field of frame — matching embeddings (the same metric-learning representations from Lesson 1) across camera boundaries so a single shopper accumulates one basket, not five fragmentary ones. Aggregate rolls tracked pick-up and put-back events into a running per-shopper basket state. And the feedback loop routes the frames the system was least sure about back into the active-learning queue from Lesson 1, closing the circle between deployment and training rather than treating them as separate projects.</p>
+    <h3>Where vision meets language</h3>
+    <p>Two places in this pipeline the vision stack leans directly on the NLP material from Course 3. First, reading: many SKUs are visually near-identical except for printed text — two flavors of the same chip bag differing only in a small printed word — and a pure vision classifier struggles exactly where OCR plus a lightweight text classifier (the tokenization and sequence-labelling ideas from earlier in Course 3) resolves the ambiguity cheaply by reading the label directly rather than trying to learn the visual difference between two nearly identical images. Second, query: store operations staff increasingly want to ask the system questions in plain language — "show me every time SKU 88213 was picked up between 2 and 4pm yesterday" — rather than writing structured filters, and Course 3 Unit 8's retrieval-augmented generation pattern is the natural fit: the natural-language query gets embedded, matched against a retrieval index of aggregated event records (not raw video, which stays access-controlled separately), and a language model composes a grounded answer from the retrieved events. This is a genuinely multimodal system in production: a vision pipeline producing structured events, and a language pipeline making those events queryable — neither half replaces the other.</p>
+    <h3>MLOps discipline for a system, not a model</h3>
+    <p>A model artifact is not the whole system, and the version that matters for reproducing a bug six months later is the pairing of a specific model checkpoint with the specific training-data snapshot it was fine-tuned on — data versioning and model versioning have to move together, not independently, or "roll back the model" silently rolls back onto data assumptions that no longer hold. New model versions should never replace the production model directly: a <span class="term">shadow deployment</span> runs the new model alongside the current one on live traffic, logging its predictions without acting on them, so its behavior on real shelves is visible before it makes a single decision that affects a customer's bill. Once shadow metrics look healthy, an A/B rollout serves the new model to a small traffic slice, with automatic rollback if basket-accuracy or false-charge-rate metrics regress. CI for a vision model means a fixed regression suite of known-hard shelf scenarios — heavy occlusion, a shopper wearing gloves, a hand hovering without a pickup — run automatically before any model is promoted, exactly the same discipline as a code test suite, just testing behavior on frames instead of assertions on function output.</p>
+    <h3>Failure modes and the responsibility layer</h3>
+    <p>Four courses of debugging instinct converge on the same lesson here: a system that looks right in aggregate metrics can still be wrong in a specific, damaging way for a specific group of people, and the only way to catch that is to look at subgroup performance deliberately, not average accuracy. Retail vision systems have documented lower detection accuracy for products packaged in ways correlated with specific communities, and pose-estimation and re-identification components have shown measurably higher error rates across skin tones and clothing styles in published fairness audits of similar systems — silently charging one demographic group wrong items more often than another is a fairness failure, not a rounding error, and it has to be measured per-subgroup, not just in aggregate. Continuous video of shoppers is inherently sensitive data: faces and bodies are personally identifiable, and the responsible design keeps raw video ephemeral (retained briefly, then deleted) while only anonymized, aggregated events persist long-term — the same data-minimization instinct behind shipping events rather than video off the edge device in Lesson 2, now applied to storage policy rather than network policy. Surveillance-creep is a real risk with this exact hardware, since a camera network built to track products can just as easily be repointed to track individual shoppers' movement patterns for purposes no one consented to, which is why purpose limitation — the system does what it was built and disclosed to do, and nothing else — has to be a governance commitment, not an afterthought. And every uncertain decision needs a human escalation path with a real person reviewing it before it becomes a customer-facing charge, which is the same hard rule that has run through every phase of this platform: no fully automated action on a real account or a real bill without a human-reviewed step when confidence is low.</p>
+    <pre><code>def process_frame(frame, detector, tracker, reid_index,
+                   basket_state, confidence_threshold=0.75):
+    """
+    One inference cycle: detect -> track -> re-identify -> aggregate,
+    with a confidence-gated branch to human review instead of
+    auto-committing an uncertain pickup to a shopper's bill.
+    """
+    detections = detector.run(frame)                  # Unit 4 style detector
+
+    tracks = tracker.update(detections, frame.timestamp)  # Kalman + matching
+
+    escalations = []
+    for track in tracks:
+        if not track.is_confirmed():
+            continue
+
+        shopper_id = reid_index.match(track.appearance_embedding)
+        if shopper_id is None:
+            shopper_id = reid_index.register(track.appearance_embedding)
+
+        event = track.latest_event()  # e.g. "pickup", sku_guess, confidence
+
+        if event.confidence >= confidence_threshold:
+            basket_state.apply(shopper_id, event)
+        else:
+            # low-confidence event: hold it, don't touch the bill yet
+            escalations.append({
+                "shopper_id": shopper_id,
+                "event": event,
+                "frame_ref": frame.id,
+            })
+
+    if escalations:
+        route_to_human_review(escalations)   # never auto-charge below threshold
+
+    return basket_state, escalations
+</code></pre>
+    <p class="caption">The branch on <code>confidence_threshold</code> is the whole responsibility layer in miniature: everything above the bar auto-commits, everything below it goes to a person before it touches a bill — the pipeline degrades to a human queue rather than to a wrong charge.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>The pipeline is a chain of stations, not one model</strong> — ingest, detect, track, re-identify, aggregate, feed back — and each handoff has its own failure modes worth monitoring independently.</li>
+        <li><strong>Vision and language fuse in two concrete places:</strong> OCR-plus-text-classification to disambiguate near-identical packaging, and RAG-style natural-language query over an event index for operations staff.</li>
+        <li><strong>Shadow deployment and A/B rollout, never a direct swap</strong> — a new model proves itself on live traffic before it can affect a single customer's bill.</li>
+        <li><strong>Fairness has to be measured per-subgroup</strong>, not just in aggregate — detection and re-identification error rates can and do diverge across demographics, and averaged metrics hide exactly that divergence.</li>
+        <li><strong>Data minimization and purpose limitation are design decisions, not policy afterthoughts:</strong> ephemeral raw video, persistent anonymized events only, and a hard human-escalation floor under every low-confidence automated decision.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 8 quiz</h2>
+    <p class="quiz-intro">Eight questions spanning transfer/data strategy, edge deployment trade-offs, and full-pipeline synthesis — two of them deliberately combine earlier units, including one that reaches back across courses.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A new store format launches with almost no labelled shelf images. Which backbone choice typically requires the fewest labelled examples to reach a given shelf-recognition accuracy?</p>
+      <ol class="choices" type="A">
+        <li>A randomly initialized network trained from scratch on the new store's footage only</li>
+        <li>An ImageNet-pretrained backbone, fully fine-tuned from the first day</li>
+        <li>A self-supervised backbone pretrained on the company's own unlabelled retail images from other stores</li>
+        <li>A backbone pretrained purely on synthetic renders of the product catalogue</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> A self-supervised backbone pretrained on unlabelled images from the same domain (retail shelves, not natural photos) has already learned relevant features — packaging texture, occlusion, shelf clutter — before seeing a single label, cutting the labelled-data requirement roughly in half to a third compared to a generic ImageNet backbone.</p>
+          <p>ImageNet pretraining (B) still helps over training from scratch, but its source distribution (natural photos, eye-level, everyday objects) is a weaker match to downward-angled shelf imagery than in-domain self-supervised pretraining. Training from scratch (A) needs orders of magnitude more labelled data than either pretrained option. Synthetic-only pretraining (D) risks a large sim-to-real gap since it never sees a single real camera artifact.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">With only a few hundred labelled examples per new SKU, fully fine-tuning every layer of the backbone is the safest way to adapt it to the new store's shelf images.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> With only a few hundred examples per class, full fine-tuning tends to overfit to the specifics of that small sample — the exact lighting and angle of a two-day empty-store capture, for instance — and can collapse once real, more varied shopper traffic arrives. Freezing the backbone and training only a lightweight head, then progressively unfreezing as labelled volume grows, is the safer path at low data volumes.</p>
+          <p>Full fine-tuning becomes appropriate later, once tens of thousands of labelled frames exist — at that point it can outperform a frozen-backbone approach precisely because there's enough data to adapt without overfitting.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">An active-learning loop selects frames for human labelling by scoring model <span class="blank">&nbsp;</span> — for example combining softmax entropy with the margin between the top two predicted classes — rather than sampling frames at random.</p>
+      <ol class="choices" type="A">
+        <li>throughput</li>
+        <li>uncertainty</li>
+        <li>latency</li>
+        <li>compression ratio</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: uncertainty.</strong> Active learning routes the model's most uncertain predictions — high entropy, small margin between top classes — to human labellers, since those are the frames most likely to teach the model something new, unlike frames it already classifies confidently and correctly.</p>
+          <p>Throughput and latency (A, C) are deployment metrics, unrelated to which frames deserve labelling attention. Compression ratio (D) belongs to the model-optimization stage in Lesson 2, not to data selection.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Why must on-shelf product recognition run on edge hardware near the cameras rather than streaming all raw video to a central cloud region for inference?</p>
+      <ol class="choices" type="A">
+        <li>Edge accelerators are always more accurate than cloud GPUs</li>
+        <li>Cloud inference cannot run quantized models</li>
+        <li>Bandwidth limits, round-trip latency, and minimizing raw video leaving the premises all favor local processing</li>
+        <li>Cloud providers do not allow computer vision workloads</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> Dozens of camera streams backhauled continuously would saturate a store's uplink; round-trip cloud latency (often 80-150ms each way) is too slow for near-instantaneous cart tracking; and shipping only derived events instead of raw video meaningfully shrinks the amount of sensitive footage moved off-premises.</p>
+          <p>Edge hardware is not inherently more accurate (A) — it typically runs a compressed, slightly less accurate version of a larger cloud-capable model. Quantization (B) is a technique that can run on either edge or cloud hardware, it's not cloud-exclusive in reverse. Cloud providers routinely support vision workloads (D); that isn't the constraint here.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">A teammate quantizes the edge detector to INT8 and reports the model now runs faster but flags almost every product on a newly re-lit produce aisle as "unknown SKU," even though it worked fine before the aisle's lighting was changed. What is the most likely root cause, and what's the fix?</p>
+      <pre><code>quantized_model = quantize_int8(
+    fp32_model,
+    calibration_data=old_store_lighting_images  # captured months ago
+)</code></pre>
+      <ol class="choices" type="A">
+        <li>INT8 quantization is fundamentally incompatible with produce recognition</li>
+        <li>The calibration data no longer matches current input statistics after the re-light, so INT8 scale/zero-point ranges are miscalibrated for the new lighting</li>
+        <li>The model needs to be pruned instead of quantized</li>
+        <li>The tracker's Kalman filter parameters need retuning</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Post-training INT8 quantization picks numeric ranges (scale and zero-point) from calibration data, and those ranges are only valid if calibration inputs match production inputs. Calibrating on old-lighting images while the aisle now has different color and brightness statistics means activations at inference time fall outside the ranges the quantization was tuned for, degrading accuracy sharply — this is the "store re-lights" drift scenario from Lesson 2. The fix is re-calibrating (and likely re-validating) the INT8 model on a fresh sample of current, post-re-light images.</p>
+          <p>Quantization itself is not incompatible with this domain (A) — it's standard practice — the problem is stale calibration data, not the technique. Pruning (C) addresses model size/compute, not a calibration-range mismatch. The tracker (D) operates on detections after the classifier runs; a classifier producing wrong low-confidence labels isn't a tracking-parameter problem.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem"><em>Combining Units 4 and 8.</em> A shopper's hand is detected reaching for a shelf in frame 214 and again in frame 215, each with only 55-60% classifier confidence on which SKU was picked up. Which pipeline stage is specifically responsible for turning these two independent low-confidence detections into one higher-confidence event, rather than requiring a bigger single-frame detector?</p>
+      <ol class="choices" type="A">
+        <li>The Unit 4 object detector itself, by increasing its confidence threshold</li>
+        <li>Re-identification across camera views</li>
+        <li>Tracking, by linking detections across frames and letting confidence average over time</li>
+        <li>The synthetic data generator</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> Tracking links per-frame detections into a continuous trajectory across time, which is exactly what lets the system treat two weak same-object detections as reinforcing evidence for one identity rather than two separate uncertain guesses — cheaper than brute-forcing higher single-frame accuracy with a larger, slower detector (the point Lesson 2 makes about streaming video versus independent frames, applied to the Unit 4 detector's raw output).</p>
+          <p>Raising the Unit 4 detector's confidence threshold (A) would just drop more detections rather than combine evidence across frames. Re-identification (B) solves matching the same shopper across different camera views, not linking sequential frames from one view. The synthetic data generator (D) is a training-time tool from Lesson 1, unrelated to run-time frame linking.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem"><em>Combining Course 3 and Course 4.</em> Two SKUs are visually near-identical except for a small printed flavor name on the package, and the vision classifier keeps confusing them. Store staff also want to ask the system plain-language questions like "how many times was SKU 88213 picked up yesterday afternoon?" Which combination of techniques addresses both needs?</p>
+      <ol class="choices" type="A">
+        <li>A larger convolutional backbone for the classifier, and a SQL dashboard for the queries</li>
+        <li>OCR plus a lightweight text classifier to read the printed flavor name, and a RAG-style retrieval system over aggregated events for the natural-language query</li>
+        <li>INT8 quantization for the classifier, and a Kalman filter for the queries</li>
+        <li>Synthetic data augmentation for the classifier, and knowledge distillation for the queries</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Reading the printed text directly (OCR plus a small text classifier, drawing on Course 3's sequence-processing techniques) resolves a visual ambiguity that a pure vision classifier struggles with, since the packages are otherwise identical. A RAG-style pipeline (Course 3 Unit 8) — embedding the natural-language question, retrieving matching aggregated events, and having a language model compose a grounded answer — is the natural fit for a plain-language query, rather than requiring staff to write structured filters.</p>
+          <p>A bigger backbone (A) still can't see printed text it was never trained to read at that resolution, and a SQL dashboard doesn't handle open-ended natural language. INT8 quantization and a Kalman filter (C) are Lesson 2/3 deployment and tracking tools with no role in either resolving package ambiguity or answering language queries. Synthetic augmentation and distillation (D) are training/compression techniques, not solutions to either stated problem.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Once a new model version passes shadow deployment with healthy live-traffic metrics, the safe next step is to fully replace the production model for all stores immediately, since shadow testing already validated it on real data.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> The standard next step after a healthy shadow deployment is a gradual A/B rollout to a small traffic slice with automatic rollback on regression — not a full immediate swap. Shadow deployment validates that the new model's predictions look reasonable when they aren't yet acted on; it does not prove the model is safe once its outputs actually start affecting customer bills, which only a live, monitored, limited-exposure rollout can confirm.</p>
+          <p>The tempting logic is that shadow testing already used real production traffic, so nothing more should be needed — but shadow mode never lets the model's decisions actually gate a charge or basket action, so genuinely acting-on-output failure modes (a wrong item hitting a bill) only surface once the model is live for at least some real transactions, which is exactly what a staged A/B rollout is designed to catch safely.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Computer Vision · Unit 8 of 8 — the final unit of the final course. You've now completed all four courses: deep learning fundamentals, foundation models, NLP, and computer vision — from backpropagation and optimizers, through transformers and pretraining, through language understanding and generation, to a fully deployed, monitored, human-accountable vision system tying every prior unit together.</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 3 · CNN architectures for image classification — Computer Vision</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Computer Vision · Unit 3 of 8</p>
+  <h1>CNN architectures for image classification</h1>
+  <p class="lede">From LeNet's five layers to ResNet's hundreds, and from residual blocks to the mobile-friendly designs that let a species classifier run on the low-power chip bolted inside a camera trap. You'll build, cost out, and train the backbone this course keeps coming back to.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. The architectural lineage: LeNet to ResNet</a></li>
+      <li><a href="#lesson-2">2. Modern efficient architectures and design principles</a></li>
+      <li><a href="#lesson-3">3. Training a classifier that survives the real world</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>The architectural lineage: LeNet to ResNet</h2>
+    <p class="opening">In 1998, Yann LeCun's LeNet-5 read handwritten digits off bank checks using two convolutional layers, two pooling layers, and about 60,000 parameters — a network you could describe on an index card. It worked, and then for over a decade nothing much bigger worked better. Compute was scarce, datasets were small, and networks past a few layers were notoriously hard to train. The breakthrough that changed this wasn't a single idea; it was a chain of four architectures, each solving the specific failure that blocked the previous one from getting deeper. If you've done Course 1 Unit 6, you already know what a convolution, a pooling operation, and a receptive field are. This lesson is about what happens when you try to stack dozens of them and everything you learned there stops being enough.</p>
+
+    <h3>2012: AlexNet and the ImageNet moment</h3>
+    <p>AlexNet didn't introduce a new architectural primitive — it proved that an old one, scaled up, worked far better than anyone expected. Trained on two GPUs (the network was literally split across them because no single GPU had enough memory), AlexNet used eight layers, roughly 60 million parameters, and three unglamorous engineering choices that mattered more than any clever topology: <span class="term">ReLU</span> activations instead of sigmoid or tanh, <span class="term">dropout</span> in the fully connected layers to fight overfitting, and GPU parallelism to make the whole thing trainable in days instead of months. ReLU's constant gradient for positive inputs meant error signals stopped shrinking to nothing as they backpropagated through eight layers — sigmoid's saturating tails had made anything deeper than a handful of layers glacially slow to train. AlexNet cut ImageNet top-5 error from around 26% to 15.3% in a single year, and every serious vision architecture since has descended from what it got right.</p>
+
+    <h3>2014: VGG's argument for uniform depth</h3>
+    <p>VGG asked a narrower question: if depth helps, how do you add more of it without the design turning into an ad-hoc pile of arbitrary kernel sizes? Its answer was to standardize on stacks of 3×3 convolutions and nothing else. Two stacked 3×3 convolutions have the same receptive field as one 5×5 convolution, but fewer parameters (2×9×C² versus 25×C² per channel pair) and an extra ReLU nonlinearity sandwiched between them — more capacity to learn a nonlinear function for the same field of view. VGG-16 and VGG-19 pushed to 16 and 19 weight layers using nothing but this one repeated motif, and the uniformity made the architecture almost mechanically easy to reason about: every stage doubles channels and halves spatial resolution. The cost was steep — VGG-16 carries about 138 million parameters, most of them in its fully connected layers — but the lesson that depth itself, built from small uniform kernels, was a lever worth pulling stuck around long after VGG's raw parameter count fell out of fashion.</p>
+
+    <h3>2014: GoogLeNet and the case for multiple scales at once</h3>
+    <p>GoogLeNet (the network behind the Inception architecture) made a different bet: instead of committing to one kernel size per layer, run several in parallel — 1×1, 3×3, 5×5 convolutions and a pooling branch, side by side, on the same input, then concatenate their outputs. A camera-trap frame makes the motivation concrete: a duiker filling most of the frame at close range and a distant elephant occupying a tenth of it need different effective receptive fields to resolve well, and a single kernel size is a compromise for both. Inception modules use cheap 1×1 convolutions to compress channel depth before the expensive 3×3 and 5×5 branches run, which is what kept a 22-layer network's parameter count near 5 million — an order of magnitude below VGG — while going deeper. The multi-branch idea proved less durable than residual connections as a standalone pattern, but the 1×1 "bottleneck" trick it popularized is load-bearing in nearly every modern architecture, including the one this lesson ends on.</p>
+
+    <h3>2015: ResNet and the degradation problem</h3>
+    <p>Here is the idea this whole unit organizes around. Kaiming He and coauthors noticed something that shouldn't happen: a 56-layer plain convolutional network had <em>higher</em> training error than its 20-layer counterpart. Not validation error — training error, on data the deeper network had every opportunity to memorize. This rules out overfitting as the explanation. It also isn't simply vanishing gradients, though that's the popular shorthand — batch normalization (which you'll see formally in Lesson 2) already kept gradients from vanishing in these experiments, and the degradation persisted anyway. The real problem is optimization: as networks get deeper, stochastic gradient descent struggles to find even an identity-like mapping through dozens of stacked nonlinear transformations, so extra layers can make the achievable solution worse, not merely fail to improve it. This is called the <span class="term">degradation problem</span>, and it's distinct from vanishing gradients — a subtlety worth holding onto, since conflating the two is the single most common imprecision in how people summarize ResNet.</p>
+    <p>ResNet's fix reframes what a layer has to learn. Instead of asking a stack of layers to learn a full mapping H(x) from scratch, give it a shortcut connection that carries the input x forward unchanged, and let the stacked layers learn only the <span class="term">residual</span> F(x) = H(x) − x. The output becomes F(x) + x. If the ideal mapping really is close to identity, the network only needs to push F(x) toward zero — a far easier target for gradient descent to find than reconstructing identity through several nonlinear layers from random initialization. This is why ResNet-152 trains to lower error than ResNet-34, and why architectures went from "over 30 layers is impractical" to over 100 layers being routine within a single paper.</p>
+
+    <h3>The residual block, two ways</h3>
+    <p>Two variants matter. When the input and output of a block have the same shape, the shortcut is a literal identity — no extra parameters, no extra cost. When a block changes the number of channels or downsamples spatially (which every stage transition in a real backbone does), the identity shortcut no longer matches shapes, so ResNet uses a 1×1 convolution on the shortcut path — a <span class="term">projection shortcut</span> — to reshape it before the addition.</p>
+    <pre><code>import torch.nn as nn
+
+class ResidualBlock(nn.Module):
+    """Identity or projection residual block, used in a camera-trap
+    species classifier's backbone (day/night IR frames, 224x224 crops)."""
+    def __init__(self, in_channels, out_channels, stride=1):
+        super().__init__()
+        self.conv1 = nn.Conv2d(in_channels, out_channels, 3,
+                                stride=stride, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(out_channels)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, 3,
+                                stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(out_channels)
+        self.relu = nn.ReLU(inplace=True)
+
+        # Needed whenever this block changes shape: stride>1 (spatial
+        # downsampling between stages) or in_channels != out_channels
+        # (e.g. the 64-channel stem feeding a 128-channel stage).
+        if stride != 1 or in_channels != out_channels:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_channels, out_channels, 1,
+                          stride=stride, bias=False),
+                nn.BatchNorm2d(out_channels),
+            )
+        else:
+            self.shortcut = nn.Identity()
+
+    def forward(self, x):
+        identity = self.shortcut(x)
+        out = self.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        out = out + identity          # the residual addition
+        return self.relu(out)</code></pre>
+    <p class="caption">The <code>if</code> branch is the whole architectural insight: an identity path costs nothing when shapes match, and a cheap 1×1 conv reshapes the path when they don't — either way, the block only has to learn a correction, not a full mapping.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Each architecture solved one specific blocker</strong>: AlexNet solved trainability at scale (ReLU, dropout, GPUs), VGG solved "how do I add depth systematically" (uniform 3×3 stacks), Inception solved fixed-receptive-field waste (multi-branch, multi-scale), ResNet solved the degradation problem (residual connections).</li>
+        <li><strong>The degradation problem is not the same claim as vanishing gradients</strong> — it's an optimization-landscape problem where deeper plain networks get harder for SGD to fit even on training data, independent of gradient magnitude.</li>
+        <li><strong>A residual block learns F(x), not H(x)</strong> — reformulating the target as a correction to identity makes near-identity mappings trivially reachable.</li>
+        <li><strong>Projection shortcuts (1×1 conv) are required whenever a block changes channel count or spatial resolution</strong> — which is every stage transition in a real backbone.</li>
+        <li>These four architectures form a rough timeline of what each backbone in a modern classifier still borrows from: Inception's bottlenecks and ResNet's skip connections both survive into the efficient designs of Lesson 2.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Modern efficient architectures and design principles</h2>
+    <p class="opening"><span class="term">Efficiency</span>, for a CNN, means accuracy per unit of compute and memory — measured in parameters, in floating-point operations (FLOPs), and in latency on a specific chip. A ResNet-152 answers "how deep can we go" well; it does not answer "how do I run this at 10 frames per second on a solar-powered microcontroller wired to a motion sensor in a national park with no cell signal." That second question is the one camera-trap deployments actually ask, since many field units now do on-device inference to decide whether a triggered frame is worth the battery and bandwidth cost of transmission. This lesson covers the ideas that made modern backbones dramatically cheaper without giving back much accuracy — and a couple of design principles that show up in nearly every architecture published since 2017.</p>
+
+    <h3>Batch normalization: why deep nets became trainable at all</h3>
+    <p>You saw batch normalization in Course 1 Unit 5 as a technique for stabilizing training; here it's worth restating precisely why it matters at CNN depth. As activations pass through many layers, their distribution shifts layer to layer and batch to batch — a problem sometimes called internal covariate shift, though the mechanism is debated. Batch norm re-centers and rescales each layer's activations using batch statistics (mean and variance), then applies a learned scale and shift so the network can undo the normalization if that's actually optimal. The practical effect is a much smoother loss landscape: you can use higher learning rates, initialization matters far less, and gradients propagate more reliably through 50+ layers. Batch norm is why the residual blocks in Lesson 1 include a <code>BatchNorm2d</code> after every convolution — without it, training a network that deep would be unreliable even with the residual shortcuts doing their job.</p>
+
+    <h3>Bottleneck blocks: 1×1 convolutions as a cost-control valve</h3>
+    <p>Once networks got deep, wide 3×3 convolutions became the dominant compute cost. The <span class="term">bottleneck block</span> — introduced for deeper ResNet variants (50 layers and up) — wraps a 3×3 convolution with a 1×1 convolution that compresses channels going in and a second 1×1 that expands them back out going out, so the expensive 3×3 operates on a narrower tensor. A 256-channel block might compress to 64 channels, run the 3×3 there, then expand back to 256 — cutting the 3×3's cost by roughly 16x for that layer, at the price of two cheap 1×1 convolutions. This is the same channel-compression idea Inception used, now applied inside a single residual path rather than across parallel branches.</p>
+
+    <h3>Depthwise-separable convolutions: the MobileNet arithmetic</h3>
+    <p>A standard convolution mixes spatial information and channel information in one operation: every output channel is a weighted sum over every input channel, at every spatial position in the kernel. MobileNet's insight was to split those two jobs apart. A <span class="term">depthwise convolution</span> applies one spatial filter per input channel independently — no channel mixing at all — and a following <span class="term">pointwise convolution</span> (a 1×1 conv) handles the channel mixing, with no spatial extent. Doing the same overall job in two cheaper steps instead of one expensive one is where the savings comes from, and the arithmetic is direct enough to run by hand.</p>
+    <p>For a standard k×k convolution over C<sub>in</sub> input channels producing C<sub>out</sub> output channels, at each spatial position you pay k²·C<sub>in</sub>·C<sub>out</sub> multiply-adds. The depthwise-separable version pays k²·C<sub>in</sub> for the depthwise pass plus C<sub>in</sub>·C<sub>out</sub> for the pointwise pass. Divide the two and, for typical k=3, the reduction factor is close to 9x whenever C<sub>out</sub> is reasonably large — because the pointwise term dominates the depthwise-separable cost, and the 1/9 spatial-kernel saving is what you keep.</p>
+    <pre><code>def conv_cost(k, cin, cout, h, w):
+    params = k * k * cin * cout
+    macs = h * w * params
+    return params, macs
+
+def depthwise_separable_cost(k, cin, cout, h, w):
+    dw_params = k * k * cin          # one k×k filter per input channel
+    pw_params = cin * cout           # the 1x1 channel-mixing step
+    dw_macs = h * w * dw_params
+    pw_macs = h * w * pw_params
+    return dw_params + pw_params, dw_macs + pw_macs
+
+# a mid-stage feature map in a camera-trap backbone: 56x56, 128 -> 256 channels
+k, cin, cout, h, w = 3, 128, 256, 56, 56
+std_params, std_macs = conv_cost(k, cin, cout, h, w)
+ds_params, ds_macs = depthwise_separable_cost(k, cin, cout, h, w)
+
+print(f"standard conv:  {std_params:>10,} params  {std_macs:>14,} MACs")
+print(f"depthwise-sep:  {ds_params:>10,} params  {ds_macs:>14,} MACs")
+print(f"reduction:      {std_params/ds_params:.2f}x params   {std_macs/ds_macs:.2f}x MACs")
+
+# standard conv:     294,912 params     924,844,032 MACs
+# depthwise-sep:      33,920 params     106,373,120 MACs
+# reduction:            8.69x params       8.69x MACs</code></pre>
+    <p class="caption">Same input/output shape, same effective receptive field, 8.69x fewer multiply-adds — this is the arithmetic that lets a species classifier run on a camera trap's onboard chip instead of needing a cloud round-trip per frame.</p>
+    <pre><code>class DepthwiseSeparableConv(nn.Module):
+    def __init__(self, in_ch, out_ch, stride=1):
+        super().__init__()
+        self.depthwise = nn.Conv2d(in_ch, in_ch, 3, stride=stride,
+                                    padding=1, groups=in_ch, bias=False)
+        self.pointwise = nn.Conv2d(in_ch, out_ch, 1, bias=False)
+        self.bn1 = nn.BatchNorm2d(in_ch)
+        self.bn2 = nn.BatchNorm2d(out_ch)
+        self.relu = nn.ReLU(inplace=True)
+
+    def forward(self, x):
+        x = self.relu(self.bn1(self.depthwise(x)))
+        x = self.relu(self.bn2(self.pointwise(x)))
+        return x</code></pre>
+    <p class="caption"><code>groups=in_ch</code> is what makes the convolution depthwise in PyTorch — each of the <code>in_ch</code> groups convolves exactly one channel with its own filter, and no filter ever sees a second channel.</p>
+
+    <h3>Squeeze-and-excitation: cheap channel attention</h3>
+    <p>Not every channel in a feature map matters equally for a given image — a channel that responds to fur texture is more useful for a lynx-versus-bobcat decision than one that responds to generic edges. <span class="term">Squeeze-and-excitation</span> (SE) blocks let a network learn this per-image: global-average-pool each channel down to a single number (the "squeeze"), pass that C-length vector through two small fully connected layers, and use a sigmoid output as a per-channel gate that rescales the original feature map (the "excitation"). It's a few thousand extra parameters bolted onto an existing block, and it consistently improves accuracy for its cost — cheap enough that it's now a default addition to efficient backbones rather than a specialized technique.</p>
+
+    <h3>EfficientNet and compound scaling</h3>
+    <p>Before EfficientNet, scaling a CNN up meant picking one knob — more layers (depth), more channels per layer (width), or higher input resolution — largely by trial and error, and past a point pushing any single one alone hits diminishing returns. EfficientNet's contribution was to scale all three together under one compound coefficient φ, with fixed ratios between them found by a small grid search: depth scales as α^φ, width as β^φ, resolution as γ^φ, subject to a constraint that keeps total compute growing predictably with φ. The result, EfficientNet-B0 through B7, gave a family of models trading off accuracy against compute along a much better curve than scaling any one dimension alone — relevant to camera-trap work because it means you can pick B0 for the trap itself and a bigger B-variant for a server that re-scores uncertain frames later.</p>
+
+    <h3>Two design principles worth internalizing</h3>
+    <p>Across all of these architectures, two rules of thumb recur enough to state directly. First: <span class="term">when you halve spatial resolution, double the channel count</span> — this keeps the compute per stage roughly constant even as the network downsamples, and it's why every backbone's channel counts (64, 128, 256, 512...) double at each stage boundary. Second: <span class="term">replace the flattened fully-connected classifier head with global average pooling</span> — collapsing each final channel to its spatial mean before a single linear layer removes the vast majority of a VGG-style network's parameters (which sat in the fully connected layers, not the convolutions) with negligible accuracy cost, since a channel's average response is nearly as informative as its full spatial map for a whole-image classification decision.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Batch norm smooths the loss landscape</strong> enough to make higher learning rates and deep networks (50+ layers) reliably trainable — it's complementary to residual connections, not a substitute for them.</li>
+        <li><strong>Depthwise-separable convolutions split spatial filtering from channel mixing</strong>, cutting parameters and FLOPs by roughly 8-9x for typical 3×3, wide-channel layers — the core MobileNet trick.</li>
+        <li><strong>Squeeze-and-excitation adds per-channel attention</strong> for a few thousand parameters, letting the network reweight which channels matter per image.</li>
+        <li><strong>EfficientNet scales depth, width, and resolution together</strong> under one compound coefficient rather than tuning one dimension at a time.</li>
+        <li><strong>Double channels when you halve spatial size; use global average pooling instead of a flattened FC head</strong> — two principles that show up in nearly every post-2015 backbone.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Training a classifier that survives the real world</h2>
+    <p class="opening">Pull ten thousand images off a season's worth of camera traps and roughly eight thousand of them will show nothing but wind-blown grass, a shifting shadow, or an insect that tripped the motion sensor — the trap fired, but there's no animal in frame. Of the remaining two thousand, most will be the same handful of common species (deer, wild boar) photographed hundreds of times, while a species conservationists actually care about might appear in forty images total, several of them at night in grainy infrared with only a haunch or a tail visible at the frame's edge. None of the architectural elegance from Lessons 1 and 2 helps if the training setup ignores this distribution. This lesson is about the choices that determine whether a classifier trained on this kind of data generalizes to next season's traps or quietly memorizes its way to a useless model.</p>
+
+    <h3>Transfer learning across a real domain gap</h3>
+    <p>You met transfer learning's mechanics in Course 2 Unit 6: take a network pretrained on a large source dataset, then fine-tune some or all of its weights on your target task. Camera-trap imagery looks nothing like ImageNet's crisp, well-lit, human-photographed object-centric images — night frames are monochrome infrared, animals are frequently half-occluded by vegetation or cropped by the frame edge, and there's no ImageNet class for "civet at 2am." Transfer learning still helps enormously here, because the domain gap that matters for early layers is smaller than it looks: the first few convolutional stages of an ImageNet-pretrained network learn edges, textures, and simple gradients, and those are genuinely domain-general — an edge detector doesn't care whether the edge belongs to a truck or a tapir. The gap widens in later layers, which encode increasingly ImageNet-specific object semantics, so the standard recipe is to freeze early layers, fine-tune later stages (and the classifier head) at a low learning rate, and let those later layers adapt to camera-trap-specific texture and shape statistics. Skipping pretraining entirely and training from random initialization on forty images of a rare species simply doesn't work — there isn't enough signal to learn general visual features from scratch at that scale.</p>
+
+    <h3>Augmentation choices that respect the domain</h3>
+    <p>Standard vision augmentation includes random crops, horizontal and vertical flips, color jitter, cutout (randomly masking rectangular patches), and mixup (blending two images and their labels together). Not all of these are safe for every domain, and camera-trap imagery is a clean example of why augmentation choices need domain judgment rather than defaults. <span class="term">Horizontal flip</span> is fine — an animal facing left versus right carries no label information, since nothing about being a leopard depends on which way it's walking. <span class="term">Vertical flip is wrong</span> for almost every wildlife dataset: gravity orients real animals, and an upside-down warthog is not a frame that will ever occur in deployment, so training on it teaches the network to accept a physically impossible prior that can only hurt calibration on real data. Random crops need a light touch too — crop too aggressively and you'll regularly cut the only informative part of a partially-in-frame animal out of the training image entirely, teaching the model on frames where the label no longer matches what's visible.</p>
+    <p>Color jitter is genuinely useful here, more than in typical benchmarks, because it partially simulates the swing between daylight RGB and infrared night frames — brightness and contrast jitter during RGB training helps the network tolerate lighting variation it'll see across a 24-hour trap cycle, though it can't manufacture IR's different spectral response from scratch. Cutout is a good proxy for a real failure mode: a branch or leaf occluding part of the animal, which happens constantly in trap photos taken low to the ground in brush. Mixup is the one to think twice about for this domain — blending an empty frame with a rare-species frame at, say, 70/30 produces a soft label that doesn't correspond to any decision the deployed model actually needs to make (there's no real image that is "70% empty, 30% pangolin"), and it can dilute the already-thin signal from your rarest classes further. A safe default pipeline for this domain is horizontal flip, a mild random-resized crop, moderate color jitter, and cutout — deliberately excluding vertical flip and using mixup sparingly if at all.</p>
+
+    <h3>Handling extreme class imbalance</h3>
+    <p>Course 1 Unit 5 covered weighted loss functions in general; camera-trap data is close to the worst case that technique needs to handle, with class ratios that can exceed 1000:1 between empty frames and a rare species. Three tools address this, and they aren't mutually exclusive. <span class="term">Class-weighted cross-entropy</span> multiplies each example's loss by a weight inversely proportional to its class frequency, so the rare species' forty images contribute as much total gradient signal as thousands of common-species images would. <span class="term">Resampling</span> — oversampling rare classes or undersampling the dominant ones per epoch — achieves a similar effect at the data-loader level rather than the loss level, and is easy to combine with weighting. <span class="term">Focal loss</span> takes a different angle: it down-weights the loss contribution from examples the model already classifies confidently and correctly (which, in this dataset, is most empty frames and most deer photos) and concentrates gradient signal on the examples it's still getting wrong — often the rare or ambiguous ones. The focal loss formula multiplies standard cross-entropy by a modulating factor:</p>
+    <p class="math">FL(p_t) = -(1 - p_t)^γ · log(p_t)</p>
+    <p>where p_t is the model's predicted probability for the true class and γ (commonly 2) controls how aggressively easy examples get down-weighted — at γ=0, focal loss is just cross-entropy; larger γ sharpens the focus onto hard examples.</p>
+
+    <h3>Test-time augmentation and the empty-frame decision</h3>
+    <p><span class="term">Test-time augmentation</span> (TTA) runs several augmented copies of a single test image — a few crops, both original and horizontally flipped — through the trained model and averages the predictions. It costs inference-time compute (several forward passes instead of one) in exchange for a small but real accuracy gain, and it's a reasonable trade for a server re-scoring uncertain frames even if it's too expensive for the on-device model at the trap itself. Finally, the empty-frame problem deserves a direct design decision rather than being folded silently into an "empty" class among the species classes: is this a classification problem (one softmax over "empty" plus every species) or should an upstream detector first answer "is there an animal in this frame at all" before a separate classifier decides which species? That detection step is genuinely a different architectural family and is Unit 4's subject, not this unit's — but recognizing that the choice exists, and that treating 80% empty frames as just another classification class can silently dominate a shared loss and starve the species classes of gradient signal, is a design call every whole-image approach in this unit has to reckon with, even while staying inside classification territory.</p>
+
+    <pre><code>from torchvision.models import resnet50
+import torch, torch.nn as nn, torch.nn.functional as F
+import torchvision.transforms as T
+
+class FocalLoss(nn.Module):
+    def __init__(self, gamma=2.0, alpha=None):
+        super().__init__()
+        self.gamma, self.alpha = gamma, alpha  # alpha: per-class weights
+
+    def forward(self, logits, targets):
+        ce = F.cross_entropy(logits, targets, weight=self.alpha, reduction="none")
+        pt = torch.exp(-ce)                    # model's confidence in the true class
+        return ((1 - pt) ** self.gamma * ce).mean()
+
+# domain-appropriate augmentation: safe flip, no vertical flip, IR/RGB jitter,
+# cutout for foliage occlusion
+train_transform = T.Compose([
+    T.RandomResizedCrop(224, scale=(0.7, 1.0)),
+    T.RandomHorizontalFlip(p=0.5),
+    # no RandomVerticalFlip: an upside-down animal never occurs in deployment
+    T.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.2),
+    T.ToTensor(),
+    T.RandomErasing(p=0.25, scale=(0.02, 0.15)),   # simulates branch/leaf occlusion
+])
+
+backbone = resnet50(weights="IMAGENET1K_V2")
+for p in backbone.parameters():
+    p.requires_grad = False
+for p in backbone.layer4.parameters():   # unfreeze only the last residual stage
+    p.requires_grad = True
+backbone.fc = nn.Linear(backbone.fc.in_features, num_species)  # + 1 for "empty"
+
+class_weights = torch.tensor(inverse_frequency_weights)  # upweight rare species
+criterion = FocalLoss(gamma=2.0, alpha=class_weights)
+optimizer = torch.optim.AdamW(
+    filter(lambda p: p.requires_grad, backbone.parameters()), lr=3e-4
+)</code></pre>
+    <p class="caption">Frozen early layers keep general edge/texture features from ImageNet; only <code>layer4</code> and the new head adapt to camera-trap statistics; focal loss plus class weights double up on the imbalance problem rather than relying on either alone.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Transfer learning works across the ImageNet-to-camera-trap gap</strong> because early convolutional layers learn domain-general edges and textures; only later layers need to adapt.</li>
+        <li><strong>Horizontal flip is safe augmentation for wildlife; vertical flip is not</strong> — gravity orients real animals, so an upside-down training image teaches an impossible prior.</li>
+        <li><strong>Mixup should be used cautiously here</strong> — blending an empty frame with a rare species produces soft labels with no real deployment analogue and can dilute already-scarce signal.</li>
+        <li><strong>Class weighting, resampling, and focal loss all attack imbalance from different angles</strong> and combine rather than substitute for each other.</li>
+        <li><strong>Whether to treat "empty" as a classification class or filter frames with an upstream detector is a real architectural decision</strong>, not a detail — it determines whether 80% of your data dominates the loss.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 3 quiz</h2>
+    <p class="quiz-intro">Eight questions covering the architectural lineage, efficiency arithmetic, and real-world training decisions — including one shape/parameter computation and one bug-fix.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A team trains a 60-layer plain (no skip connections) CNN on camera-trap frames and finds its <em>training</em> accuracy is worse than a 20-layer version of the same design. Gradient magnitudes at the early layers look healthy, not vanished. What's the best explanation?</p>
+      <ol class="choices" type="A">
+        <li>The 60-layer network is overfitting to the training set.</li>
+        <li>The degradation problem: SGD is struggling to find a good solution (even an identity-like one) through that many stacked nonlinear layers, independent of gradient size.</li>
+        <li>The learning rate is too high for a network this deep.</li>
+        <li>The dataset is too small for any network deeper than 20 layers.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Worse <em>training</em> error (not just validation error) rules out overfitting outright — an overfit model fits the training set well, it generalizes poorly. Since gradients aren't vanishing, the failure is optimization difficulty: deeper plain stacks make it harder for SGD to reach a good solution, which is precisely the degradation problem ResNet's residual connections address.</p>
+          <p>A is the tempting distractor because "big network, more parameters" pattern-matches to overfitting, but overfitting by definition shows up as a train/validation gap, not as worse training performance itself.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">The degradation problem that ResNet solves is just another name for vanishing gradients — the two terms describe the same underlying failure.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> They're related but distinct failures. Vanishing gradients is specifically about gradient magnitude shrinking to near-zero as it backpropagates through many layers, making weights barely update. The degradation problem is an optimization-landscape difficulty — deeper plain networks get harder for SGD to fit well even when gradients aren't vanishing, as He et al. showed with batch-normalized networks where gradients stayed healthy but deeper training error was still worse.</p>
+          <p>Conflating the two is common because both show up as "deep networks train worse," but the ResNet paper's original motivation was explicitly the degradation problem observed independent of vanishing gradients, not a fix for vanishing gradients alone.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">In a residual block, when a layer changes the number of channels or the spatial resolution, the identity shortcut can no longer be added directly to the block's output — a <span class="blank">&nbsp;</span> shortcut, typically a 1×1 convolution, is used instead to reshape the input before the addition.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: projection.</strong> A projection shortcut is a learned 1×1 convolution (with matching stride) that reshapes the input's channel count and/or spatial size so it can be added elementwise to the main path's output — used at every stage transition in a real backbone.</p>
+          <p>Some learners answer "convolutional," which isn't wrong on its own but isn't the term used to distinguish this case from the identity shortcut — "projection shortcut" is the specific vocabulary from the ResNet paper.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">A camera-trap classifier backbone applies a single standard 2D convolution to a 56×56 feature map with 64 input channels, producing 128 output channels, using a 3×3 kernel, stride 1, with padding that preserves spatial size. How many learnable weight parameters does this one convolution layer have (ignore bias)?</p>
+      <pre><code>conv = nn.Conv2d(in_channels=64, out_channels=128,
+                  kernel_size=3, stride=1, padding=1, bias=False)
+# params = kernel_size^2 * in_channels * out_channels
+params = ___</code></pre>
+      <ol class="choices" type="A">
+        <li>18,432</li>
+        <li>36,864</li>
+        <li>73,728</li>
+        <li>294,912</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B (73,728).</strong> params = 3 × 3 × 64 × 128 = 9 × 64 × 128 = 9 × 8,192 = 73,728. Output spatial size stays 56×56 because padding=1 with a 3×3 kernel and stride 1 preserves resolution, but spatial size doesn't enter the parameter count at all — parameter count depends only on kernel size and channel counts, never on the feature map's height or width.</p>
+          <p>18,432 (A) is what you'd get from 3×3×32×64 — half the channels in both directions, a plausible slip if you misread the channel counts. 294,912 (D) is the answer to a <em>different</em> layer used elsewhere in this unit (128→256 channels), a good check that you're tracking which layer's numbers you're using.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">A colleague's augmentation pipeline for training a camera-trap species classifier is hurting validation accuracy compared to a no-augmentation baseline. Find the line causing the regression and explain the fix.</p>
+      <pre><code>train_transform = T.Compose([
+    T.RandomResizedCrop(224, scale=(0.8, 1.0)),
+    T.RandomHorizontalFlip(p=0.5),
+    T.RandomVerticalFlip(p=0.5),
+    T.ColorJitter(brightness=0.2, contrast=0.2),
+    T.ToTensor(),
+])</code></pre>
+      <ol class="choices" type="A">
+        <li><code>RandomResizedCrop</code>'s scale range is the problem — it should start much lower.</li>
+        <li><code>RandomVerticalFlip(p=0.5)</code> is the problem — it should be removed.</li>
+        <li><code>RandomHorizontalFlip(p=0.5)</code> is the problem — it should be removed.</li>
+        <li><code>ColorJitter</code> is the problem — brightness and contrast jitter should never be used on natural images.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> <code>RandomVerticalFlip</code> trains the model on upside-down animals, which never occur in real deployment — gravity orients wildlife in every genuine frame. This teaches the network a physically impossible prior and wastes training signal on images with no real-world analogue, which is consistent with a validation-accuracy regression. The fix is to drop that line entirely; horizontal flip, crop, and color jitter are all fine to keep.</p>
+          <p>C is the tempting distractor because it's tempting to suspect any flip, but horizontal flip is safe here — an animal's left-right orientation carries no label information, unlike vertical orientation which does encode something (gravity) that the flip destroys.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A conservation group needs the species classifier to run entirely on the low-power chip inside each camera trap, with no cloud connection available in the field. Which architectural choice most directly reduces the model's FLOPs for a given accuracy level?</p>
+      <ol class="choices" type="A">
+        <li>Replacing standard 3×3 convolutions with depthwise-separable convolutions.</li>
+        <li>Adding more residual blocks to increase depth.</li>
+        <li>Switching from batch normalization to layer normalization.</li>
+        <li>Increasing the input image resolution from 224×224 to 384×384.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: A.</strong> Depthwise-separable convolutions split spatial filtering and channel mixing into two cheaper operations, cutting parameters and FLOPs by roughly 8-9x for typical 3×3, wide-channel layers with comparable accuracy — exactly the MobileNet trade this lesson's arithmetic worked through. This is a direct reduction in compute per layer, independent of any other change.</p>
+          <p>D is the tempting distractor because higher resolution genuinely does capture more detail (useful for spotting a partially-occluded animal), but it <em>increases</em> FLOPs substantially rather than reducing them — the opposite of what an on-device budget needs.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">In the focal loss formula FL(p_t) = -(1 - p_t)^γ · log(p_t), increasing γ makes the loss <span class="blank">&nbsp;</span> aggressively down-weight examples the model already classifies with high confidence, such as the thousands of easy empty-frame images in a camera-trap dataset.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: more.</strong> As γ increases, the modulating factor (1 - p_t)^γ shrinks faster for confidently-correct examples (high p_t), so their contribution to total loss drops further, concentrating gradient signal on the harder, less-confident examples — often the rare species with only a few dozen training images.</p>
+          <p>At γ = 0, focal loss reduces exactly to ordinary cross-entropy, which is a useful sanity check: focal loss is a strict generalization, not a wholly different loss function.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A team fine-tunes an ImageNet-pretrained ResNet-50 on 40 images of a rare, nocturnal species by training every layer from the start at a normal learning rate, alongside far more images of common species. Accuracy on the rare species barely rises above random guessing. Which single change is most likely to help most?</p>
+      <ol class="choices" type="A">
+        <li>Freeze early convolutional layers, fine-tune only later layers and the head at a low learning rate, and add class weighting or focal loss for the rare species.</li>
+        <li>Switch the backbone from ResNet-50 to a plain (non-residual) network of the same depth.</li>
+        <li>Remove batch normalization from the backbone since the rare species has too little data to estimate batch statistics reliably.</li>
+        <li>Apply mixup aggressively between the rare species and the most common species to synthetically multiply the rare class's example count.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: A.</strong> Fine-tuning every layer at a normal learning rate on a dataset this imbalanced lets the abundant common-species gradient dominate updates everywhere, including early layers that didn't need to change; freezing early general-purpose features and adapting only later layers, combined with weighting the loss so the 40 rare-species images aren't drowned out, targets both real problems (limited data, extreme imbalance) directly.</p>
+          <p>D is the tempting distractor because mixup does address low example count on paper, but blending a rare species with a common one produces a soft label with no real deployment analogue and can dilute the already-thin rare-species signal rather than concentrating it — the opposite of what's needed here.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Computer Vision · Unit 3 of 8 — Unit 4 moves from whole-image classification to object detection: drawing boxes around every animal a frame contains, not just naming the one that fills it.</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 6 · Vision transformers and modern architectures — Computer Vision</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Computer Vision · Unit 6 of 8</p>
+  <h1>Vision transformers and modern architectures</h1>
+  <p class="lede">The CNN's convolutional priors gave way, at catalogue scale, to a model that learns spatial structure from data alone. This unit covers the Vision Transformer, the hierarchical and efficient variants that made it deployable, and the self-supervised and multimodal training regimes — SimCLR, MAE, CLIP — that let a single embedding space power classification, retrieval, and zero-shot visual search across a product catalogue.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. The Vision Transformer</a></li>
+      <li><a href="#lesson-2">2. Making ViTs practical: hierarchical and efficient variants</a></li>
+      <li><a href="#lesson-3">3. Self-supervised and multimodal vision</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>The Vision Transformer</h2>
+    <p class="opening">Every convolutional network you've built in this course, from the earliest edge-detecting filters through ResNet's skip connections, ships with two assumptions baked into its architecture before it sees a single training image. The first is <span class="term">locality</span>: a 3×3 kernel only ever looks at a pixel's immediate neighbors, so the network assumes that nearby pixels are the ones worth relating to each other. The second is <span class="term">translation equivariance</span>: the same kernel slides over the whole image, so a handbag's clasp is detected the same way whether it sits in the top-left corner of the frame or the bottom-right. These are good assumptions — they're <em>why</em> CNNs learned efficiently from the comparatively modest datasets available through most of the 2010s. But they are still assumptions, hand-coded into the architecture rather than learned from data. At the scale of a real e-commerce catalogue — tens of millions of listing photos, studio shots and user uploads, tight crops and cluttered backgrounds — a natural question emerges: if you have enough images, can a model discover better spatial relationships on its own, rather than being told in advance which pixels are allowed to talk to each other?</p>
+    <p>That is precisely the bet the Vision Transformer (ViT) made in 2020. Instead of convolving, it borrows the recipe from Course 2's sequence transformers wholesale: turn the input into a sequence of tokens, embed each token, add position information, and run it through ordinary self-attention layers. The only genuinely new idea is how you turn a 2-D image into a 1-D sequence of tokens in the first place.</p>
+
+    <h3>Patchify, then transformer</h3>
+    <p>ViT slices an image into a grid of fixed-size, non-overlapping <span class="term">patches</span> — typically 16×16 pixels — and treats each patch exactly the way Course 2 treated a wordpiece: as one token in a sequence. A 224×224 product photo becomes a 14×14 grid of patches, or 196 tokens. Each patch is flattened from a (16, 16, 3) block of pixels into a 768-length vector and passed through a single learned linear layer — the <span class="term">patch embedding</span> — to produce the token's initial representation. There is no hierarchy of convolutions building up receptive field; the patch embedding is the entire "stem." From that point on, every patch token can attend to every other patch token, immediately, in layer one. A shift toe-cap detail in a sneaker photo can directly attend to the toe-cap detail eleven patches away, without needing to wait for pooling layers to enlarge the receptive field, the way a CNN would.</p>
+    <p>Because self-attention has no inherent notion of order or position — Course 2 covered this when it introduced positional encodings for text — ViT prepends a learnable <span class="term">[CLS] token</span> to the sequence, the same device BERT used for sentence-level classification, and adds a learned <span class="term">position embedding</span> to every token, including [CLS]. For images the position embeddings are typically learned per grid location (a 1-D embedding per one of the 196 flattened positions, sometimes factored into row and column embeddings), rather than the fixed sinusoidal scheme sometimes used for text. After the full transformer encoder stack processes the sequence, the final [CLS] token's representation is fed to a classification head — in a retail setting, a head predicting product category, or an embedding to be matched against other product embeddings for visual search.</p>
+
+    <h3>The data-hunger problem</h3>
+    <p>Here is the honest cost of dropping the convolutional prior: a CNN starts training already knowing that nearby pixels matter and that features are reusable across positions. ViT has to <em>learn</em> both of those facts from examples, because nothing in its architecture assumes them. The original ViT paper made this explicit with a blunt experiment: trained on ImageNet-1k alone (about 1.3 million images), ViT clearly underperformed a comparable ResNet. Trained on JFT-300M — Google's internal dataset of roughly 300 million images — ViT overtook the CNN and kept improving as more data was added, while the CNN's gains flattened out. The lesson generalizes directly to a retail catalogue: if your product-image dataset is small — a boutique with ten thousand SKUs — a CNN's built-in priors will likely win, because the model doesn't have enough examples to rediscover locality from scratch. If you operate a marketplace with tens of millions of listing photos across thousands of sellers, a ViT has enough signal to learn spatial structure that's actually adapted to your data, rather than the generic locality assumption a convolution hard-codes — potentially picking up on longer-range regularities, like the relationship between a bag's overall silhouette and a logo tucked in a corner, that a local kernel would need many layers to connect.</p>
+    <p>Practitioners rarely train a ViT from scratch on their own catalogue. The standard path is to take a ViT pretrained on a huge, broad image corpus and fine-tune it on catalogue-specific data — a transfer-learning move that should feel familiar from Course 2's pretrain-then-fine-tune pattern for language models. A middle path also matters in production: <span class="term">hybrid stems</span> replace the raw linear patch embedding with a small convolutional stem (a few conv layers) that produces the patch tokens, borrowing a little locality prior back at the very first layer while keeping pure self-attention for everything after. Hybrids often converge faster and need somewhat less data than a fully linear patch embedding, at the cost of a small amount of architectural complexity — a reasonable trade when a catalogue is large but not JFT-300M-large.</p>
+
+    <h3>Patch embedding in code</h3>
+    <p>The mechanism worth tracing by hand is the reshape-and-project step that turns an image into a token sequence — everything downstream is just the Course 2 transformer encoder.</p>
+    <pre><code>import numpy as np
+
+def patchify(image, patch_size=16):
+    # image: (H, W, C) product photo, H and W divisible by patch_size
+    H, W, C = image.shape
+    ph = pw = patch_size
+    n_h, n_w = H // ph, W // pw
+
+    # (H, W, C) -> (n_h, ph, n_w, pw, C) -> (n_h, n_w, ph, pw, C)
+    patches = image.reshape(n_h, ph, n_w, pw, C).transpose(0, 2, 1, 3, 4)
+    # flatten each patch to a single token vector
+    patches = patches.reshape(n_h * n_w, ph * pw * C)
+    return patches  # (num_patches, patch_dim)
+
+def patch_embed(image, W_embed, cls_token, pos_embed, patch_size=16):
+    tokens = patchify(image, patch_size)               # (196, 768) for 16x16 patches on 224x224x3
+    tokens = tokens @ W_embed                            # linear projection -> (196, d_model)
+    tokens = np.concatenate([cls_token, tokens], axis=0)  # prepend [CLS] -> (197, d_model)
+    tokens = tokens + pos_embed                          # add learned position embeddings
+    return tokens
+
+# demo shapes for a 224x224 product photo, d_model = 768
+image = np.random.rand(224, 224, 3)
+patch_dim = 16 * 16 * 3                    # 768
+d_model = 768
+W_embed = np.random.randn(patch_dim, d_model) * 0.02
+cls_token = np.random.randn(1, d_model) * 0.02
+pos_embed = np.random.randn(197, d_model) * 0.02
+
+tokens = patch_embed(image, W_embed, cls_token, pos_embed)
+print(tokens.shape)   # (197, 768): 196 patch tokens + 1 [CLS] token, each 768-dim
+</code></pre>
+    <p class="caption">The patchify reshape is the whole trick: a (224, 224, 3) image becomes 196 flat 768-length vectors before any learning happens; the linear layer, [CLS] token, and position embeddings are the only image-specific additions on top of an otherwise ordinary transformer encoder.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>ViT trades hand-coded priors for learned ones.</strong> CNNs bake in locality and translation equivariance via the convolution operation; ViT has neither and must learn spatial structure from data, which is why it needs far more training images to match a CNN.</li>
+        <li><strong>Patchify is the only vision-specific step.</strong> A 16×16 patch becomes one token, flattened and linearly projected — the transformer encoder that follows is identical in kind to the one Course 2 used for text.</li>
+        <li><strong>[CLS] and 2-D position embeddings replace what convolution gave for free.</strong> Since self-attention is permutation-invariant, position embeddings are the only thing telling the model where each patch sat in the original grid.</li>
+        <li><strong>The JFT-300M result is a data-scale threshold, not a universal win.</strong> Below roughly ImageNet-1k scale, a CNN generally beats a from-scratch ViT; a boutique catalogue of 10k SKUs behaves differently than a marketplace with tens of millions of listing photos.</li>
+        <li><strong>Hybrid stems split the difference.</strong> A small convolutional stem feeding into a transformer body recovers some locality prior and eases the data requirement, at modest architectural cost.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Making ViTs practical: hierarchical and efficient variants</h2>
+    <p class="opening"><span class="term">Global self-attention over image patches costs quadratic time and memory in the number of tokens</span> — the same O(n²) attention cost Course 2 Unit 5 flagged for long text sequences, except images make the sequence long by default. A 224×224 image at 16×16 patches is already 196 tokens; double the resolution to catch fine handbag-hardware detail and you're at 784 tokens, pushing attention cost up by roughly 16×. A retail catalogue that wants to zoom into stitching, logos, and material texture — the differences that separate two nearly identical handbags — needs higher resolution than 224×224 gives you, and plain ViT gets expensive fast exactly when you need it most.</p>
+
+    <h3>Swin: windows restore a hierarchy</h3>
+    <p>The <span class="term">Swin Transformer</span> (2021) solves the cost problem by giving up global attention within a layer and instead computing self-attention inside small, fixed-size local windows — typically 7×7 patches. Attention cost within a window is constant regardless of image size, and since the number of windows grows only linearly with image area, total cost becomes linear in the number of tokens rather than quadratic. The catch: a patch in one window can no longer see a patch in a neighboring window, so information can't cross window boundaries within a single layer. Swin's fix is the <span class="term">shifted window</span>: alternating layers offset the window grid by half a window's width, so patches that were split into two separate windows in one layer end up sharing a window in the next. Stack enough shifted-window layers and information effectively propagates across the whole image, without ever paying for full quadratic attention.</p>
+    <p>Swin also restores something ViT gave up: a multi-scale hierarchy. Every few layers, Swin merges 2×2 neighboring patches into one, halving the token count and doubling the channel depth — structurally identical to a CNN's pooling-and-downsampling stages, and it produces the same pyramid of feature-map resolutions that detection and segmentation heads (built in earlier units) expect as input. This is why Swin, rather than plain ViT, became the default vision-transformer backbone for object detection: a plain ViT's single-resolution output doesn't naturally feed a feature-pyramid detection head, while Swin's does.</p>
+    <p>One implementation subtlety worth naming, because it is the kind of thing that silently breaks a from-scratch reimplementation: the "shift" in shifted-window attention is a <em>cyclic</em> shift (patches that fall off one edge wrap around to the opposite edge, via something like a numpy roll), not a crop-and-pad. A naive pad-based shift would waste computation on empty padding regions and would need a variable number of windows per image. The cyclic-roll trick keeps every image at exactly the same fixed number of equally-sized windows before and after the shift, at the cost of one extra piece of bookkeeping: an attention mask that prevents patches which only ended up adjacent because of the wraparound (say, the left edge of the image now sitting next to the right edge) from attending to each other as if they were truly neighboring content. Skipping that mask is a classic Swin bug — the model still runs and shapes still check out, but it quietly lets a bag on the left border of a photo attend to unrelated background pixels wrapped in from the right border.</p>
+
+    <h3>DeiT: teaching a ViT to be data-efficient</h3>
+    <p><span class="term">DeiT</span> (Data-efficient image Transformer, 2021) attacks the data-hunger problem from Lesson 1 directly, without touching the architecture. It adds a second, distillation-specific token alongside [CLS], trained to match the predictions of a pretrained CNN teacher rather than the ground-truth label. This is <span class="term">knowledge distillation</span>: the CNN's convolutional prior gets transferred into the ViT student as a soft training signal, in effect handing the transformer a shortcut to the locality bias it can't get from its architecture. The result was a ViT trained on ImageNet-1k alone — no JFT-300M — that matched CNN accuracy, closing the exact gap Lesson 1 described as ViT's chief weakness. For a mid-sized retailer without a 300-million-image pretraining corpus, DeiT-style distillation from an existing CNN classifier is a realistic route to ViT-level accuracy.</p>
+    <p>The distillation token matters specifically because it is trained differently from [CLS]: [CLS] is pushed toward the ground-truth label the way any classifier head would be, while the distillation token is pushed toward the CNN teacher's predicted distribution, including the teacher's mistakes and its particular way of being uncertain between, say, two visually similar tote-bag subtypes. At inference time both tokens' predictions are typically averaged. Practitioners have found the CNN teacher matters more than the ViT student's size — a strong CNN teacher (a well-trained RegNet or ResNet already familiar with the catalogue's visual distribution) transfers more useful bias than a weak one, so the choice of teacher is itself a tuning decision, not an afterthought.</p>
+
+    <table class="tbl">
+      <tr><th>Variant</th><th>Attention cost</th><th>Data efficiency</th><th>Best fit</th></tr>
+      <tr><td>Plain ViT</td><td>Quadratic, global</td><td>Poor without huge pretraining data</td><td>Whole-image classification/embedding at very large pretrain scale</td></tr>
+      <tr><td>Swin</td><td>Linear, local + shifted</td><td>Moderate; hierarchy helps</td><td>Detection/segmentation needing multi-scale features</td></tr>
+      <tr><td>DeiT</td><td>Quadratic, global (ViT body)</td><td>Good via CNN distillation</td><td>ViT accuracy without a JFT-scale corpus</td></tr>
+      <tr><td>ConvNeXt</td><td>Linear (pure conv)</td><td>Good, CNN-typical</td><td>Latency-sensitive serving where attention adds no measured gain</td></tr>
+      <tr><td>MaxViT</td><td>Linear-ish, local + sparse global</td><td>Moderate</td><td>Cheap long-range mixing without full Swin-style depth propagation</td></tr>
+    </table>
+
+    <h3>ConvNeXt's rebuttal, and the honest state of play</h3>
+    <p><span class="term">ConvNeXt</span> (2022) is the pointed counter-argument: take a plain ResNet and modernize its training recipe and small architectural details — larger convolution kernels (7×7 depthwise), fewer normalization layers, GELU instead of ReLU, an inverted-bottleneck block layout borrowed from transformer MLPs — while keeping it a pure CNN with no attention at all. The result matched or beat Swin at comparable size on ImageNet. The finding worth sitting with is not "CNNs win after all" — it's that a large share of ViT's reported advantage over old-style CNNs came from modern training recipes (better augmentation, longer schedules, AdamW, label smoothing) that had simply never been applied to the CNN side of the comparison. Once applied evenly, architecture mattered far less than the paper narratives implied.</p>
+    <p>The practical, slightly deflating truth for a catalogue team choosing a backbone in 2026: for many real product-classification and retrieval tasks, a well-tuned ConvNeXt and a well-tuned Swin land within noise of each other, and the deciding factors are data volume, inference latency budget, and existing infra — not some inherent architectural superiority. <span class="term">MaxViT</span> and similar hybrid designs (alternating local windowed attention with sparse "grid" attention that samples one token per window across the whole image, giving cheap long-range mixing) sit in between, and are a reasonable choice when you want some global reasoning without Swin's information having to propagate window-by-window. Choose the backbone that fits your latency and data budget; don't assume "transformer" is a synonym for "better."</p>
+
+    <h3>Shifted windows in code</h3>
+    <pre><code>import numpy as np
+
+def window_partition(x, window_size):
+    # x: (H, W, C) grid of patch tokens
+    H, W, C = x.shape
+    x = x.reshape(H // window_size, window_size, W // window_size, window_size, C)
+    x = x.transpose(0, 2, 1, 3, 4)                      # group by window, not by row
+    windows = x.reshape(-1, window_size * window_size, C)
+    return windows  # (num_windows, window_size*window_size, C)
+
+def shifted_window_partition(x, window_size, shift):
+    # cyclic shift moves boundary patches so a later un-shift + merge
+    # lets attention reach across the original window edges
+    x_shifted = np.roll(x, shift=(-shift, -shift), axis=(0, 1))
+    return window_partition(x_shifted, window_size)
+
+# demo: an 8x8 grid of 96-dim patch tokens (post patch-merging, small for illustration)
+H, W, C = 8, 8, 96
+tokens = np.random.randn(H, W, C)
+window_size, shift = 4, 2
+
+regular_windows = window_partition(tokens, window_size)
+shifted_windows = shifted_window_partition(tokens, window_size, shift)
+print(regular_windows.shape)   # (4, 16, 96): 4 windows of 4x4=16 tokens each
+print(shifted_windows.shape)   # (4, 16, 96): same shape, different token membership per window
+</code></pre>
+    <p class="caption">Both partitions produce the same (4, 16, 96) shape — 4 windows of 16 tokens — but the shift changes which tokens land in the same window, which is exactly what lets information cross the original window boundaries every other layer without any increase in attention cost.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Global attention over patches is quadratic in token count</strong> — the same cost problem Course 2 flagged for long sequences, worsened by the fact that higher image resolution (needed for fine-grained distinctions) multiplies token count.</li>
+        <li><strong>Swin trades global attention for local-window attention plus a hierarchy</strong>, restoring linear cost and a multi-scale feature pyramid that detection and segmentation heads expect; shifted windows let information cross window boundaries every other layer.</li>
+        <li><strong>DeiT closes ViT's data gap through distillation</strong>, not architecture — a distillation token learns from a pretrained CNN teacher, letting a ViT match CNN accuracy on ImageNet-1k alone.</li>
+        <li><strong>ConvNeXt shows training recipe, not attention, explained much of ViT's reported edge</strong> — a modernized pure CNN matches transformer backbones at comparable scale.</li>
+        <li><strong>For most real catalogues, backbone choice is a latency/data/infra decision</strong>, not an architecture-superiority question — a strong CNN and a strong ViT variant are often within noise of each other.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Self-supervised and multimodal vision</h2>
+    <p class="opening">Every technique in the first two lessons still assumed labeled data: an ImageNet class, a bounding box, a product category typed in by a merchandiser. But a real catalogue accumulates images far faster than anyone can label them — a marketplace onboarding thousands of new sellers a day cannot hand-annotate every uploaded photo with category, attributes, and near-duplicate relationships before a model ever sees it. The label-cost problem pushed vision research toward the same destination NLP had already reached, and reached in roughly the same order. First came <span class="term">contrastive self-supervised learning</span>: SimCLR (2020) and MoCo (2019–2020) trained encoders by pulling together two augmented views of the same image (a crop, a color jitter, a flip) while pushing apart views of different images, with no labels at all — augmentation itself became the supervisory signal. Then came <span class="term">masked image modeling</span>: MAE (2021) adapted BERT's mask-and-predict pretraining (Course 2 Unit 4) to pixels. And in 2021, <span class="term">CLIP</span> united the vision and language sides entirely, training on image-text pairs scraped from the web rather than any hand-labeled category taxonomy — which is the piece that makes "find products like this photo" possible at all.</p>
+
+    <h3>Contrastive learning: augmentation as the label</h3>
+    <p>SimCLR's recipe is deceptively simple: take a product photo, generate two different augmented views of it (say, a random crop plus color distortion, and a different random crop plus a grayscale conversion), pass both through the same encoder, and train with a contrastive loss — the InfoNCE loss Course 2 Unit 4 introduced for language-model negative sampling — that pulls the two views' embeddings together while pushing them away from the embeddings of every other image in the batch. Nothing in this process ever touches a category label. What the model learns is an embedding space where images that are "the same underlying thing, viewed differently" land near each other. For a catalogue, this is a natural fit for building a visual-similarity index: an encoder pretrained this way on millions of unlabeled product photos produces embeddings well-suited to nearest-neighbor retrieval — "customers who viewed this bag also viewed these" — well before any classification head is trained on top of it. MoCo's contribution was mostly practical: it keeps a large, slowly-updated queue of negative embeddings (via a momentum-updated encoder copy) so the effective negative-sample pool doesn't require the enormous batch sizes SimCLR needed to see enough negatives per step.</p>
+
+    <h3>Masked image modeling: BERT's trick, translated to pixels</h3>
+    <p><span class="term">MAE</span> (Masked Autoencoders) applies BERT's masked-token prediction idea to images: mask out a large fraction of image patches, encode only the visible ones, and train a lightweight decoder to reconstruct the missing patches' raw pixels. The detail that surprises people coming from Course 2 is the mask ratio: BERT masks roughly 15% of tokens, but MAE masks around 75% of patches — five times higher — and still trains a useful encoder. The reason is information density. A masked word in a sentence is usually recoverable only from long-range syntactic and semantic context, because language is information-dense token-by-token; predicting it forces real understanding. A masked <em>patch</em> in an image, by contrast, is highly predictable from its immediate unmasked neighbors — pixels are spatially redundant, so a low mask ratio would let the model cheat by simple interpolation, learning almost nothing useful. Masking 75% removes enough local redundancy that the encoder is forced to build genuinely global representations of the object's structure to fill in the gaps. This single contrast — why the "right" mask ratio differs by an order of magnitude between text and images — is the clearest illustration in this course of why architectures and training recipes must be adapted to a modality's actual statistics, not copied mechanically.</p>
+
+    <h3>CLIP: one embedding space for images and text</h3>
+    <p><span class="term">CLIP</span> (Contrastive Language-Image Pretraining) trains two separate encoders — an image encoder (ViT or CNN) and a text encoder (a transformer, per Course 2) — with a contrastive objective structurally identical to the InfoNCE loss from Course 2 Unit 4, except now the positive pairs are (image, caption) pairs scraped from the web rather than augmented views of one image. Training pushes a photo's embedding and its caption's embedding together, and pushes it apart from every other caption's embedding in the batch. The payoff is a single shared space where images and text are directly comparable by cosine similarity, and it unlocks two capabilities a purely visual encoder cannot offer. <span class="term">Zero-shot classification</span>: embed a product photo, embed a handful of category names as text prompts ("a photo of a crossbody bag," "a photo of a tote bag"), and pick whichever text embedding is closest — with no classifier ever explicitly trained for that category set. <span class="term">Text-to-image retrieval</span>, i.e. visual search: a shopper's typed query ("brown leather bag with gold buckle") is embedded by the text tower and compared against the catalogue's pre-computed image embeddings, returning the nearest matches — no separate text-search index or manual tagging required.</p>
+    <p>CLIP is not a free lunch, and the failure modes matter for a retail deployment. It has a well-documented <span class="term">bag-of-words weakness</span>: because the contrastive objective rewards matching the overall gist of a caption to an image, CLIP embeddings often fail to represent word order and compositional structure — "a red bag next to a blue shoe" and "a blue bag next to a red shoe" can embed almost identically, which is a real problem for attribute-specific product search ("black strap, tan body" vs. "tan strap, black body"). And CLIP's zero-shot accuracy is sensitive to <span class="term">distribution shift</span>: a model whose web-scraped training images skew toward clean, front-facing, well-lit product photography will show a measurable accuracy drop on cluttered, poorly lit, off-angle user-submitted photos — the studio-vs-user-photo gap that any user-generated-content marketplace has to test for explicitly, typically by holding out a validation set drawn specifically from real user uploads rather than trusting studio-photo benchmark numbers.</p>
+
+    <h3>Zero-shot classification in code</h3>
+    <pre><code>import numpy as np
+
+def normalize(v, axis=-1):
+    return v / np.linalg.norm(v, axis=axis, keepdims=True)
+
+def clip_zero_shot(image_embed, text_embeds, labels, temperature=0.07):
+    # image_embed: (d,) from the image encoder
+    # text_embeds: (num_labels, d) from the text encoder, one per prompt
+    image_embed = normalize(image_embed)
+    text_embeds = normalize(text_embeds)
+
+    similarities = text_embeds @ image_embed          # (num_labels,) cosine similarities
+    logits = similarities / temperature                # scale before softmax
+    exp = np.exp(logits - logits.max())                # numerically stable softmax
+    probs = exp / exp.sum()
+
+    for label, p in sorted(zip(labels, probs), key=lambda x: -x[1]):
+        print(f"{label:>24s}: {p:.3f}")
+    return labels[int(np.argmax(probs))]
+
+# demo: one product photo embedding vs. four candidate category prompts
+d = 512
+rng = np.random.default_rng(0)
+image_embed = rng.normal(size=d)
+
+labels = [
+    "a photo of a crossbody bag",
+    "a photo of a tote bag",
+    "a photo of a backpack",
+    "a photo of a clutch",
+]
+text_embeds = rng.normal(size=(4, d))
+text_embeds[0] += image_embed * 0.6   # bias one prompt to resemble the image, for the demo
+
+winner = clip_zero_shot(image_embed, text_embeds, labels)
+print("predicted:", winner)
+</code></pre>
+    <p class="caption">The core of zero-shot CLIP classification is three lines: normalize both towers' embeddings to unit length, take a dot product to get cosine similarities, and softmax over those similarities — no classification head or category-specific training was ever involved, so adding a new category is as cheap as writing a new text prompt.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Contrastive SSL (SimCLR, MoCo) turns augmentation into a label</strong>, using the InfoNCE loss from Course 2 to pull together two views of one image and push apart different images — useful directly for building a visual-similarity retrieval index with zero manual labels.</li>
+        <li><strong>MAE reconstructs masked patches like BERT reconstructs masked tokens</strong>, but needs a far higher mask ratio (about 75% vs. BERT's 15%) because images are spatially redundant and a low mask ratio lets the model cheat by local interpolation.</li>
+        <li><strong>CLIP's dual-encoder contrastive training on image-text pairs</strong> creates one shared embedding space, enabling zero-shot classification (compare an image to text-prompt embeddings) and text-to-image retrieval (visual search from a typed query) without task-specific training.</li>
+        <li><strong>CLIP has a bag-of-words weakness</strong> — compositional, attribute-order queries ("black strap, tan body" vs. the reverse) can embed nearly identically, a real risk for fine-grained attribute search.</li>
+        <li><strong>Studio-vs-user-photo distribution shift degrades zero-shot accuracy in practice</strong> — validate on real user-uploaded images, not just clean catalogue photography, before trusting a deployment's numbers.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 6 quiz</h2>
+    <p class="quiz-intro">Eight questions spanning ViT mechanics, Swin's windowing, the CNN-vs-ViT honest comparison, and self-supervised/multimodal training — several are multi-step or "looks right but breaks when..." scenarios.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A plain ViT-Base is fine-tuned on a boutique's catalogue of 8,000 product photos (no pretraining, trained from scratch) and underperforms a ResNet-50 trained from scratch on the same data. What is the most likely explanation?</p>
+      <ol class="choices" type="A">
+        <li>ViT's [CLS] token cannot represent classification tasks as well as global average pooling.</li>
+        <li>ViT has no convolutional inductive bias, so at this data scale it hasn't seen enough examples to learn locality and translation structure on its own, while the CNN gets those for free architecturally.</li>
+        <li>16×16 patches are too large to capture fine product detail.</li>
+        <li>Self-attention cannot express translation equivariance in principle, at any data scale.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> This is exactly the JFT-300M lesson from Lesson 1: at small data scale (8,000 images is far below even ImageNet-1k), a from-scratch ViT underperforms a CNN because it must learn spatial priors the CNN has built in. This is a data-scale effect, not a fundamental limitation.</p>
+          <p>D is the tempting-sounding but wrong distractor: self-attention absolutely <em>can</em> express translation-equivariant behavior given enough data and appropriate position embeddings — ViT at JFT-300M scale outperforms CNNs, which would be impossible if attention couldn't express the needed structure at all. The limitation is about data efficiency, not expressive capacity.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">In ViT's patch embedding, a 224×224×3 image split into 16×16 patches produces <span class="blank">&nbsp;</span> patch tokens before the [CLS] token is prepended.</p>
+      <ol class="choices" type="A">
+        <li>49</li>
+        <li>196</li>
+        <li>224</li>
+        <li>768</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B, 196.</strong> 224 / 16 = 14 patches per side, so 14 × 14 = 196 patches total.</p>
+          <p>768 is the tempting distractor because it's the patch embedding dimension (16×16×3 = 768 raw pixel values per patch, which the linear layer projects to d_model, often also 768) — a size that shows up in the same sentence but answers a different question than "how many tokens."</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Because Swin Transformer restricts self-attention to local windows, a single Swin layer has strictly less representational power than a plain ViT layer with full global attention, and Swin can never match ViT's accuracy on any task.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> A single Swin layer does have restricted attention, but shifted windows across successive layers let information propagate across the whole image over depth, and Swin's hierarchical downsampling additionally gives it multi-scale features ViT lacks. In practice Swin has matched or beaten plain ViT on many benchmarks, particularly detection and segmentation where the feature pyramid matters.</p>
+          <p>The reasoning error is judging an architecture's power from one layer in isolation — depth and the shift mechanism recover the effective receptive field that a single windowed layer gives up, and the multi-scale hierarchy is an added capability plain ViT doesn't have at all.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">An engineer implements MAE-style pretraining for a catalogue-image encoder but sets the mask ratio to 15%, copying the value directly from a BERT config, reasoning "it's the same mask-and-reconstruct idea, so the same ratio should transfer." Training loss drops quickly and the model reconstructs images near-perfectly, but the encoder performs poorly when fine-tuned for downstream product classification. What is wrong, and what should change?</p>
+      <pre><code>mask_ratio = 0.15   # copied from BERT
+masked_patches = mask_random_patches(image_patches, mask_ratio)
+encoder_out = encoder(unmasked_patches_only(masked_patches))
+reconstruction = decoder(encoder_out)
+loss = mse(reconstruction, original_patches)</code></pre>
+      <ol class="choices" type="A">
+        <li>The loss function is wrong; MAE should use cross-entropy, not MSE, on pixel values.</li>
+        <li>The mask ratio is far too low for images; at 15% masking, most patches are trivially recoverable from unmasked neighbors by local interpolation, so the encoder learns to exploit spatial redundancy instead of building useful global representations. It should be around 75%.</li>
+        <li>The decoder should be as large as the encoder, matching BERT's symmetric architecture.</li>
+        <li>Nothing is wrong; low reconstruction loss confirms the encoder learned good representations.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Images are spatially redundant in a way text isn't — a masked patch is usually predictable from its immediate unmasked neighbors. A 15% mask ratio, appropriate for BERT's information-dense text tokens, is far too easy for images and lets the model reconstruct via simple interpolation without learning global structure. MAE uses roughly 75% masking specifically to remove that shortcut.</p>
+          <p>D is the trap: low reconstruction loss looks like success, but it's precisely the <em>symptom</em> of the bug — the model reconstructing easily via local interpolation is what low mask ratio enables, and it is exactly what makes the resulting encoder representations weak for downstream tasks. Low training loss does not imply useful learned features here.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A marketplace wants shoppers to type a text query like "quilted black shoulder bag with chain strap" and retrieve matching product photos. Which architecture directly enables this without any labeled category taxonomy?</p>
+      <ol class="choices" type="A">
+        <li>A Swin Transformer classifier fine-tuned on a fixed set of product categories.</li>
+        <li>A SimCLR-pretrained image encoder used alone.</li>
+        <li>CLIP, whose contrastively-trained dual encoders place images and text in one shared embedding space, so a text query embeds into the same space as catalogue image embeddings.</li>
+        <li>An MAE-pretrained encoder, since its decoder can generate text captions from images.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> Text-to-image retrieval requires text and images to live in one comparable embedding space — that's exactly what CLIP's image-text contrastive training produces, letting a text query's embedding be compared by cosine similarity against precomputed catalogue image embeddings.</p>
+          <p>B is the tempting distractor: SimCLR produces a strong <em>image-only</em> embedding space (useful for image-to-image similarity), but it was never trained against text, so a text query has no meaningful representation in that space at all. D is wrong for a different reason — MAE's decoder reconstructs masked <em>pixels</em>, not captions; it has no language-generation capability.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">Complete the shifted-window helper so that a (H, W, C) grid of patch tokens is partitioned into non-overlapping local windows for windowed self-attention. Fill in the blank so the reshape correctly groups tokens by window rather than by row.</p>
+      <pre><code>def window_partition(x, window_size):
+    H, W, C = x.shape
+    x = x.reshape(H // window_size, window_size, W // window_size, window_size, C)
+    x = x.<span class="blank">&nbsp;</span>            # rearrange axes before flattening
+    windows = x.reshape(-1, window_size * window_size, C)
+    return windows</code></pre>
+      <ol class="choices" type="A">
+        <li><code>reshape(-1, C)</code></li>
+        <li><code>transpose(0, 2, 1, 3, 4)</code></li>
+        <li><code>flatten()</code></li>
+        <li><code>transpose(1, 0, 3, 2, 4)</code></li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B, <code>transpose(0, 2, 1, 3, 4)</code>.</strong> After the initial reshape the axes are (window_row, in_window_row, window_col, in_window_col, C). To group all tokens belonging to the same window together before flattening, window_row and window_col need to be adjacent, so window_col (axis 2) must move next to window_row (axis 0) — giving (window_row, window_col, in_window_row, in_window_col, C), which is what transpose(0, 2, 1, 3, 4) produces.</p>
+          <p>D swaps the wrong pair of axes — it would interleave in-window rows across different windows rather than grouping a single window's tokens together, silently producing windows that mix patches from unrelated spatial regions. The bug wouldn't crash (shapes still match) but attention would mix the wrong tokens.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A team benchmarks ConvNeXt against Swin Transformer on their product-category classification task, both trained with the same modern recipe (AdamW, strong augmentation, long schedule), and finds accuracy within 0.3% of each other. What is the best conclusion to draw?</p>
+      <ol class="choices" type="A">
+        <li>The benchmark must be flawed, since transformers are architecturally superior to CNNs for vision.</li>
+        <li>This matches the broader finding that a large share of ViT-family gains over older CNNs came from modernized training recipes rather than attention itself — once recipes are matched, backbone choice becomes a data/latency/infra decision, not an architecture-superiority one.</li>
+        <li>ConvNeXt must be internally using self-attention, which is why it matches Swin.</li>
+        <li>The result is only possible because the catalogue is unusually small; at scale Swin would pull ahead.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> This is exactly the ConvNeXt rebuttal from Lesson 2: it's a pure CNN with modernized training and design details, and it matches transformer backbones at comparable scale, showing recipe mattered more than the presence of attention.</p>
+          <p>C is the tempting-but-wrong distractor: ConvNeXt is explicitly attention-free — its improvements come from things like larger depthwise kernels, GELU, fewer normalization layers, and an inverted-bottleneck block, not from adding any self-attention mechanism.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A CLIP-based zero-shot classifier, trained mostly on clean web-scraped studio-style product photos, is deployed to auto-tag photos that sellers upload from their phones. Accuracy is noticeably lower on the phone uploads than in the studio-photo benchmark that was used to select the model. Separately, the model also confuses "a tan bag with a black strap" with "a black bag with a tan strap." What best explains these two failures together?</p>
+      <ol class="choices" type="A">
+        <li>Both failures stem from the same root cause: too few training epochs.</li>
+        <li>The accuracy drop on phone photos is distribution shift (studio-vs-user-photo gap); the color/attribute confusion is CLIP's separate bag-of-words weakness, where compositional word order isn't well represented in the embedding — two distinct, well-documented CLIP failure modes, not one bug.</li>
+        <li>Both are caused by the mask ratio being set too low during pretraining.</li>
+        <li>Both would be fixed by switching from a ViT image encoder to a Swin image encoder inside CLIP.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> These are two independent, well-known CLIP limitations from Lesson 3: distribution shift (a model whose training skewed toward clean studio images degrades on cluttered, differently-lit user photos) and the bag-of-words weakness (contrastive training rewards overall gist-matching, not compositional/attribute-order structure). Diagnosing them as one root cause would send the team looking for a single fix that doesn't exist.</p>
+          <p>D is the trap: swapping the image tower's architecture might modestly affect the studio-vs-user-photo gap, but it does nothing for the bag-of-words problem, which comes from the contrastive training objective's insensitivity to word order — a text-encoder-and-objective issue, not an image-backbone issue. Mask ratio (C) is an MAE concept and isn't part of CLIP's contrastive training at all.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Computer Vision · Unit 6 of 8 — Unit 7 turns to generative vision models: GANs and diffusion, and how they learn to synthesize rather than just represent images.</p>
+</footer>
+</body>
+</html>
