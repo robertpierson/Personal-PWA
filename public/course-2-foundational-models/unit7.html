@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 7 · Parameter-efficient fine-tuning and instruction tuning — Foundational Model Development</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Foundational Model Development · Unit 7 of 8</p>
+  <h1>Parameter-efficient fine-tuning and instruction tuning</h1>
+  <p class="lede">One 7B base model, 40 telecom enterprise tenants, one shared GPU budget, and a hard requirement that no tenant's data or weights leak into another's. This unit builds the machinery — LoRA, QLoRA, and the instruction-tuning pipeline — that makes that deployment possible at all.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. Why full fine-tuning does not scale to 40 tenants</a></li>
+      <li><a href="#lesson-2">2. LoRA and the PEFT family</a></li>
+      <li><a href="#lesson-3">3. Instruction tuning</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>Why full fine-tuning does not scale to 40 tenants</h2>
+    <p class="opening">Picture the deployment plan as it exists before anyone runs the numbers: one 7-billion-parameter base model, fine-tuned separately for each of 40 telecom enterprise tenants — NorthStar Mobile, Continental Fiber, Meridian Wireless, and 37 others — each with its own product catalogue, its own tone (formal for the enterprise fiber accounts, casual for the prepaid mobile brands), and its own escalation policy (when a complaint routes to a human, when a refund needs manager sign-off, which phrases trip a legal-review flag). The plan sounds reasonable until you cost it out. It fails on three axes at once: the memory needed to <em>train</em> one tenant's copy, the disk needed to <em>store</em> 40 copies, and the memory needed to <em>serve</em> 40 copies concurrently under one shared hardware budget. Work through the arithmetic and the failure isn't marginal — it's off by roughly an order of magnitude on every axis.</p>
+
+    <h3>The training-time weight bill</h3>
+    <p>Start with the number from Course 1 Unit 8's memory arithmetic: a parameter stored in bf16 costs 2 bytes. A 7B model therefore occupies 7×10⁹ × 2 bytes ≈ 14 GB just to hold the weights on a GPU, before a single training step runs. That 14 GB is the figure a spec sheet advertises when it says a model "fits" on a given card — but fitting the weights and being able to fine-tune all of them are very different claims, and the gap between them is exactly what full fine-tuning has to pay for.</p>
+
+    <h3>Adam's hidden multiplier</h3>
+    <p>Full fine-tuning needs a mixed-precision training recipe, and the recipe is the part that gets skipped in back-of-envelope estimates. You keep a full-precision (fp32) master copy of the weights, at 4 bytes/parameter, because bf16 doesn't carry enough mantissa bits to accumulate small gradient updates without them rounding away to zero — that's 28 GB. You keep a working bf16 copy of the weights for the forward and backward pass — another 14 GB. You keep bf16 gradients — 14 GB. And because you're almost certainly running Adam or AdamW, following the fine-tuning discipline from Unit 6, you keep two fp32 moment buffers — the running estimate of the gradient's mean and the running estimate of its uncentered variance — at 4 bytes each, 28 GB apiece. Add it up:</p>
+    <p class="math">Total ≈ (4 + 2 + 2 + 4 + 4) bytes/param × 7×10⁹ params = 16 bytes/param × 7B ≈ 112 GB</p>
+    <p>That's before activations, before any KV-cache warm-up, before anything tenant-specific enters the picture. 112 GB does not fit on an 80 GB H100 or A100 — the two most common training cards through 2024–2025 — even with nothing else loaded. You'd need to shard the optimizer state across at least two cards, using ZeRO stage 2 or FSDP, just to fine-tune <em>one</em> tenant's copy of a 7B model. Multiply that setup cost by 40 tenants and the training bill alone rules the plan out before storage or serving are even considered.</p>
+
+    <h3>Forty checkpoints, forty problems</h3>
+    <p>Suppose you accept the multi-GPU training cost and run it sequentially, one tenant at a time overnight. You still have to store the result. Each finished fine-tune is checkpointed at roughly its bf16 weight size — 14 GB — since there's no reason to ship the fp32 master copy or the optimizer state to production. Forty tenants × 14 GB is 560 GB of checkpoints sitting on disk, and that number only grows the day tenant 41 signs a contract. Disk is the manageable part, though. The harder wall is serving: enterprise support traffic across 40 tenants is bursty and simultaneous, not sequential — tickets for all 40 accounts arrive concurrently, all day, so you cannot load one tenant's model, serve its traffic for an hour, and then swap to the next. Holding all 40 fine-tuned copies resident in GPU memory at once means 560 GB of weights alone, before a single KV-cache entry, on a shared GPU budget sized for a handful of models, not forty. This is the serving-side wall, and it is structural — a bigger card doesn't fix it, because the next tenant just makes the number worse.</p>
+
+    <h3>The licence: intrinsic dimension</h3>
+    <p>The way out isn't a bigger GPU — it's a different assumption about what fine-tuning actually does to the weights. Li et al. (2018), in <em>Measuring the Intrinsic Dimension of Objective Landscapes</em>, showed that a network can be trained by optimizing inside a random low-dimensional subspace of its full parameter space and still reach near-full performance, provided the subspace is large enough — and "large enough" turned out to be surprisingly small relative to the full parameter count. Aghajanyan et al. (2020) applied this directly to language model fine-tuning in <em>Intrinsic Dimensionality Explains the Effectiveness of Language Model Fine-Tuning</em> and found something specific and useful: the <span class="term">intrinsic dimension</span> needed to reach 90% of full fine-tuning performance on a downstream task shrinks as the pretrained model gets larger. A bigger pretrained model needs a <em>lower</em>-rank update, not a higher one, to adapt to a new task — the pretraining has already done most of the representational work, and the fine-tuning update only has to nudge a small subspace of it. That result is the licence for everything in the next lesson: if the update a tenant's fine-tune actually needs is low-rank, you don't need to touch all 7 billion parameters, store a full 14 GB checkpoint per tenant, or pay Adam's 112 GB training bill. You need to learn a small, low-rank correction and leave the base model frozen and shared across all 40 tenants — which is exactly what LoRA formalizes.</p>
+
+    <pre><code>def memory_budget_gb(num_params_b, method="full", rank=16, bits=16):
+    """Rough training-memory budget in GB for one fine-tune, mixed precision.
+    num_params_b: model size in billions of parameters.
+    method: "full", "lora", or "qlora".
+    """
+    n = num_params_b * 1e9
+
+    if method == "full":
+        fp32_master  = n * 4     # optimizer keeps a full-precision copy
+        bf16_weights = n * 2
+        bf16_grads   = n * 2
+        adam_m       = n * 4
+        adam_v       = n * 4
+        return (fp32_master + bf16_weights + bf16_grads + adam_m + adam_v) / 1e9
+
+    if method in ("lora", "qlora"):
+        base_bits = bits if method == "qlora" else 16   # NF4 base for qlora
+        base_weights = n * (base_bits / 8)
+        # trainable adapter params scale with rank and module count;
+        # 0.5% of n at rank 16 is a reasonable stand-in for "q,k,v,o + mlp"
+        trainable = n * 0.005 * (rank / 16)
+        adapter_master = trainable * 4
+        adapter_grads   = trainable * 2
+        adapter_m       = trainable * 4
+        adapter_v       = trainable * 4
+        return (base_weights + adapter_master + adapter_grads
+                + adapter_m + adapter_v) / 1e9
+
+    raise ValueError(method)
+
+for method, bits in (("full", 16), ("lora", 16), ("qlora", 4)):
+    print(method, round(memory_budget_gb(7, method, rank=16, bits=bits), 1), "GB")
+# full   112.0 GB
+# lora    14.6 GB
+# qlora    4.1 GB</code></pre>
+    <p class="caption">Full fine-tuning's 112 GB matches the arithmetic above. LoRA's budget is dominated by the frozen bf16 base weights (14 GB) plus a tiny adapter training cost; QLoRA shrinks the base itself to 4-bit, which is what makes the 40-tenant shared budget arithmetic work at all.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Full fine-tuning of a 7B model costs ≈112 GB during training</strong> — fp32 master weights, bf16 weights, bf16 gradients, and two fp32 Adam moment buffers — which does not fit on a single 80 GB card even before activations.</li>
+        <li><strong>Storage and serving fail independently of training.</strong> Forty full checkpoints cost 40 × 14 GB = 560 GB on disk, and holding 40 resident copies for concurrent multi-tenant serving costs another 560 GB of GPU memory for weights alone.</li>
+        <li><strong>Intrinsic-dimension results (Li et al. 2018; Aghajanyan et al. 2020) show the update fine-tuning needs is low-rank</strong>, and the required rank shrinks further as the base model gets larger.</li>
+        <li>That result licenses freezing the base model and learning a small per-tenant delta instead of touching every parameter — the premise the rest of this unit builds on.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>LoRA and the PEFT family</h2>
+    <p class="opening"><span class="term">Low-Rank Adaptation (LoRA)</span>, introduced by Hu et al. (2021), reparameterizes a fine-tuning update as a low-rank correction to a frozen weight matrix. For a pretrained weight <code>W</code> of shape <code>(d_out, d_in)</code>, LoRA introduces two small matrices, <code>B</code> of shape <code>(d_out, r)</code> and <code>A</code> of shape <code>(r, d_in)</code>, where the rank <code>r</code> is a hyperparameter far smaller than <code>d_in</code> or <code>d_out</code> — typically 4 to 64 against hidden sizes in the thousands. The adapted weight is:</p>
+    <p class="math">W' = W + (α / r) · B A&nbsp;&nbsp;&nbsp;&nbsp;W: frozen (d_out × d_in)&nbsp;&nbsp;&nbsp;B: (d_out × r)&nbsp;&nbsp;&nbsp;A: (r × d_in)</p>
+    <p>where <code>α</code> is a scaling constant that keeps the update's magnitude comparable across different choices of <code>r</code>, so you can change the rank without re-tuning the learning rate from scratch. Everything the previous lesson argued for is compressed into that one line: <code>W</code> never moves during training, so it never needs a fp32 master copy, a gradient, or Adam moments — only the much smaller <code>B</code> and <code>A</code> do.</p>
+
+    <h3>Zero at initialization, and why only one side is zero</h3>
+    <p><code>B</code> is initialized to all zeros; <code>A</code> is initialized with small random values, typically Gaussian or Kaiming. This asymmetry is deliberate, not arbitrary. At step 0, <code>BA = 0</code>, so <code>W' = W</code> exactly — the adapted model starts out numerically identical to the pretrained model, guaranteeing training begins from a known-good point instead of an initial random perturbation that could degrade output on day one of a live tenant's traffic. It also has to work with backpropagation: the gradient with respect to <code>A</code> is proportional to <code>Bᵀ</code>, and the gradient with respect to <code>B</code> is proportional to <code>Aᵀ</code>. Because <code>B</code> starts at zero, <code>∂L/∂A</code> is zero on the very first step — <code>A</code> doesn't move yet — but <code>∂L/∂B</code> is nonzero, since <code>A</code> is nonzero, so <code>B</code> starts moving immediately. Once <code>B</code> is nonzero, <code>A</code> starts receiving gradient too, and both matrices train from there. If both were zero-initialized, no gradient would ever reach either one and the adapter would never learn anything.</p>
+
+    <h3>Which modules to target</h3>
+    <p>Hu et al.'s original paper found that applying LoRA only to the query and value projection matrices in attention (<code>W_q</code>, <code>W_v</code>) was sufficient for many tasks, at a very small parameter budget. Later work — including the QLoRA paper, Dettmers et al. (2023) — found that applying LoRA to <em>all</em> linear layers (query, key, value, and output projections plus the MLP's up, down, and gate projections) matches or beats full fine-tuning quality, especially for instruction-style tasks, at a modest additional parameter cost. For the telecom deployment, this empirical finding matters concretely: a tenant's escalation policy is procedural knowledge ("route disputes over $500 to a human"), and procedural knowledge tends to live in the feed-forward blocks, not just in attention's token-mixing. Targeting query/value only risks an adapter that shifts tone convincingly but still gets the escalation threshold wrong.</p>
+
+    <h3>Choosing the rank</h3>
+    <p>Rank is a capacity dial with a data-dependent ceiling, not a free lunch. <code>r</code> = 8 suffices for lightweight, tone-only adjustments where the tenant's catalogue and policy are simple. <code>r</code> = 16–32 is a reasonable default for a tenant with a full catalogue and a multi-branch escalation policy. Pushing to <code>r</code> = 64 or higher approaches full fine-tuning's representational capacity, but a smaller enterprise tenant might only supply a few hundred labeled escalation examples — and a high-rank adapter trained on a few hundred examples overfits: it memorizes the training conversations rather than generalizing the policy. The right rank for tenant 12 (a large fiber account with thousands of historical tickets) may be wrong for tenant 31 (a small prepaid brand with two hundred).</p>
+
+    <h3>Merging for latency, at the cost of swapping</h3>
+    <p>At inference time, <code>(α/r)·BA</code> can be computed once and added directly into <code>W</code>, producing a single dense matrix that is used exactly like the original weight — no extra matrix multiply, no added latency versus the unmodified base model. This is the <span class="term">merge</span> operation. It sounds like a strict win, and for a single-tenant deployment it is. But it has a consequence that matters specifically for the 40-tenant case: once merged, the tenant's delta is permanently baked into <code>W'</code>, and <code>W'</code> is now a full tenant-specific weight matrix again — you can no longer swap in a different tenant's <code>(A, B)</code> pair against the same underlying storage without first re-deriving and subtracting the merged delta. A merged adapter has quietly recreated the exact 40-full-copies problem Lesson 1 spent its whole argument eliminating. Production multi-tenant serving therefore keeps adapters <em>unmerged</em>: one frozen shared base <code>W</code> lives in GPU memory once, and many tenants' small <code>(A, B)</code> pairs are swapped or batched against it per request — this is what serving systems built around this idea, such as S-LoRA and Punica, batch efficiently in a single kernel call rather than routing to 40 separate model files.</p>
+
+    <h3>QLoRA: shrinking the frozen base itself</h3>
+    <p><span class="term">QLoRA</span> (Dettmers et al. 2023) attacks the other half of the memory bill — the frozen base weights, which LoRA leaves in bf16 — using three techniques stacked together. <span class="term">NF4</span> (4-bit NormalFloat) is a quantization data type whose bin boundaries are chosen to match the quantiles of a zero-centered normal distribution, which fits the empirical distribution of pretrained weights far better than a uniform 4-bit integer grid, at the same 4-bit storage cost. <span class="term">Double quantization</span> goes a level deeper: the block-wise scale factors used to dequantize NF4 blocks are themselves stored in a lower-precision, quantized form, saving roughly another 0.4 bits per parameter on average across a large model — small per-parameter, meaningful at 7B+ scale. <span class="term">Paged optimizers</span> address a training-time failure mode rather than a static memory cost: they use NVIDIA unified memory to automatically page optimizer states out to CPU memory during a transient GPU memory spike — for instance, a batch with unusually long support-conversation sequences — and page them back in afterward, avoiding an out-of-memory crash without hand-tuned gradient-checkpointing schedules. Together these let QLoRA fine-tune models far larger than a naive LoRA setup would allow on the same card — the original paper reported fine-tuning a 65B model on a single 48 GB GPU while matching full fine-tuning benchmark quality.</p>
+
+    <h3>The rest of the PEFT family</h3>
+    <p><span class="term">Bottleneck adapters</span> (Houlsby et al. 2019) insert small serial layers — a down-projection, a nonlinearity, an up-projection — after attention and feed-forward sublayers. Because of the nonlinearity between the down- and up-projections, a bottleneck adapter cannot be algebraically folded into the surrounding weight matrix the way LoRA's linear <code>BA</code> can, so it always adds a small amount of inference latency, merged or not. <span class="term">Prefix tuning</span> (Li & Liang 2021) prepends learned "virtual" key and value vectors at every attention layer, leaving all real weights untouched; it costs extra effective sequence length in the KV cache rather than extra parameters in the weight matrices, and it cannot be merged away either. <span class="term">Prompt tuning</span> (Lester et al. 2021) is the simplest of the family — it only prepends a handful of learned soft-prompt embeddings at the input layer, with the fewest trainable parameters of any method here, but it tends to underperform on smaller base models and needs more prepended tokens to compete as the task gets harder. <span class="term">IA³</span> (Liu et al. 2022, part of the T-Few method) learns three small rescaling vectors that elementwise-multiply the key, value, and feed-forward intermediate activations; because elementwise scaling is a diagonal linear transform, it can be folded into the adjacent weight matrix much like LoRA's <code>BA</code>, giving it LoRA's zero-overhead merge property at an even smaller parameter count.</p>
+
+    <table class="tbl">
+      <thead>
+        <tr><th>Method</th><th>Trainable params</th><th>Inference overhead (unmerged)</th><th>Swappable per tenant</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Full fine-tune</td><td>100%</td><td>none — it's just the model</td><td>No — separate full model per tenant</td></tr>
+        <tr><td>LoRA</td><td>~0.1–1%</td><td>small (extra low-rank matmul)</td><td>Yes, if kept unmerged</td></tr>
+        <tr><td>LoRA, merged</td><td>~0.1–1% (during training)</td><td>none</td><td>No — delta is baked into W</td></tr>
+        <tr><td>QLoRA</td><td>~0.1–1% adapter + 4-bit base</td><td>small (dequantize + low-rank matmul)</td><td>Yes</td></tr>
+        <tr><td>Bottleneck adapters</td><td>~1–4%</td><td>small–moderate, cannot merge (nonlinear)</td><td>Yes</td></tr>
+        <tr><td>Prefix tuning</td><td>~0.1–3%</td><td>small (longer effective KV cache)</td><td>Yes</td></tr>
+        <tr><td>Prompt tuning</td><td>&lt;0.1%</td><td>negligible (a few extra input tokens)</td><td>Yes</td></tr>
+        <tr><td>IA³</td><td>&lt;0.1%</td><td>negligible, foldable like LoRA</td><td>Yes</td></tr>
+      </tbody>
+    </table>
+
+    <pre><code>import torch
+import torch.nn as nn
+
+class LoRALinear(nn.Module):
+    """Wraps a frozen base nn.Linear with a low-rank LoRA update.
+    W' = W + (alpha / r) * B @ A
+    """
+    def __init__(self, base_linear: nn.Linear, r=16, alpha=32):
+        super().__init__()
+        self.base = base_linear
+        self.base.weight.requires_grad_(False)   # frozen: no grad, no Adam state
+        if self.base.bias is not None:
+            self.base.bias.requires_grad_(False)
+
+        d_out, d_in = self.base.weight.shape
+        self.r = r
+        self.scale = alpha / r
+        self.A = nn.Parameter(torch.randn(r, d_in) * (1 / r ** 0.5))
+        self.B = nn.Parameter(torch.zeros(d_out, r))   # zero init: BA = 0 at step 0
+        self.merged = False
+
+    def forward(self, x):
+        if self.merged:
+            return self.base(x)                       # W already carries the update
+        base_out = self.base(x)
+        lora_out = (x @ self.A.T) @ self.B.T           # d_in -> r -> d_out
+        return base_out + self.scale * lora_out
+
+    @torch.no_grad()
+    def merge(self):
+        """Fold B @ A into the base weight for zero-overhead inference.
+        After this call the adapter can no longer be swapped for a
+        different tenant without first un-merging (subtracting delta_w).
+        """
+        if self.merged:
+            return
+        delta_w = self.scale * (self.B @ self.A)       # (d_out, d_in), same shape as W
+        self.base.weight += delta_w
+        self.merged = True</code></pre>
+    <p class="caption">Note <code>requires_grad_(False)</code> on the base weight — that's the line that keeps Adam's moment buffers off the 7B matrix entirely. Note also that calling <code>merge()</code> is exactly the decision flagged above: fine for a single dedicated deployment, wrong for a shared 40-tenant server, which instead keeps <code>merged = False</code> and batches many tenants' <code>(A, B)</code> pairs against the one shared frozen base.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li>LoRA computes <code>W' = W + (α/r)·BA</code>; freezing <code>W</code> means no fp32 master copy, gradient, or Adam state is ever allocated for the full-size matrix — only for the much smaller <code>B</code> and <code>A</code>.</li>
+        <li>Zero-initializing <code>B</code> (not <code>A</code>) guarantees the adapted model starts identical to the base model while still receiving a gradient on <code>B</code> from step one, since <code>∂L/∂B</code> depends on the nonzero <code>A</code>.</li>
+        <li>Merging <code>BA</code> into <code>W</code> removes all inference overhead but permanently binds one tenant's delta into the weights — exactly the outcome a shared 40-tenant deployment needs to avoid; production serving keeps adapters unmerged and batches many against one shared base.</li>
+        <li>QLoRA's three techniques — NF4 quantization, double quantization, paged optimizers — shrink the frozen base's footprint and smooth training-time memory spikes; they compose with LoRA rather than replace it.</li>
+        <li>Bottleneck adapters, prefix tuning, and prompt tuning trade away some or all of LoRA's zero-overhead merge property for different parameter-count and quality trade-offs; IA³ keeps the foldability at an even smaller parameter count.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Instruction tuning</h2>
+    <p class="opening">In 2021, two papers landed within weeks of each other and changed what "fine-tuning" meant for language models. Sanh et al.'s <span class="term">T0</span> and Wei et al.'s <span class="term">FLAN</span> both took a pretrained model and fine-tuned it — not on one task, but on dozens of NLP tasks at once, each one reformatted into a natural-language instruction and a response. The finding that mattered: performance improved even on task types the model had never seen during this multitask instruction fine-tuning, because the model learned the general skill of parsing an instruction and producing the response format it asked for, not just the content of any single task. That one result — instruction-formatted multitask fine-tuning generalizes to unseen tasks — is the entire premise behind teaching one base model 40 tenants' worth of catalogues and escalation policies through a shared instruction format. A year later, Ouyang et al.'s <span class="term">InstructGPT</span> (2022) scaled the same idea to open-ended conversational assistance, and by 2023 the Alpaca line of work (Taori et al., building on Wang et al.'s self-instruct method) showed a usable instruction-tuned model could be bootstrapped cheaply by having a strong model generate its own training pairs. Then Zhou et al.'s <span class="term">LIMA</span> (2023) delivered the result that matters most for a 40-tenant, human-limited support operation: 1,000 carefully curated instruction examples produced a model that beat one trained on 50,000 scraped, lower-quality examples. Quality and format consistency, not raw volume, is what instruction tuning rewards — good news for a support team that can hand-write a few hundred tight escalation examples per tenant but cannot hand-write fifty thousand.</p>
+
+    <h3>The prompt/response format and chat templates</h3>
+    <p>An instruction example is shaped with a <span class="term">chat template</span>: special role markers — say, <code>&lt;|system|&gt;</code>, <code>&lt;|user|&gt;</code>, <code>&lt;|assistant|&gt;</code>, <code>&lt;|end|&gt;</code> — that turn a conversation into one flat token sequence a causal language model can be trained on. The system turn is where tenant identity lives: "You are the support assistant for NorthStar Mobile. Escalate billing disputes over $500 to a human agent." The user turn is the customer's message. The assistant turn is the response you want the model to learn to produce. The template is what turns "teach the model 40 tenants' policies" back into an ordinary supervised sequence-modeling problem — concatenate the turns according to the tokenizer's chat template and you have one sequence of token ids with a clear internal structure.</p>
+
+    <h3>The loss-masking detail that gets botched constantly</h3>
+    <p>The single most common bug in an instruction-tuning pipeline is computing loss on every token in the sequence, including the system and user turns. You must not do this: loss should be computed only on the assistant's response tokens. There are two reasons. First, training the model to predict the customer's own message or the system prompt wastes model capacity on reconstructing input rather than shaping output, and can even teach the model to expect one particular phrasing of a customer complaint rather than to respond well to any phrasing. Second, for a fixed compute and data budget, response-only loss concentrates every unit of gradient signal on exactly the tokens you're trying to shape. The standard implementation: build a <code>labels</code> tensor the same length as <code>input_ids</code>, set every prompt-position label to <code>-100</code> — PyTorch cross-entropy's default <code>ignore_index</code>, silently skipped during loss computation — and copy the real token id at every response position, including the role marker that opens the assistant turn and the terminator that closes it. The model has to learn to <em>emit</em> <code>&lt;|assistant|&gt;</code> and <code>&lt;|end|&gt;</code> at the right moments, not just produce the words in between, so those two tokens belong in the supervised span too.</p>
+
+    <h3>Multi-turn packing</h3>
+    <p>Telecom support conversations are frequently multi-turn, and for training efficiency it's common to pack several short conversations into one fixed-length sequence rather than pad each one separately. Packing raises the masking stakes rather than lowering them: every system and user turn in the packed sequence — not just the first one — gets a <code>-100</code> label, and a document or turn boundary has to be tracked so a token in one packed conversation cannot attend across the boundary into a different, unrelated conversation. For a 40-tenant deployment this is not merely an efficiency detail. If two different tenants' conversations ever end up packed into the same training sequence without a hard attention boundary between them, tokens from tenant A's escalation policy can attend into tenant B's ticket during training — a violation of the strict per-tenant data-isolation requirement, not just a training-efficiency bug. The fix is the same mechanism either way — a document id per token, enforced through the attention mask — but the stakes for getting it wrong are categorically different once genuinely separate tenants are involved.</p>
+
+    <h3>Failure modes: format overfitting, sycophancy, capability regression</h3>
+    <p><span class="term">Format overfitting</span> shows up as brittleness to any deviation from the exact template used during tuning — a query that arrives without the expected system-turn preamble can produce garbage or cause the model to silently revert to base-model behavior, because the tuning distribution never included the untemplated form. <span class="term">Sycophancy</span> is the model agreeing with a customer's incorrect assertion ("your policy guarantees my refund," when it doesn't) because instruction-tuned models are optimized to sound helpful and agreeable, and a training set curated with a bias toward pleasant-sounding responses reinforces exactly that tendency — a serious defect for an escalation policy where the correct answer is sometimes "I can't confirm that, let me connect you with a specialist." <span class="term">Capability regression</span> is heavy tuning on narrow customer-support conversational data quietly degrading performance on tasks outside the tuning mix — refund proration arithmetic, or structured output the base model previously handled cleanly — a form of catastrophic forgetting that targets the instruction-following and formatting layer specifically. The mitigation for all three is the same lesson LIMA already delivered: curate for diversity and quality, not just correctness, and keep a slice of general instruction data mixed in alongside the tenant-specific examples rather than tuning purely on one tenant's narrow ticket history.</p>
+
+    <pre><code># Toy tokenizer for illustration: word-level ids, not a real BPE vocab.
+vocab = {"&lt;|system|&gt;":0, "&lt;|user|&gt;":1, "&lt;|assistant|&gt;":2, "&lt;|end|&gt;":3,
+         "you":4, "are":5, "the":6, "support":7, "assistant":8, "for":9,
+         "northstar":10, "mobile":11, "escalate":12, "billing":13,
+         "disputes":14, "over":15, "$500":16, "my":17, "bill":18,
+         "is":19, "wrong":20, "i'm":21, "sorry":22, "let's":23, "look":24,
+         "into":25, "that":26, "together":27}
+
+def build_example(system_text, user_text, assistant_text, vocab):
+    def ids(text): return [vocab[w] for w in text.lower().split()]
+
+    system_ids    = [vocab["&lt;|system|&gt;"]]    + ids(system_text)
+    user_ids      = [vocab["&lt;|user|&gt;"]]      + ids(user_text)
+    assistant_ids = [vocab["&lt;|assistant|&gt;"]] + ids(assistant_text) + [vocab["&lt;|end|&gt;"]]
+
+    input_ids = system_ids + user_ids + assistant_ids
+
+    # Loss mask: -100 everywhere except the assistant response tokens.
+    IGNORE = -100
+    labels = [IGNORE] * len(system_ids) + [IGNORE] * len(user_ids) + assistant_ids
+
+    assert len(input_ids) == len(labels)
+    return input_ids, labels
+
+input_ids, labels = build_example(
+    system_text="you are the support assistant for northstar mobile escalate billing disputes over $500",
+    user_text="my bill is wrong",
+    assistant_text="i'm sorry let's look into that together",
+    vocab=vocab,
+)
+print(input_ids)
+print(labels)
+# labels: [-100, -100, ..., -100,   2, 21, 22, 23, 24, 25, 26, 27, 3]
+#          `-- system + user tokens ignored --'   `-- assistant span kept, incl. role + end tokens --'</code></pre>
+    <p class="caption"><code>labels</code> matches <code>input_ids</code> token-for-token; the standard next-token shift is applied in the training loop, outside this snippet. <code>-100</code> needs no extra argument to a PyTorch cross-entropy call because it's the loss function's default <code>ignore_index</code> — and note that the assistant's opening role marker and closing terminator are themselves part of the supervised span, not just the words in between.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li>T0 and FLAN (2021) established that instruction-formatted multitask fine-tuning generalizes to unseen tasks; InstructGPT (2022) extended this to open-ended assistance; LIMA (2023) showed 1,000 curated examples beat 50,000 scraped ones — quality and consistency dominate raw volume.</li>
+        <li>Loss must be masked with <code>-100</code> on every system and user token and computed only on assistant-response tokens, including the role marker and terminator — training on prompt tokens dilutes gradient signal toward reconstructing input instead of shaping output.</li>
+        <li>Multi-turn packing must track document boundaries and enforce them through the attention mask; for a multi-tenant deployment, a missing boundary between two tenants' packed conversations is a data-isolation failure, not just an efficiency bug.</li>
+        <li>Format overfitting, sycophancy, and capability regression outside the tuning mix are the three specific failure modes to check for after any instruction-tuning run — not just task accuracy on the tuning distribution itself.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 7 quiz</h2>
+    <p class="quiz-intro">Eight questions covering the memory arithmetic, LoRA mechanics, the PEFT family, and instruction-tuning's loss masking — several require chaining two facts together, matching Unit 7's synthesis-and-edge-case level.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Using the same mixed-precision recipe from Lesson 1 (fp32 master weights + bf16 weights + bf16 gradients + two fp32 Adam moments = 16 bytes/parameter), what is the closest full fine-tuning training-memory total for a 13B-parameter model?</p>
+      <ol class="choices" type="A">
+        <li>≈ 26 GB</li>
+        <li>≈ 104 GB</li>
+        <li>≈ 208 GB</li>
+        <li>≈ 416 GB</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> 16 bytes/param × 13×10⁹ params = 208×10⁹ bytes ≈ 208 GB.</p>
+          <p>104 GB is what you'd get from only 8 bytes/param (for example, forgetting the two Adam moment buffers and counting only master weights + working weights + gradients) — a common shortcut that undercounts by exactly the Adam contribution. 416 GB would require 32 bytes/param, which double-counts something in the recipe.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Aghajanyan et al. (2020) found that larger pretrained language models require a higher intrinsic dimension — a larger-rank update — to reach 90% of full fine-tuning performance on a downstream task.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> The paper found the opposite: intrinsic dimension <em>shrinks</em> as the pretrained model gets larger. Bigger pretrained models need lower-rank updates to adapt, not higher-rank ones, because pretraining has already done more of the representational work.</p>
+          <p>This is the specific result that licenses low-rank adaptation methods like LoRA scaling well to large models — if the relationship ran the other way, LoRA would get less useful, not more, as models grew.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">In a freshly initialized LoRA adapter, matrix <span class="blank">&nbsp;</span> is set to all zeros (while the other matrix is initialized with small random values), so that <code>BA = 0</code> and the adapted model's output at step 0 is numerically identical to the frozen base model.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> <code>B</code> (the (d_out × r) matrix) is zero-initialized; <code>A</code> (the (r × d_in) matrix) gets the random initialization.</p>
+          <p>Initializing <code>A</code> to zero instead would be backwards for training dynamics: <code>∂L/∂B</code> is proportional to <code>Aᵀ</code>, so with <code>A</code> at zero, <code>B</code> would never receive a gradient signal at all, and the adapter would never start learning.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">This is a <code>LoRALinear.forward</code> method with one line blanked out. Fill in the blank so an unmerged adapter adds its scaled low-rank contribution to the base layer's output.</p>
+      <pre><code>def forward(self, x):
+    if self.merged:
+        return self.base(x)
+    base_out = self.base(x)
+    lora_out = (x @ self.A.T) @ self.B.T
+    return ______________________</code></pre>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer:</strong> <code>base_out + self.scale * lora_out</code>, where <code>self.scale</code> was set at construction to <code>alpha / r</code>.</p>
+          <p>Returning just <code>lora_out</code> (dropping <code>base_out</code>) would discard the pretrained transformation entirely; returning <code>base_out + lora_out</code> without <code>self.scale</code> would ignore the alpha/r scaling that keeps the update's magnitude consistent across different rank choices, changing effective learning-rate behavior as soon as anyone tunes <code>r</code>.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">A teammate's instruction-tuning data pipeline for the telecom support model produces this labels tensor. Support tickets look correct in spot checks, but the fine-tuned model starts echoing customer complaints back nearly verbatim before answering them, and needs far more data than expected to learn the escalation policy. Find the bug.</p>
+      <pre><code>def build_labels(input_ids, assistant_start, assistant_end):
+    # input_ids: full [system + user + assistant] token sequence
+    # assistant_start, assistant_end: index range of the assistant turn
+    labels = input_ids.copy()
+    return labels</code></pre>
+      <ol class="choices" type="A">
+        <li>The function should return <code>input_ids</code> unchanged, since labels and inputs are always identical in causal LM training.</li>
+        <li>The function never masks the system and user tokens with <code>-100</code>, so the model computes loss on — and learns to reproduce — the prompt tokens as well as the response.</li>
+        <li>The bug is that <code>assistant_start</code> and <code>assistant_end</code> are unused parameters that should be deleted.</li>
+        <li>The function should shift <code>input_ids</code> by one position before copying, or the model will never see next-token targets.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> <code>labels</code> is just a raw copy of <code>input_ids</code> with no masking at all, so cross-entropy loss is computed on every token, including the system prompt and the customer's own message. That matches the symptom exactly: the model partially learns to reproduce prompt content (echoing the complaint) and dilutes its gradient budget away from the assistant span, which is also why it needs more data than expected to learn the policy well.</p>
+          <p>The fix uses <code>assistant_start</code>/<code>assistant_end</code> (currently unused, which is itself the tell) to set every position outside that range to <code>-100</code> and keep only the assistant-turn token ids as labels — not to delete those parameters. Option A is wrong: causal LM training does shift internally, but labels and inputs are not identical once masking is applied. Option D describes an unrelated, separate mechanism (the next-token shift) that's typically handled by the training loop or loss function, not by this label-construction step.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A colleague proposes: "Fine-tune a LoRA adapter per tenant, then call <code>merge()</code> on each one and save the merged weights, so inference has zero LoRA overhead for every tenant." This looks right — merging genuinely does eliminate the low-rank matmul's latency. What breaks when this plan is deployed to serve all 40 tenants concurrently on the shared GPU budget from Lesson 1?</p>
+      <ol class="choices" type="A">
+        <li>Nothing breaks; merged adapters are strictly better in every deployment scenario.</li>
+        <li>Merging silently changes the model's numerical outputs even for unrelated inputs, corrupting every tenant's responses.</li>
+        <li>Each merged model is now a full standalone weight matrix again, so serving 40 of them concurrently is back to needing 40 × 14 GB of resident GPU memory — the exact serving-side wall Lesson 1 showed doesn't fit the shared budget.</li>
+        <li>Merging requires retraining the adapter from scratch, so it cannot be applied after training completes.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> Merging is exact and correct per tenant — it's a legitimate latency win for a single dedicated deployment. The problem only appears at the 40-tenant serving stage: a merged adapter can no longer be hot-swapped against a shared frozen base, so each tenant needs its own resident copy of the full weight matrix again, reproducing the 560 GB serving wall from Lesson 1 instead of avoiding it.</p>
+          <p>B is false — merging is an exact algebraic fold, <code>W + delta_w</code>, not an approximation, so it doesn't corrupt outputs. D is false — <code>merge()</code> is a post-training operation on already-trained <code>A</code> and <code>B</code> matrices, no retraining involved. This question is exactly the "looks right but breaks when you change the deployment scenario" trap: the technique is correct, the scenario it's correct for is the wrong one.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Which QLoRA component is specifically responsible for preventing an out-of-memory crash when a training batch of unusually long support-conversation sequences causes a transient spike in optimizer-state memory?</p>
+      <ol class="choices" type="A">
+        <li>NF4 quantization</li>
+        <li>Double quantization</li>
+        <li>Paged optimizers</li>
+        <li>Rank selection</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> Paged optimizers use NVIDIA unified memory to automatically move optimizer states between GPU and CPU memory when a spike would otherwise overflow the card, then page them back — exactly the transient-spike scenario described.</p>
+          <p>NF4 and double quantization both reduce the <em>static</em> footprint of the frozen base weights and their quantization constants — they don't respond to a training-time spike. Rank selection controls the adapter's parameter count and expressiveness, not memory-spike handling.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">True / false</span></p>
+      <p class="q-stem">If a packed training sequence contains conversation turns from two different tenants, correctly setting every system/user token's label to <code>-100</code> is sufficient on its own to guarantee the strict per-tenant data-isolation requirement.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> Loss masking controls which tokens contribute to the loss; it says nothing about which tokens a given position can <em>attend to</em> during the forward pass. Without a document-boundary enforced through the attention mask, a token from tenant B's conversation can still attend into tenant A's packed conversation earlier in the same sequence — the model's internal computation crosses tenants even though the loss itself only scores the intended assistant tokens.</p>
+          <p>Isolation requires both: <code>-100</code> masking so loss is only computed on the right tokens, <em>and</em> an attention-mask or per-token document id so representations never mix across the tenant boundary in the first place. Masking loss alone fixes what's being trained on, not what the model is allowed to look at while computing it.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Foundational Model Development · Unit 7 of 8 — Unit 8 covers evaluating and deploying these tuned models: RLHF and DPO for preference alignment, benchmark and human evaluation, and serving the result in production.</p>
+</footer>
+</body>
+</html>

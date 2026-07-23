@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 2 · The transformer architecture, in detail — Foundational Model Development</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Foundational Model Development · Unit 2 of 8</p>
+  <h1>The transformer architecture, in detail</h1>
+  <p class="lede">Attention replaced recurrence by turning "read the sequence in order" into "look up whatever's relevant, regardless of distance." This unit derives that mechanism from scratch — query/key/value, multi-head, position, masking — using 40–400 clause commercial contracts as the running example, because contract cross-referencing is exactly the long-range dependency problem attention was built to solve.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. Self-attention from first principles</a></li>
+      <li><a href="#lesson-2">2. Multi-head attention and the full transformer block</a></li>
+      <li><a href="#lesson-3">3. Position, masking, and the three architecture families</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>Self-attention from first principles</h2>
+    <p class="opening">Suppose you hand an LSTM a 400-clause commercial supply agreement, token by token, and ask it a question that only clause 287 can answer: does this indemnification obligation actually apply to the loss in front of us? Clause 287 says the indemnifying party "shall reimburse the Indemnified Party for all Losses arising from a breach of Section 4.2." Whether that sentence means anything depends entirely on clause 3, roughly 284 clauses earlier, which defines <span class="term">Losses</span> as "any and all damages, costs, and expenses, including reasonable attorneys' fees, but excluding consequential or punitive damages." Course 1 Unit 7 walked through why an LSTM struggles here: every token between clause 3 and clause 287 forces another sequential update of a single fixed-size hidden state, and each update is another opportunity for the gates to overwrite, dilute, or simply fail to preserve that one definition. The vanishing-gradient argument from Unit 7 was about training signal decaying backward through time; the same recurrence has a forward-pass problem too — a fixed-width hidden vector has finite capacity, and 284 steps of forget-gate arithmetic is a lot of chances to lose one sentence. By the time the network reaches clause 287, clause 3 is not necessarily "remembered" in any useful sense. It has been compressed, and compression is lossy.</p>
+    <p>Self-attention exists to remove the sequential bottleneck entirely. Instead of forcing information to survive a relay race through hundreds of hidden-state updates, every token gets direct, one-step access to every other token in the sequence. Clause 287's representation of "Losses" doesn't wait for clause 3's meaning to survive 284 hops of compression — it reaches back and reads clause 3 directly, in parallel with every other clause, weighted by how relevant each one is right now. This is why attention is best understood not as a sequence-processing trick but as <span class="term">content-based lookup</span>: given what clause 287 is currently trying to resolve, which of the other 399 clauses actually matter, and how much?</p>
+    <h3>Query, key, value — and why three projections, not one</h3>
+    <p>A content-based lookup needs three distinct roles, and a transformer layer learns a separate linear projection for each. The <span class="term">query</span> is what a token is asking for right now — for the token "Losses" sitting inside clause 287's obligation, the query encodes something like "I am an undefined capitalized term inside an indemnity clause; where was I defined?" The <span class="term">key</span> is what a token advertises about itself to anyone searching — the token "Losses" sitting inside clause 3's definition carries a key that encodes "I am a defined term, matchable by later uses of the same capitalized word, in a definitions section." The <span class="term">value</span> is the actual content that gets copied forward once a match is found — not a matching signal at all, but the substance of the definition itself: the exclusion of consequential damages, the inclusion of attorneys' fees.</p>
+    <p>Those three roles are in real tension. The same word, "Losses," must simultaneously behave as an asker (in clause 287), an advertiser (in clause 3), and a payload (the definition's content). Cramming all three jobs into a single vector would mean the geometry that makes two tokens "match well" (query and key pointing in compatible directions) is the same geometry that determines what content gets passed along — there is no reason those two things should share a representation. Query, key, and value are each a separate learned linear map, <code>W_Q</code>, <code>W_K</code>, <code>W_V</code>, applied to the same input embedding, so the network can rotate the same token into three different subspaces: one for asking, one for being found, one for what to hand over.</p>
+    <h3>The scaled dot product — and why the scaling isn't cosmetic</h3>
+    <p>Once every token has a query, key, and value vector, relevance between token <em>i</em> and token <em>j</em> is scored as the dot product <code>q_i · k_j</code> — large when the query and key point in similar directions, near zero when they're unrelated, negative when they conflict. But raw dot products have a scaling problem that is easy to miss and important to derive properly. Assume, as is roughly true after a well-initialized projection, that each component of <code>q</code> and <code>k</code> is independent, mean zero, and unit variance. The dot product is a sum of <code>d_k</code> such term-products, <code>q · k = Σ q_i k_i</code>. Each individual term <code>q_i k_i</code> has mean zero (independence) and variance <code>E[q_i² k_i²] = E[q_i²]·E[k_i²] = 1</code>. Summing <code>d_k</code> independent terms, each with variance 1, gives a total variance of <code>d_k</code> — so the standard deviation of the raw dot product grows as <code>√d_k</code>. For a 64-dimensional head, that's a standard deviation around 8, not 1. Left unscaled, that means as head dimension grows, the softmax inputs get proportionally more extreme, the softmax saturates toward a near one-hot distribution regardless of whether that's the right answer, and its gradient — which is largest when the distribution is close to uniform — collapses toward zero almost everywhere. Dividing every score by <code>√d_k</code> before the softmax cancels exactly that growth, holding the pre-softmax variance at roughly 1 no matter how large <code>d_k</code> is. This is the full derivation behind the otherwise-mysterious <code>√d_k</code> in the attention formula from Vaswani et al.'s 2017 "Attention Is All You Need."</p>
+    <p class="math">Attention(Q, K, V) = softmax( QKᵀ / √d_k ) · V</p>
+    <p>The softmax is taken across the key dimension — for a fixed query (clause 287's "Losses"), it produces one probability per key (every other token in the contract), summing to 1. Those probabilities become the weights in a weighted sum over the value vectors: the output for clause 287's token is a blend of every value in the contract, but overwhelmingly dominated by clause 3's value once training has pushed the query/key geometry to align "Losses"-the-user with "Losses"-the-definition.</p>
+    <h3>The cost, in real numbers</h3>
+    <p>This lookup is not free. Scoring every query against every key is an <code>n × n</code> comparison, so the cost of one attention layer scales as <span class="term">O(n²)</span> in sequence length. For a 400-clause contract represented at clause granularity — one vector per clause, <code>n = 400</code> — that's <code>400² = 160,000</code> pairwise scores per attention head, computed and softmaxed every layer, every head. At <code>d_model = 768</code>, the QKᵀ multiply and the subsequent weighted sum over values together cost roughly <code>2 · n² · d_model ≈ 2 · 160,000 · 768 ≈ 246 million</code> multiply-adds per layer. That's entirely tractable on modern hardware. But real transformers don't usually operate at clause granularity — they operate on subword tokens, and a 400-clause commercial agreement with roughly 120 tokens per clause is around 48,000 tokens long. At that granularity, <code>n² = 48,000² ≈ 2.3 billion</code> pairwise scores, and the same FLOP estimate balloons to the trillions per layer. The quadratic cost is the reason full self-attention over an entire long contract, at raw token resolution, is not something you do casually — a constraint this course returns to directly when Unit 5 covers scaling.</p>
+    <pre><code>import numpy as np
+
+np.random.seed(0)
+
+# Toy fragment: 6 token embeddings spanning the antecedent
+# definition in clause 3 and its later use in clause 287,
+# projected into a shared d_model = 8 space for illustration.
+seq_len, d_model, d_k = 6, 8, 8
+
+X = np.random.randn(seq_len, d_model)
+print("X (token embeddings):", X.shape)              # (6, 8)
+
+W_q = np.random.randn(d_model, d_k) * 0.1
+W_k = np.random.randn(d_model, d_k) * 0.1
+W_v = np.random.randn(d_model, d_k) * 0.1
+
+Q, K, V = X @ W_q, X @ W_k, X @ W_v
+print("Q:", Q.shape, "K:", K.shape, "V:", V.shape)    # each (6, 8)
+
+scores = Q @ K.T
+print("raw scores (QKᵀ):", scores.shape)              # (6, 6)
+
+scaled_scores = scores / np.sqrt(d_k)
+print("scaled scores:", scaled_scores.shape)           # (6, 6)
+
+def softmax(x, axis=-1):
+    x = x - x.max(axis=axis, keepdims=True)
+    e = np.exp(x)
+    return e / e.sum(axis=axis, keepdims=True)
+
+weights = softmax(scaled_scores, axis=-1)
+print("attention weights:", weights.shape,
+      "row sums:", weights.sum(axis=-1))                # (6, 6), rows sum to 1.0
+
+output = weights @ V
+print("output:", output.shape)                          # (6, 8) — same shape as X
+
+# Empirical check of the variance derivation above, at a
+# realistic head width (d_k = 64):
+d_k2, trials = 64, 20000
+q = np.random.randn(trials, d_k2)
+k = np.random.randn(trials, d_k2)
+dots = (q * k).sum(axis=1)
+print("std(raw dot), d_k=64:", dots.std())              # ~8.0
+print("sqrt(d_k):", np.sqrt(d_k2))                      # 8.0
+</code></pre>
+    <p class="caption">Every intermediate shape is printed on purpose: notice Q, K, V all keep the input's (seq_len, d_k) shape, scores and weights are square (seq_len, seq_len), and the final output returns to the input's shape — attention re-mixes content, it doesn't resize it. The last two lines confirm the √d_k derivation numerically: raw dot products at d_k=64 really do have a standard deviation of about 8, matching the closed-form prediction, not a rounder or smaller number.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Attention is direct lookup, not sequential compression.</strong> A token attends to every other token in one step, replacing the LSTM's relay race of 284 hidden-state updates between clause 3 and clause 287 with a single weighted read.</li>
+        <li><strong>Query, key, and value are separate projections because they play conflicting roles</strong> — asking, advertising, and delivering content — for the same underlying token, and one vector can't optimize for all three geometries at once.</li>
+        <li><strong>The √d_k scaling is a variance correction, not a convention.</strong> A dot product of d_k independent unit-variance terms has variance d_k; dividing by √d_k restores unit variance so the softmax doesn't saturate as head width grows.</li>
+        <li><strong>Attention cost is O(n²) in sequence length</strong> — 160,000 pairwise scores per head for a 400-clause contract at clause granularity, but billions at full 48,000-token resolution, which is why long-document transformers need more than brute-force full attention.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Multi-head attention and the full transformer block</h2>
+    <p class="opening"><span class="term">Multi-head attention</span> runs several independent attention computations — heads — in parallel on the same input, each with its own learned Q/K/V projections, and concatenates their outputs before a final linear mix. That's the definition; the reason it exists is that a single attention head is a single weighted average, and a single weighted average cannot represent several genuinely different relevance judgments at once. Take the word "Losses" in clause 287 again. Resolving that one obligation actually depends on several unrelated things: clause 3's definition (what counts as a Loss at all), clause 15's carve-outs (categories of Loss specifically excluded), and clause 199's aggregate liability cap (a ceiling that changes whether the obligation is even worth invoking). A single head has to produce one softmax distribution over all 400 clauses and one resulting blend of values. If it leans toward attending strongly to clause 3, it necessarily attends less to clause 199; the geometry of one query vector can point in one dominant direction at a time. Multiple heads sidestep this by giving each relationship its own private query/key/value subspace and its own softmax — one head's attention pattern can specialize in defined-term resolution while a different head specializes in liability-cap tracking, and neither has to compromise with the other before the outputs are recombined.</p>
+    <h3>Splitting d_model into heads: the reshape/transpose dance</h3>
+    <p>Mechanically, multi-head attention does not project into a larger space per head — it splits the model's existing width across heads. If <code>d_model = 768</code> and you use <code>h = 12</code> heads, each head operates in <code>d_head = d_model / h = 64</code> dimensions. The projections <code>W_Q</code>, <code>W_K</code>, <code>W_V</code> are each still a single <code>768 × 768</code> matrix — computed once, in full width, for efficiency — and the result is then reshaped so that the 768 output dimensions are viewed as 12 separate 64-dimensional chunks. Concretely, a tensor of shape <code>(batch, seq_len, 768)</code> is reshaped to <code>(batch, seq_len, 12, 64)</code> and then transposed to <code>(batch, 12, seq_len, 64)</code>, moving the head dimension next to the batch dimension so that the h heads behave, for the purposes of the QKᵀ matmul, like h independent batches. Attention runs identically to Lesson 1 within each of those 12 slices, entirely in parallel, producing <code>(batch, 12, seq_len, 64)</code>. The heads are then transposed back to <code>(batch, seq_len, 12, 64)</code> and reshaped (concatenated) into <code>(batch, seq_len, 768)</code> — the same width the block started with — before a final output projection <code>W_O</code> (another <code>768 × 768</code> matrix) mixes information across heads, since concatenation alone only places head outputs side by side without letting them interact.</p>
+    <h3>What heads specialize in, empirically</h3>
+    <p>You don't have to take specialization on faith. Studies probing trained transformers — notably Clark et al.'s 2019 analysis of BERT's attention and Voita et al.'s 2019 head-pruning work — found consistent, interpretable patterns: some heads are overwhelmingly <span class="term">positional</span>, attending almost entirely to the immediately preceding or following token regardless of content (useful for local syntax — matching a modifier to the noun right after it, like "Indemnifying Party" to "shall"); some are <span class="term">syntactic</span>, tracking a specific grammatical relationship such as a verb attending to its direct object no matter how far apart they sit in the sentence; and some specialize in exactly the long-range, sparse pattern this unit cares about — a head that, across many contracts, learns to attend from a capitalized defined term back to its definition, or from an obligation clause to the liability cap that bounds it. Voita et al. also showed that many heads in a trained model are redundant and can be pruned with little quality loss — evidence that "more heads always help" is not automatic; what matters is that the heads that survive cover genuinely different relationships.</p>
+    <h3>Around the attention: residuals, layer norm, and the FFN</h3>
+    <p>Multi-head attention is one sub-layer of a transformer block, not the whole block. Every sub-layer — attention and the feed-forward network — is wrapped in a <span class="term">residual connection</span>, output = sublayer(x) + x, so the network always has an unobstructed identity path and only has to learn a correction, not a full re-derivation of the input at every layer. Each sub-layer is also paired with <span class="term">layer normalization</span>, which rescales activations across the feature dimension to stabilize the distribution of values flowing into the next sub-layer. Where the normalization sits relative to the residual matters more than it looks: the original 2017 design applied it <em>after</em> the residual sum (<span class="term">post-LN</span>): <code>LayerNorm(x + sublayer(x))</code>. Later work — Xiong et al., 2020, "On Layer Normalization in the Transformer Architecture" — showed that post-LN puts the normalization directly in the residual path, so the identity shortcut isn't truly clean; gradients flowing back through many stacked blocks pass through a normalization at every step, and empirically this made very deep post-LN stacks unstable to train without a careful learning-rate warmup. <span class="term">Pre-LN</span> instead normalizes the sub-layer's input before it runs — <code>x + sublayer(LayerNorm(x))</code> — leaving the residual stream itself untouched by any normalization. That keeps the identity path truly linear all the way through the stack, which is why pre-LN became the default for deep transformers (12, 24, 96+ blocks) even though post-LN, at shallow depth, can reach marginally better final quality.</p>
+    <p>The other sub-layer is the <span class="term">position-wise feed-forward network</span> (FFN): two linear layers with a nonlinearity between them, applied identically and independently to every token's vector. Its defining trait is a 4x expansion — <code>d_model = 768</code> in, up to <code>3072</code>, a nonlinearity (originally ReLU, now usually GELU), back down to <code>768</code>. Attention mixes information <em>across</em> tokens; the FFN then processes each token's (now context-aware) vector in isolation, and the wider hidden layer is where a large share of the block's raw parameter count and representational capacity actually lives.</p>
+    <h3>Counting the parameters in one block</h3>
+    <p>At <code>d_model = 768</code>, <code>h = 12</code>: the four attention projections (<code>W_Q</code>, <code>W_K</code>, <code>W_V</code>, <code>W_O</code>) are each <code>768 × 768 + 768</code> (weights plus bias) ≈ 590,592 parameters, for <code>4 × 590,592 ≈ 2,362,368</code> total. The FFN's two linear layers are <code>768 × 3072 + 3072</code> and <code>3072 × 768 + 768</code>, roughly <code>2,359,296 + 3,072</code> each way, summing to <code>≈ 4,722,432</code>. Two layer norms add a negligible <code>≈ 3,072</code> more (a scale and a bias vector per normalization). Total: <strong>≈ 7.09 million parameters for one block</strong> — closely matching the common back-of-envelope estimate of <code>12 × d_model²</code> (12 × 768² ≈ 7,077,888), since attention contributes 4d² and the FFN contributes 8d² of that count. A 12-layer encoder at this width is therefore roughly 85 million parameters before counting embeddings — a useful sanity check whenever you're told a model's depth and width and need to estimate its size.</p>
+    <pre><code>import numpy as np
+
+def softmax(x, axis=-1):
+    x = x - x.max(axis=axis, keepdims=True)
+    e = np.exp(x)
+    return e / e.sum(axis=axis, keepdims=True)
+
+batch, seq_len, d_model, h = 2, 400, 768, 12
+d_head = d_model // h
+print("d_head:", d_head)                              # 64
+
+X = np.random.randn(batch, seq_len, d_model) * 0.02
+
+W_q = np.random.randn(d_model, d_model) * 0.02
+W_k = np.random.randn(d_model, d_model) * 0.02
+W_v = np.random.randn(d_model, d_model) * 0.02
+W_o = np.random.randn(d_model, d_model) * 0.02
+
+Q, K, V = X @ W_q, X @ W_k, X @ W_v
+print("Q before split:", Q.shape)                     # (2, 400, 768)
+
+def split_heads(t):
+    b, n, dm = t.shape
+    t = t.reshape(b, n, h, d_head)                     # (batch, seq, heads, d_head)
+    return t.transpose(0, 2, 1, 3)                      # (batch, heads, seq, d_head)
+
+Qh, Kh, Vh = split_heads(Q), split_heads(K), split_heads(V)
+print("Q after split_heads:", Qh.shape)                # (2, 12, 400, 64)
+
+scores = Qh @ Kh.transpose(0, 1, 3, 2) / np.sqrt(d_head)
+print("scores:", scores.shape)                          # (2, 12, 400, 400)
+
+weights = softmax(scores, axis=-1)
+head_out = weights @ Vh
+print("head_out:", head_out.shape)                      # (2, 12, 400, 64)
+
+concat = head_out.transpose(0, 2, 1, 3).reshape(batch, seq_len, d_model)
+print("concat:", concat.shape)                          # (2, 400, 768)
+
+output = concat @ W_o
+print("output:", output.shape)                          # (2, 400, 768) — same shape as X
+</code></pre>
+    <p class="caption">The two reshape/transpose calls are the whole trick: splitting (batch, seq, d_model) into (batch, heads, seq, d_head) makes the 12 heads behave like 12 independent batches during the matmul, and the mirror-image reshape at the end merges them back before the output projection W_o lets the heads interact.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>One head is one weighted average</strong> — it can't simultaneously attend strongly to a definition, a carve-out, and a liability cap without compromising between them. Multiple heads give each relationship its own subspace and softmax.</li>
+        <li><strong>Heads split d_model, they don't multiply it</strong>: 768 / 12 = 64-dimensional heads, via a reshape-transpose-attend-transpose-reshape pipeline, followed by an output projection W_O that lets heads' information interact.</li>
+        <li><strong>Trained heads specialize measurably</strong> — positional, syntactic, and rare/defined-term tracking are documented patterns (Clark et al. 2019, Voita et al. 2019), and not every head is necessary (some are prunable).</li>
+        <li><strong>Pre-LN beats post-LN at depth</strong> because it keeps the residual stream free of any normalization, giving deep stacks a clean identity path and removing the need for careful warmup schedules.</li>
+        <li><strong>One transformer block at d_model=768 is ≈7.09M parameters</strong> — roughly 12·d_model², split about a third attention and two-thirds FFN.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Position, masking, and the three architecture families</h2>
+    <p class="opening">Picture the 400 clauses of a supply agreement photocopied onto loose index cards, then dropped and shuffled into a random pile. Self-attention, as built so far, effectively operates on that shuffled pile: each token's output is a weighted sum over every other token's value, and that weighting depends only on how well queries and keys match by content — nothing in the mechanism cares whether a given key came from the token immediately before or three hundred tokens away. Permute the input order and the entire set of outputs permutes identically along with it; attention is <span class="term">permutation-equivariant</span>. That's a serious problem for legal text specifically, because clause order is not decoration — "the foregoing," "Section 4.2 above," and the clause numbering itself are all load-bearing references to sequence, and "clause 287 governs an obligation defined back in clause 3" is a fact about where things sit, not just what they say. A bag of shuffled index cards has no way to represent "clause 3 comes before clause 287." Position has to be injected into the model explicitly, as an additional signal added to (or combined with) the content embedding, before attention ever runs.</p>
+    <h3>Sinusoidal, learned, and rotary position schemes</h3>
+    <p>The original transformer's solution was a fixed <span class="term">sinusoidal position encoding</span>: for position <code>pos</code> and embedding dimension index <code>i</code>, each pair of dimensions is assigned a sine and a cosine at a different frequency, <code>PE(pos, 2i) = sin(pos / 10000^(2i/d_model))</code> and <code>PE(pos, 2i+1) = cos(pos / 10000^(2i/d_model))</code>. The frequency intuition is a clock with many hands: low dimension indices oscillate fast, like a seconds hand, distinguishing clause 3 from clause 4; high dimension indices oscillate slowly, like an hour hand, distinguishing clause 3 from clause 303. Together, the full set of frequencies gives every position a unique, fixed fingerprint, and because sine and cosine of a shifted angle can be written as a linear combination of the unshifted sine and cosine, a fixed offset between two positions (clause 287 minus clause 3 = 284) corresponds to a fixed linear transformation of the encoding — in principle letting the network learn to attend by relative offset, not just absolute position. A simpler alternative, <span class="term">learned absolute position embeddings</span>, just assigns each position index its own trainable vector, exactly like a token embedding table indexed by position instead of by word. It's simpler and often works as well in practice, but it hard-codes a maximum sequence length — a model trained on contracts up to 2,048 tokens has no embedding, learned or otherwise, for token 2,049, and can't extrapolate to a longer document at all.</p>
+    <p><span class="term">RoPE</span> (Rotary Position Embedding) takes a different approach: rather than adding a position signal to the content embedding, it rotates each query and key vector by an angle proportional to its position, treating pairs of dimensions as 2D coordinates and applying a rotation matrix. The key property is that the dot product between a rotated query at position <code>m</code> and a rotated key at position <code>n</code> depends mathematically only on the relative offset <code>m − n</code>, not on <code>m</code> and <code>n</code> individually — relative position falls out of the geometry rather than being learned or hand-designed. Because the rotation is a smooth, well-defined function of position for any integer, RoPE tends to extrapolate to sequence lengths beyond what was seen in training noticeably better than sinusoidal or learned absolute encodings, which is a meaningful advantage when a model trained mostly on shorter agreements later has to process an unusually long one. <span class="term">ALiBi</span> (Attention with Linear Biases) skips modifying Q and K altogether and instead adds a fixed, non-learned penalty directly to the attention scores: a bias of <code>−m · (i − j)</code> subtracted from the score between positions <code>i</code> and <code>j</code>, growing linearly with distance. It has no parameters to learn at all, is simple to compute, and in the original paper extrapolated to much longer sequences than the model was trained on, at the cost of imposing a fairly rigid "closer is generally more relevant" prior that isn't always true of legal cross-references, where the most relevant clause can be the furthest one away.</p>
+    <h3>Masking: causal, padding, and composing the two</h3>
+    <p>Position solves "where is this token," but some architectures also need to restrict "which tokens is this one even allowed to see." A <span class="term">causal mask</span> enforces that token <em>i</em> can attend only to tokens at position ≤ <em>i</em>, never to anything later — essential for any model that generates text left to right, since at generation time the tokens after the current position don't exist yet. It's implemented by adding <code>−∞</code> to every score in the strictly-upper-triangular part of the score matrix (row <em>i</em>, column <em>j</em>, for <em>j</em> &gt; <em>i</em>) before the softmax, so those positions receive exactly zero weight after exponentiating. A <span class="term">padding mask</span> solves a different, purely practical problem: contracts in a batch are different lengths, so shorter ones are padded to match the longest, and those pad tokens carry no real content — they must never receive or contribute attention weight, or the model's output would depend on an implementation detail (batch composition) rather than the document itself. The fix is the same mechanism, a large negative value added at every padded position's column. The two masks compose by simple addition: sum the causal mask and the padding mask (each 0 where allowed, −∞ where forbidden) and add the result to the raw scores once, before a single softmax — a position that's blocked by either mask ends up at −∞ either way, and a position has to clear both to receive nonzero weight.</p>
+    <h3>Encoder-only, decoder-only, encoder-decoder</h3>
+    <p>Whether a model uses causal masking at all, and how many "stacks" of transformer blocks it has, defines three architecture families with different jobs. <span class="term">Encoder-only</span> models (BERT is the canonical example) use no causal mask — every token attends bidirectionally to every other token in the same pass — because the goal is a rich contextual representation of text that already exists, not generating new text. That makes encoder-only models the right fit for clause retrieval (represent all 400 clauses, then rank them against a query clause by embedding similarity) and indemnity-clause classification (does this clause create an indemnification obligation, yes or no), where the whole document is available up front and the output is a label or a ranking, not new prose. <span class="term">Decoder-only</span> models (the GPT family) use a causal mask throughout and are trained to predict the next token, which is what makes them naturally suited to generation — drafting a proposed indemnification clause, or continuing a contract from a partial draft — at the cost of never getting to look ahead at tokens the model itself hasn't produced yet, even during analysis of a document that already fully exists. <span class="term">Encoder-decoder</span> models (T5, and the original 2017 Transformer) run an unmasked encoder over the full input and a causal decoder that additionally cross-attends to the encoder's output — well suited to tasks with a clearly separate input and output, such as summarizing a 400-clause contract into a two-paragraph risk memo, where the model needs to fully digest the source (encoder, bidirectional) before producing new text (decoder, causal) grounded in it.</p>
+    <table class="tbl">
+      <tr><th>Family</th><th>Masking</th><th>Best fit here</th><th>Example</th></tr>
+      <tr><td>Encoder-only</td><td>None (bidirectional)</td><td>Clause retrieval, indemnity classification</td><td>BERT</td></tr>
+      <tr><td>Decoder-only</td><td>Causal</td><td>Drafting/continuing clause text</td><td>GPT</td></tr>
+      <tr><td>Encoder-decoder</td><td>Encoder none, decoder causal + cross-attends</td><td>Contract-to-risk-memo summarization</td><td>T5</td></tr>
+    </table>
+    <pre><code>import numpy as np
+
+def sinusoidal_position_table(max_len, d_model):
+    pos = np.arange(max_len)[:, None]                       # (max_len, 1)
+    i = np.arange(d_model)[None, :]                          # (1, d_model)
+    angle_rates = 1 / np.power(10000, (2 * (i // 2)) / d_model)
+    angles = pos * angle_rates                               # (max_len, d_model)
+    pe = np.zeros((max_len, d_model))
+    pe[:, 0::2] = np.sin(angles[:, 0::2])
+    pe[:, 1::2] = np.cos(angles[:, 1::2])
+    return pe
+
+pe = sinusoidal_position_table(max_len=8, d_model=16)
+print("position table:", pe.shape)                         # (8, 16)
+
+def causal_mask(seq_len):
+    # -inf strictly above the diagonal: clause i cannot see clause j > i
+    return np.triu(np.full((seq_len, seq_len), -np.inf), k=1)
+
+seq_len = 6   # six clauses in reading order
+mask = causal_mask(seq_len)
+
+np.random.seed(1)
+raw_scores = np.random.randn(seq_len, seq_len)
+masked_scores = raw_scores + mask
+print("masked scores:\n", np.round(masked_scores, 2))
+
+def softmax(x, axis=-1):
+    x = x - x.max(axis=axis, keepdims=True)
+    e = np.exp(x)
+    return e / e.sum(axis=axis, keepdims=True)
+
+weights = softmax(masked_scores)
+print("attention weights:\n", np.round(weights, 2))
+</code></pre>
+    <p class="caption">The masked-scores printout shows real values on and below the diagonal and -inf strictly above it; after softmax, every one of those -inf entries becomes exactly 0.0, so clause 2 (row index 1) shows nonzero weight only in columns 0–1, never columns 2–5 — the causal mask made visible as a matrix.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Attention alone is permutation-equivariant</strong> — shuffle the input tokens and the outputs shuffle identically, which is exactly wrong for text where order (clause numbering, "the foregoing") carries meaning.</li>
+        <li><strong>Sinusoidal encodings use multiple frequencies</strong> to give every position a unique fingerprint, and their sine/cosine structure lets relative offsets be expressed as linear transforms; learned absolute embeddings are simpler but can't extrapolate past the trained max length.</li>
+        <li><strong>RoPE rotates Q/K by position so their dot product depends only on relative offset</strong>, which is why it extrapolates to longer sequences better than sinusoidal or learned absolute schemes; ALiBi achieves similar extrapolation with a simple learned-free linear distance penalty on the scores instead.</li>
+        <li><strong>Causal and padding masks both work by adding -∞ to forbidden score positions before the softmax</strong>, and compose by simple addition — a position needs to clear both to receive any attention weight.</li>
+        <li><strong>Pick the family by the shape of the task</strong>: encoder-only for classification/retrieval over existing text, decoder-only for generation, encoder-decoder when input and output are distinct documents (contract in, risk memo out).</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 2 quiz</h2>
+    <p class="quiz-intro">Eight questions spanning all three lessons — self-attention mechanics, multi-head structure and the transformer block, and position/masking/architecture families.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Why does a transformer layer learn three separate projections (query, key, value) instead of reusing one projected vector for all three roles?</p>
+      <ol class="choices" type="A">
+        <li>Three projections are required so the layer has more trainable parameters, which always improves quality.</li>
+        <li>Query, key, and value play conflicting roles for the same token — asking, being matched against, and supplying content — and one shared geometry can't optimize for all three at once.</li>
+        <li>It's purely a historical convention from the original paper with no functional benefit; a single shared projection produces identical results.</li>
+        <li>Separate projections are needed only to allow multi-head attention; single-head attention needs just one projection.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> A query encodes what a token is looking for, a key encodes how a token advertises itself for matching, and a value is the content actually copied forward once a match is found. These are different jobs with different natural geometries, so a single vector reused for all three would force a compromise between them.</p>
+          <p>A is wrong because parameter count isn't the reason — the three projections exist for a functional, not a scaling, reason. C is wrong because the roles genuinely differ; collapsing them changes what the layer can represent, it isn't a no-op. D is wrong because single-head attention already needs all three roles — Lesson 1's derivation used one head and still required Q, K, and V separately.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Dividing the raw dot-product scores by √d_k before the softmax is necessary because, for query and key vectors with independent, mean-zero, unit-variance components, the variance of q·k grows linearly with d_k — so without scaling, the softmax would saturate more as head dimension increases.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: True.</strong> The dot product is a sum of d_k independent terms, each with variance 1, so the total variance is d_k and the standard deviation is √d_k. Dividing by √d_k restores unit variance regardless of d_k, keeping the softmax's input scale — and therefore its gradient behavior — stable as head width changes.</p>
+          <p>A tempting misconception is that the scaling is just "normalizing to keep numbers small" for numerical stability in general — that's not the specific mechanism. The derivation is about controlling variance growth with d_k specifically, not about avoiding overflow in general arithmetic.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">A transformer block with d_model = 768 and h = 12 attention heads gives each individual head a dimension d_head = <span class="blank">&nbsp;</span>.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: 64.</strong> d_head = d_model / h = 768 / 12 = 64. Multi-head attention splits the model's existing width across heads rather than projecting into extra dimensions per head — the four projection matrices (W_Q, W_K, W_V, W_O) each stay a single 768×768 matrix; only the reshape after projection carves the 768 output dimensions into 12 chunks of 64.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">Complete the missing line so that <code>split_heads</code> turns a (batch, seq, d_model) tensor into (batch, heads, seq, d_head), ready for the per-head QKᵀ matmul.</p>
+      <pre><code>def split_heads(t, h, d_head):
+    b, n, dm = t.shape
+    t = t.reshape(b, n, h, d_head)      # (batch, seq, heads, d_head)
+    return t.<span class="blank">&nbsp;</span></code></pre>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: <code>transpose(0, 2, 1, 3)</code></strong>, which swaps the seq and heads axes to produce (batch, heads, seq, d_head) — the shape needed so each head's (seq, d_head) slice behaves like an independent batch during Q @ Kᵀ.</p>
+          <p>A common wrong guess is <code>transpose(0, 1, 3, 2)</code>, which would swap heads and d_head instead of seq and heads, producing (batch, seq, d_head, heads) — the wrong axes entirely for a per-head batched matmul.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Why did pre-LN (normalizing a sub-layer's input before it runs, <code>x + sublayer(LayerNorm(x))</code>) become the default over post-LN (<code>LayerNorm(x + sublayer(x))</code>) for very deep transformer stacks?</p>
+      <ol class="choices" type="A">
+        <li>Pre-LN keeps the residual stream itself free of normalization, so the identity path through many stacked blocks stays linear and gradients don't have to pass through a normalization at every block.</li>
+        <li>Pre-LN uses fewer parameters than post-LN, since it only normalizes half as often.</li>
+        <li>Post-LN was discovered to be mathematically identical to pre-LN, so the switch was purely about code readability.</li>
+        <li>Pre-LN removes the need for residual connections entirely, simplifying deep stacks.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: A.</strong> In post-LN, the normalization sits directly in the residual path, so the "clean" identity shortcut isn't actually clean — every block adds a normalization the gradient must pass through. Pre-LN normalizes only the sub-layer's input, leaving x + sublayer(...) as a true, unobstructed identity path, which is what made very deep (dozens of blocks) stacks trainable without careful warmup.</p>
+          <p>B is wrong — both apply the same number of LayerNorm operations per block (one per sub-layer), just at a different point relative to the residual add. C is wrong — the two are not equivalent; Xiong et al. (2020) showed they behave differently, especially at depth. D is wrong — pre-LN still uses residual connections; it changes where normalization sits relative to them, not whether they exist.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">This function is meant to build a causal mask so that clause 287 can attend to clauses 1 through 287 but never to clauses 288 onward. Run against a 6-clause example, every clause loses the ability to attend to itself. What's the bug, and what's the fix?</p>
+      <pre><code>def causal_mask(seq_len):
+    mask = np.triu(np.full((seq_len, seq_len), -np.inf), k=0)
+    return mask</code></pre>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Bug: <code>k=0</code> includes the diagonal in the masked region.</strong> <code>np.triu(..., k=0)</code> zeroes out (here, sets to -∞) everything on and above the main diagonal, which means position i is masked against itself, not just against future positions j > i. Fix: use <code>k=1</code>, which starts the masked region strictly above the diagonal, leaving each position free to attend to itself and everything before it.</p>
+          <p>It's a one-character bug but a meaningful one — with k=0, every row's softmax would have to assign all its weight to strictly earlier positions and none to the current token, silently discarding a clause's own content, which is never the intended behavior of a causal mask.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A legal-tech team needs a model that reads all 400 clauses of a contract at once and outputs a binary label per clause — "creates an indemnification obligation" or not — with the full document available up front. Which architecture family fits best, and why?</p>
+      <ol class="choices" type="A">
+        <li>Decoder-only, because causal masking is required for any classification task.</li>
+        <li>Encoder-decoder, because the task has a separate input and output.</li>
+        <li>Encoder-only, because the whole document is available at once and the task needs rich bidirectional context per clause, not text generation.</li>
+        <li>None of the three families apply; classification requires a separate non-transformer architecture.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> Clause classification over an already-complete document benefits from every clause attending bidirectionally to every other clause — there's no "future" to hide, since nothing is being generated left to right. That's exactly the encoder-only setup (BERT-style), which produces per-token or per-clause representations for a downstream classifier head.</p>
+          <p>A is backwards — causal masking is for generation, where future tokens genuinely don't exist yet at inference time; it would only throw away useful bidirectional context here. B is wrong because the output is a per-clause label, not a separate generated document, so there's no need for a decoder stage at all. D is wrong — encoder-only transformers are a standard, effective choice for exactly this kind of classification task.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Because self-attention is permutation-equivariant, a transformer with no position information at all would still correctly distinguish "clause 3 defines Losses, and clause 287 uses the term" from a shuffled version of the same contract with clauses 3 and 287 swapped in position.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> Permutation-equivariance means the exact opposite: if you permute the input tokens, the attention outputs permute identically along with them, purely as a function of content-based matching. Without any injected position signal, the model has no way to represent "comes before" or "comes after" at all — every clause-ordering fact, including which clause is the definition and which is the later use, would have to come from content alone, which is exactly why sinusoidal, learned, RoPE, or ALiBi position information has to be added before attention runs.</p>
+          <p>The tempting error is assuming that because attention can already match "Losses" in clause 287 to "Losses" in clause 3 by content similarity, order doesn't matter for this example — but that content match tells you the two mentions are related, not which one is the definition and which is the use, a distinction that depends on their relative position in the document.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Foundational Model Development · Unit 2 of 8 — Next: Unit 3 covers tokenization and embeddings, the layer beneath everything this unit assumed was already a vector.</p>
+</footer>
+</body>
+</html>

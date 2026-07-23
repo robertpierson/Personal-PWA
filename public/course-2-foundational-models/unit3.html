@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 3 · Tokenization and embeddings — Foundational Model Development</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Foundational Model Development · Unit 3 of 8</p>
+  <h1>Tokenization and embeddings</h1>
+  <p class="lede">Before any attention block in Unit 2 can run, raw text has to become a sequence of integers, and those integers have to become vectors. This unit covers how that split happens and what it costs — using a multilingual product catalogue as the proving ground.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. Why splitting text is harder than it looks</a></li>
+      <li><a href="#lesson-2">2. BPE, WordPiece, Unigram, SentencePiece</a></li>
+      <li><a href="#lesson-3">3. Embeddings: from token id to vector</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>Why splitting text is harder than it looks</h2>
+    <p class="opening">Feed a whitespace tokenizer the German catalogue string <code>"Waschmaschinenzubehör"</code> and you get exactly one token — a single opaque string meaning "washing machine accessories" that the model has almost certainly never seen before, since German compounds are formed on the fly and a corpus can contain thousands of distinct ones. Feed the same tokenizer the Japanese title <code>"洗濯機用ステンレスホース"</code> (stainless steel hose for washing machines) and you get one token too, because Japanese doesn't put spaces between words at all. Feed it <code>"US 10.5 / EU 44"</code> next to <code>"US 10,5 / EU 44"</code> — the German decimal-comma convention for the same shoe size — and whitespace splitting treats <code>10.5</code> and <code>10,5</code> as two unrelated strings with nothing in common. Three catalogue entries, three different failures, and none of them are edge cases — they're Tuesday for a global storefront.</p>
+    <p>A tokenizer's job is to turn a string into a sequence of discrete units a model can assign an embedding to. Where you draw the boundaries between units is a design decision with real consequences at every point along a spectrum, and understanding that spectrum is the foundation for everything else in this unit.</p>
+    <h3>The character / word / subword spectrum</h3>
+    <p>At one extreme, a <span class="term">character-level tokenizer</span> splits every string into individual characters or bytes. <code>"Waschmaschinenzubehör"</code> becomes 22 tokens, one per character. The vocabulary is tiny — a few hundred entries can cover every character in Latin, Cyrillic, Arabic, and the common Japanese kana, though full coverage of Han characters used in Japanese and Chinese pushes that into the tens of thousands. The catch is sequence length: every string you tokenize gets long, and since a transformer's self-attention cost scales quadratically with sequence length (Unit 2), doubling token count roughly quadruples compute for a given batch. A model that reads character-by-character also has to learn word structure itself from scratch, spending capacity re-deriving "this cluster of six characters is a unit" over and over.</p>
+    <p>At the other extreme, a <span class="term">word-level tokenizer</span> splits on whitespace and punctuation and gives every distinct word its own token. This keeps sequences short — one token per word — but the vocabulary explodes. English alone has hundreds of thousands of word forms once you count plurals, verb conjugations, and proper nouns; add German's productive compounding (any noun can combine with any other noun to form a new one, so the vocabulary is in principle unbounded) and Turkish's agglutination (a single verb stem can take a long chain of suffixes — <code>"gönderemeyeceğim"</code>, "I will not be able to send [it]", is one word built from a stem plus five suffixes) and no fixed-size vocabulary can ever contain every word a catalogue will produce. Whatever isn't in the vocabulary becomes an <span class="term">out-of-vocabulary</span> (OOV) token, collapsed to a single <code>&lt;UNK&gt;</code> placeholder. Every product title with an unseen compound, an unseen SKU, or an unseen brand name loses information the moment it hits <code>&lt;UNK&gt;</code> — a model can't distinguish "Waschmaschinenzubehör" from "Geschirrspülerzubehör" (dishwasher accessories) if both became the same unknown token. Rare tokens the model has seen only a handful of times during training are barely better: their embeddings are undertrained and carry almost no useful signal.</p>
+    <p><span class="term">Subword tokenization</span> sits between the two and is what every modern production model actually uses. Common whole words like <code>"machine"</code> or <code>"Waschmaschine"</code> stay as single tokens; rare or novel strings get broken into smaller frequent pieces — <code>"Zubehör"</code> might split into <code>"Zube"</code> + <code>"hör"</code>, or a SKU like <code>"WM-4471X"</code> into <code>"WM"</code> + <code>"-"</code> + <code>"44"</code> + <code>"71"</code> + <code>"X"</code>. This bounds the vocabulary to a fixed size (typically 30k–130k entries) while keeping the OOV rate near zero, because any string can always be decomposed down to individual characters or bytes as a fallback. The price is that sequences get longer than word-level tokenization and a single semantic unit sometimes gets fragmented in linguistically arbitrary ways — but that price is far smaller than either extreme's failure mode.</p>
+    <table class="tbl">
+      <tr><th>Scheme</th><th>Vocab size</th><th>Sequence length</th><th>OOV rate</th></tr>
+      <tr><td>Character/byte</td><td>~256–2,000</td><td>Longest</td><td>Zero</td></tr>
+      <tr><td>Subword (BPE/WordPiece/Unigram)</td><td>~30k–130k</td><td>Moderate</td><td>Near zero</td></tr>
+      <tr><td>Word-level</td><td>Unbounded, must be capped</td><td>Shortest</td><td>High, grows with new text</td></tr>
+    </table>
+    <h3>Normalization and why lowercasing is dangerous here</h3>
+    <p>Before splitting happens, most tokenizer pipelines run a <span class="term">normalization</span> step — a canonicalization pass so that visually or semantically identical strings map to the same sequence of characters. <span class="term">NFKC</span> (Normalization Form Compatibility Composition) is the standard Unicode normalization: it collapses characters that can be encoded multiple ways — a "ü" that arrived as one composed codepoint versus a "u" followed by a combining diaeresis mark — into one canonical form, and maps compatibility variants like full-width Japanese digits (<code>１２３</code>) to their ordinary ASCII equivalents (<code>123</code>). Skip this step and a tokenizer trained mostly on one encoding of "ü" silently treats the other encoding as a different, rare token, quietly inflating the OOV rate on a catalogue pulled from multiple upstream systems.</p>
+    <p>Casefolding — lowercasing everything — looks harmless and is a common step for general text, but it is actively destructive on a product catalogue. <code>"US"</code> (United States sizing) and <code>"us"</code> mean different things only by capitalization convention in some contexts; more concretely, SKU codes and model numbers routinely encode meaning in case: <code>"WM-4471X"</code> versus <code>"wm-4471x"</code> may be treated by an inventory system as the same part, but a tokenizer that's already lowercased everything has thrown away the one signal — the deliberate capitalization convention manufacturers use — that let it recognize "this is a SKU-shaped string" as a pattern distinct from ordinary prose. Turkish makes this worse in a way that's a well-known trap: the Turkish alphabet has a dotless <code>ı</code> and a dotted <code>i</code> as two distinct letters, and naive lowercasing logic built for English (which assumes <code>I → i</code>) turns Turkish <code>İ</code> into the wrong character entirely. Production tokenizers for multilingual text generally skip casefolding altogether and let the subword vocabulary learn case-sensitive pieces instead.</p>
+    <h3>Pre-tokenization: splitting before you split</h3>
+    <p><span class="term">Pre-tokenization</span> is a coarse first cut — usually on whitespace and punctuation — that runs before the learned subword algorithm (Lesson 2) ever sees the text, establishing boundaries the subword merges are not allowed to cross. For English and German this is cheap and mostly reliable: split on spaces, keep punctuation as separate tokens. For Japanese and Chinese, which have no whitespace between words, naive pre-tokenization on spaces does almost nothing useful — the entire sentence "洗濯機用ステンレスホース" arrives as one pre-token, and the subword algorithm has to do all the work of finding word-like boundaries statistically. This is precisely the gap that SentencePiece was built to close, which Lesson 2 covers directly. Arabic adds a different wrinkle: it's written right-to-left, but digits and Latin-script SKU fragments embedded in an Arabic title (a common pattern — "مقاس 44 EU") run left-to-right, so the raw byte stream a tokenizer sees interleaves two writing directions, and pre-tokenization has to avoid corrupting either.</p>
+    <p>The following comparison tokenizes five real catalogue titles three ways — whitespace, naive character-level, and a plausible subword result — and reports token counts and OOV behavior for each.</p>
+    <pre><code>titles = [
+    "Waschmaschinenzubehör Edelstahlschlauch 1.5m",      # German compound
+    "洗濯機用ステンレスホース",                              # Japanese, no spaces
+    "Kadın spor ayakkabısı gönderemeyeceğim",             # Turkish agglutination
+    "حذاء رياضي مقاس 44 EU / US 10.5",                     # Arabic + embedded Latin/digits
+    "SKU WM-4471X size US 10.5 / EU 44",                  # SKU + locale-variant sizing
+]
+
+def whitespace_tokenize(s):
+    return s.split(" ")
+
+def char_tokenize(s):
+    return list(s)
+
+# vocab a real subword tokenizer would already know from training
+# on a large multilingual catalogue corpus
+KNOWN_SUBWORDS = {
+    "Wasch", "maschinen", "zubehör", "Edelstahl", "schlauch", "1.5", "m",
+    "洗濯機", "用", "ステンレス", "ホース",
+    "Kadın", "spor", "ayakkabı", "sı", "gönder", "emeyeceğim",
+    "حذاء", "رياضي", "مقاس", "44", "EU", "/", "US", "10.5",
+    "SKU", "WM", "-", "4471", "X", "size",
+}
+
+def toy_subword_tokenize(s):
+    # greedy longest-match-first against the known vocab; falls back
+    # to per-character pieces (never UNK) for anything unseen
+    tokens, i = [], 0
+    while i < len(s):
+        if s[i] == " ":
+            i += 1
+            continue
+        match = None
+        for end in range(len(s), i, -1):
+            if s[i:end] in KNOWN_SUBWORDS:
+                match = s[i:end]
+                break
+        tokens.append(match if match else s[i])
+        i += len(match) if match else 1
+    return tokens
+
+for title in titles:
+    ws  = whitespace_tokenize(title)
+    ch  = char_tokenize(title)
+    sub = toy_subword_tokenize(title)
+    ws_oov = sum(1 for t in ws if t not in KNOWN_SUBWORDS)
+    print(f"{title[:28]:<30} whitespace={len(ws):>3} (oov={ws_oov})  "
+          f"char={len(ch):>3} (oov=0)  subword={len(sub):>3} (oov=0)")</code></pre>
+    <p class="caption">Whitespace tokenization produces the fewest tokens but the highest OOV count — the Japanese and Turkish titles are nearly all-OOV under whitespace splitting because whitespace rarely coincides with a real word boundary in those languages. Character tokenization has zero OOV by construction but the longest sequences. The toy subword pass lands in between and, by falling back to individual characters instead of a single UNK, never loses information — only length efficiency.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>The character/word/subword spectrum is a three-way trade</strong> between vocabulary size, sequence length, and out-of-vocabulary rate — you cannot minimize all three at once.</li>
+        <li><strong>Word-level tokenizers fail on morphologically rich languages</strong> — German compounding and Turkish agglutination generate unbounded vocabularies, and whitespace assumptions fail outright on Japanese and Chinese.</li>
+        <li><strong>The UNK token is a silent information sink</strong> — collapsing distinct rare strings to one placeholder makes them indistinguishable to the model, which is why production tokenizers are built to avoid ever emitting it.</li>
+        <li><strong>Normalization (NFKC) fixes encoding inconsistency but casefolding actively destroys meaning</strong> in SKUs, model numbers, and Turkish's dotted/dotless <code>i</code> distinction — multilingual catalogue tokenizers generally skip lowercasing.</li>
+        <li><strong>Pre-tokenization draws boundaries the subword algorithm can't cross</strong> — and whitespace-based pre-tokenization is close to useless for Japanese, which is why SentencePiece (Lesson 2) works on the raw stream instead.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>BPE, WordPiece, Unigram, SentencePiece</h2>
+    <p class="opening">Byte-Pair Encoding did not start as a machine learning algorithm at all. Philip Gage published it in 1994 as a general-purpose data compression trick: scan a byte stream, find the most frequent adjacent pair of bytes, replace every occurrence with a new byte that stands for that pair, and repeat until you run out of spare byte values or the data stops compressing. It sat there as a compression footnote for two decades. Then in 2016, Rico Sennrich, Barry Haddow, and Alexandra Birch repurposed it for an entirely different problem: neural machine translation models at the time had fixed output vocabularies and, like the word-level tokenizer in Lesson 1, fell over on rare and compound words — exactly the German-compound and morphology problems this unit's catalogue keeps surfacing. Their insight was that Gage's byte-merging loop, run over characters instead of bytes, naturally produces a vocabulary of frequent subword chunks: common full words survive as single units, rare words decompose into smaller frequent pieces, and nothing is ever fully unrepresentable. That 22-year-old compression algorithm is the direct ancestor of the tokenizer in GPT-2, GPT-3, and every open model that lists "BPE" in its tokenizer config today.</p>
+    <h3>The BPE training loop, with real counts</h3>
+    <p>BPE training works over a corpus of words, each represented as a sequence of characters with a special end-of-word marker (here, <code>_</code>) so the algorithm never merges across a word boundary. Take a tiny corpus of six catalogue title fragments with their frequencies:</p>
+    <table class="tbl">
+      <tr><th>Word</th><th>Count</th><th>Starting split</th></tr>
+      <tr><td>schuh_ (shoe)</td><td>5</td><td>s c h u h _</td></tr>
+      <tr><td>schuhe_ (shoes)</td><td>3</td><td>s c h u h e _</td></tr>
+      <tr><td>schrank_ (cabinet)</td><td>4</td><td>s c h r a n k _</td></tr>
+      <tr><td>schrauben_ (screws)</td><td>2</td><td>s c h r a u b e n _</td></tr>
+    </table>
+    <p>Step one: count every adjacent character pair across the whole corpus, weighted by word frequency. The pair <code>(s, c)</code> appears in every word (5+3+4+2 = 14 occurrences), and so does <code>(c, h)</code> — also 14. Both are tied for most frequent; a real implementation breaks ties by encounter order, so say <code>(s, c)</code> merges first, becoming a new symbol <code>sc</code>. Recount: now <code>(sc, h)</code> appears 14 times — the most frequent pair remaining — so it merges to <code>sch</code>. Recount again: <code>(sch, u)</code> appears in schuh_ and schuhe_, 5+3 = 8 times, while <code>(sch, r)</code> appears in schrank_ and schrauben_, 4+2 = 6 times. <code>(sch, u)</code> wins, merging to <code>schu</code>. Three merges in, the vocabulary already contains a piece that means "shoe-ish" and the algorithm hasn't needed a single hand-written rule — it discovered that <code>sch</code> is common German-catalogue structure purely from frequency counts, and it will keep merging (next likely: <code>schu</code>+<code>h</code> → <code>schuh</code>) until it hits the target vocabulary size, at which point training stops and the merge list is frozen for use at inference time.</p>
+    <h3>WordPiece: likelihood instead of raw frequency</h3>
+    <p>Google's <span class="term">WordPiece</span>, used in BERT, runs the same merge-and-repeat loop as BPE but changes the criterion for which pair to merge. Instead of picking the most frequent adjacent pair, WordPiece picks the pair whose merge most increases the likelihood of the training corpus under a unigram language model — roughly, it scores each candidate merge by <code>count(pair) / (count(first) × count(second))</code>, favoring pairs that co-occur far more often than their individual frequencies would predict by chance. This tends to prefer merging pieces that are more "glued together" linguistically over pieces that are merely both common. The practical difference from raw-frequency BPE is usually small, but it's the reason BERT-family tokenizers use a <code>##</code> prefix convention (<code>##ing</code>, <code>##zubehör</code>) to mark that a piece continues a word rather than starting one — WordPiece's scoring, unlike BPE's, was designed around that continuation distinction from the start.</p>
+    <h3>Unigram: pruning down instead of merging up</h3>
+    <p>The <span class="term">Unigram</span> algorithm (Kudo, 2018) inverts the direction entirely. Instead of starting from characters and merging upward, it starts from a large candidate vocabulary — every substring that appears often enough in the corpus, potentially hundreds of thousands of candidates — and repeatedly removes the pieces whose loss would hurt the corpus's overall likelihood the least, under a unigram model where each token's probability is estimated independently. It stops once it's pruned down to the target vocabulary size. The payoff is that Unigram naturally supports <span class="term">probabilistic segmentation</span>: because it models a token's probability independent of context, the same string can be segmented multiple valid ways (<code>"Zubehör"</code> as one piece, or as <code>"Zube"</code> + <code>"hör"</code>) with a computable likelihood for each, and a Unigram tokenizer can sample among plausible segmentations rather than always returning one deterministic split — a form of built-in data augmentation that BPE and WordPiece, which produce one fixed segmentation per string, don't offer.</p>
+    <h3>SentencePiece: no pre-tokenization required</h3>
+    <p><span class="term">SentencePiece</span> (Kudo & Richardson, 2018) is not a fourth merge algorithm — it's an implementation of BPE or Unigram (your choice) that changes what the algorithm is allowed to see. Recall from Lesson 1 that ordinary BPE/WordPiece pipelines run pre-tokenization first (split on whitespace), then apply subword merges within each whitespace-delimited piece. SentencePiece skips that step: it treats the input as a raw stream of Unicode characters (or, in byte-level mode, raw bytes) including the whitespace itself, which it encodes as a literal token, conventionally shown as <code>▁</code>. This is exactly the fix Lesson 1 flagged as missing for Japanese — since SentencePiece never assumes whitespace marks a word boundary, it works identically on English, German, and whitespace-free Japanese without any language-specific pre-processing rule, and it can reconstruct the original string byte-for-byte from its tokens (including exact spacing), which plain BPE cannot always guarantee once punctuation-splitting rules have discarded information. This is why SentencePiece, not classic BPE, is the tokenizer underneath multilingual models like mT5 and the XLM family.</p>
+    <h3>Byte-level BPE: the version that structurally cannot emit UNK</h3>
+    <p><span class="term">Byte-level BPE</span>, used by GPT-2 and its successors, runs the BPE merge loop over raw UTF-8 bytes (256 possible values) instead of Unicode characters. Since every possible string — in any language, any emoji, any malformed encoding — decomposes into some sequence of the 256 byte values, and all 256 byte values are guaranteed to be in the base vocabulary before any merges happen, there is no string byte-level BPE cannot represent. It literally cannot need an <code>&lt;UNK&gt;</code> token, because unlike character-level BPE (which can still be handed a Unicode codepoint it has never indexed), the byte alphabet is closed and complete by construction. A catalogue emoji like 👟 (running shoe) or 🇹🇷 (Turkey flag, itself a multi-codepoint sequence) simply decomposes into its UTF-8 bytes and gets merged like anything else — worst case, it costs 3–4 tokens instead of one, but it is never lost.</p>
+    <pre><code>from collections import Counter
+
+# tiny catalogue corpus: word -> frequency, pre-split into characters + end marker
+corpus = {
+    tuple("schuh_"):    5,
+    tuple("schuhe_"):   3,
+    tuple("schrank_"):  4,
+    tuple("schrauben_"):2,
+}
+
+def get_pair_counts(corpus):
+    counts = Counter()
+    for word, freq in corpus.items():
+        for a, b in zip(word, word[1:]):
+            counts[(a, b)] += freq
+    return counts
+
+def merge_pair(pair, corpus):
+    a, b = pair
+    merged = a + b
+    new_corpus = {}
+    for word, freq in corpus.items():
+        new_word, i = [], 0
+        while i < len(word):
+            if i < len(word) - 1 and word[i] == a and word[i+1] == b:
+                new_word.append(merged)
+                i += 2
+            else:
+                new_word.append(word[i])
+                i += 1
+        new_corpus[tuple(new_word)] = freq
+    return new_corpus
+
+learned_merges = []
+for step in range(3):
+    pair_counts = get_pair_counts(corpus)
+    best_pair = max(pair_counts, key=pair_counts.get)
+    learned_merges.append((best_pair, pair_counts[best_pair]))
+    corpus = merge_pair(best_pair, corpus)
+
+for i, (pair, count) in enumerate(learned_merges, 1):
+    print(f"merge {i}: {pair[0]!r} + {pair[1]!r}  (seen together {count}x)")</code></pre>
+    <p class="caption">This reproduces the three merges walked through above: running it prints <code>('s','c')</code>, then <code>('sc','h')</code>, then <code>('sch','u')</code> — each with its actual weighted count — confirming that BPE training is nothing more than "count pairs, merge the winner, repeat" applied mechanically.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>BPE is a 1994 compression algorithm</strong>, not an ML invention — Sennrich et al. (2016) repurposed byte-pair merging to fix rare/compound-word handling in neural machine translation.</li>
+        <li><strong>BPE and WordPiece both merge upward from characters</strong> but score candidate merges differently — raw co-occurrence frequency for BPE, a likelihood-improvement ratio for WordPiece.</li>
+        <li><strong>Unigram prunes downward from a huge candidate vocabulary</strong> instead of merging upward, and uniquely supports probabilistic multi-segmentation of the same string.</li>
+        <li><strong>SentencePiece removes the whitespace pre-tokenization assumption entirely</strong>, treating text as a raw character/byte stream — the direct fix for Japanese's lack of whitespace.</li>
+        <li><strong>Byte-level BPE has a closed, complete base vocabulary (256 byte values)</strong>, so it is structurally incapable of producing an UNK token, unlike character-level schemes.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Embeddings: from token id to vector</h2>
+    <p class="opening">An <span class="term">embedding matrix</span> is a single learned tensor of shape <code>(vocab_size, d_model)</code> — one row per token id, each row a dense vector of length <code>d_model</code>. Tokenization (Lessons 1–2) ends with an integer sequence, like <code>[4471, 892, 15]</code> for a tokenized SKU fragment; the embedding matrix is the lookup table that turns each integer into the vector the rest of the model — the attention blocks from Unit 2 — actually operates on. Everything downstream of tokenization is vectors, and this matrix is where integers become vectors.</p>
+    <h3>Lookup as one-hot matmul — but never actually done that way</h3>
+    <p>Mathematically, looking up row <code>i</code> of an embedding matrix <code>E</code> is identical to constructing a one-hot vector <code>v</code> (all zeros except a 1 at position <code>i</code>) and computing <code>v @ E</code> — the matmul zeroes out every row except row <code>i</code> and returns it. This equivalence is worth knowing because it's how embeddings are sometimes explained on a whiteboard and because it clarifies that an embedding table is mathematically just a special case of a linear layer with a one-hot input. But no real implementation does it this way: multiplying a sparse one-hot vector against a matrix with (say) 128,000 rows to extract one 4096-length row wastes essentially all of the multiply-adds computing zeros. Every real framework instead implements embedding lookup as direct indexed memory access — <code>E[token_id]</code> — which is why the operation is called <code>nn.Embedding</code> in PyTorch rather than expressed as a matmul: same math, but a gather instead of a multiply, because gathers over a 128k-row table are vastly cheaper than a 128k-wide matmul per token.</p>
+    <h3>The parameter cost hides in plain sight</h3>
+    <p>The embedding matrix's size is <code>vocab_size × d_model</code>, and for models with large multilingual vocabularies this is often the single biggest tensor anywhere in the network — bigger than most individual attention or feed-forward weight matrices. A 128,000-token vocabulary (roughly what a well-built multilingual SentencePiece vocabulary needs to give reasonable per-language coverage across English, German, Japanese, Arabic, and Turkish without excessive fragmentation) at <code>d_model = 4096</code> is:</p>
+    <p class="math">128,000 × 4,096 = 524,288,000 ≈ 512M parameters</p>
+    <p>Half a billion parameters spent purely on the input lookup table, before a single attention or feed-forward layer runs. For a smaller model — say a 1–2B parameter total budget — that's a substantial fraction of the entire parameter count going toward vocabulary rather than reasoning capacity, which is exactly why vocabulary size is a real design trade-off and not a free lunch: bigger vocabulary buys shorter sequences and lower OOV (Lesson 1) at the direct cost of parameters that scale linearly with every token you add.</p>
+    <h3>Weight tying: reusing the same matrix twice</h3>
+    <p>A language model needs an embedding matrix to turn input token ids into vectors, and it separately needs an output projection to turn the final hidden state back into a probability distribution over the vocabulary — a matrix of shape <code>(d_model, vocab_size)</code>, the transpose shape of the input embedding. <span class="term">Weight tying</span> is the decision to make these the literal same matrix (transposed for the output side) rather than two independently learned ones. This halves the parameter cost of the two largest tensors in a small model — instead of 512M for input embeddings plus another 512M for the output head, tying gives you 512M total, reused in both directions. It also has a regularizing effect: because the same row of <code>E</code> is pulled toward being a good input representation for a token and a good output-scoring direction for predicting that same token, the two objectives constrain each other, generally helping smaller models. The cost is a loss of flexibility — the input and output roles are subtly different (input embeddings benefit from clustering similar tokens close together; output projections benefit from being able to sharply separate a token from its near-neighbors to make confident predictions), and very large models sometimes untie the two matrices once the parameter cost is proportionally small enough not to matter.</p>
+    <h3>The multilingual token tax</h3>
+    <p>Tokenizers are trained on a mix of languages, and even a well-balanced training mix tends to under-represent morphologically complex or non-Latin-script languages relative to English, because BPE/Unigram merge frequency is driven by what's common in the training corpus — and English word fragments dominate most web-scale corpora. The practical result, well documented across production multilingual tokenizers: the same sentence, translated, costs measurably more tokens in some languages than others. A German sentence with the same meaning as an English one might run <span class="term">1.4x</span> the token count, a byproduct of compounding meaning fewer whole words survive as single tokens. Japanese, with no whitespace and a large, sparser-per-corpus character set, is worse — commonly cited multilingual tokenizer measurements put it around <span class="term">2.5x</span> the English token count for equivalent meaning. This "token tax" is not cosmetic: every downstream cost that scales with sequence length scales with it too. A model with a fixed context window of, say, 8,000 tokens gives an English-language user roughly 8,000 tokens of catalogue history and conversation, but gives a Japanese-language user the equivalent of only about 3,200 English-token-equivalents of content before running out of room. Per-request API pricing that bills per token charges the Japanese-language user 2.5x more for saying the same thing. Nothing about the model's competence differs — the tax is entirely a property of the tokenizer's vocabulary allocation, which is why tokenizer design is itself a fairness and cost consideration for a genuinely multilingual product, not just an engineering detail.</p>
+    <pre><code>import numpy as np
+
+def build_tied_embedding(vocab_size, d_model, seed=0):
+    rng = np.random.default_rng(seed)
+    # single matrix, shared by input lookup and output projection
+    E = rng.normal(scale=0.02, size=(vocab_size, d_model))
+    return E
+
+def embed_lookup(E, token_ids):
+    # real implementation: indexed gather, not a one-hot matmul
+    return E[token_ids]
+
+def output_logits(E, hidden_state):
+    # tied output head: reuse E transposed instead of a second matrix
+    return hidden_state @ E.T   # (d_model,) @ (d_model, vocab) -> (vocab,)
+
+for vocab_size, d_model in [(32_000, 1024), (128_000, 4096)]:
+    E = build_tied_embedding(vocab_size, d_model)
+    tied_params = E.size
+    untied_params = 2 * E.size
+    print(f"vocab={vocab_size:>7} d_model={d_model:>5} "
+          f"tied={tied_params:,} untied_equivalent={untied_params:,}")
+
+# trace one lookup + logits pass on a toy tokenized SKU fragment
+E = build_tied_embedding(vocab_size=32_000, d_model=1024)
+token_ids = np.array([4471, 892, 15])          # e.g. "WM", "-", "44"
+vectors = embed_lookup(E, token_ids)
+print("embedded shape:", vectors.shape)         # (3, 1024)
+logits = output_logits(E, vectors[-1])
+print("logits shape:", logits.shape)            # (32000,) — one score per vocab entry</code></pre>
+    <p class="caption">The printed parameter counts show the small-vocab config (32k × 1024) costing about 33M tied parameters versus 66M untied, and the large multilingual config (128k × 4096) costing 512M tied versus 1.05B untied — the tying decision alone is worth hundreds of millions of parameters at this scale. The lookup returns shape <code>(3, 1024)</code> for three token ids, and the tied output projection turns one <code>1024</code>-length hidden vector into <code>32000</code> logits using the exact same matrix the lookup used, just transposed.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>The embedding matrix has shape (vocab_size, d_model)</strong> and is looked up by index — mathematically equivalent to a one-hot matmul, but always implemented as a direct gather for efficiency.</li>
+        <li><strong>Embedding parameter cost scales linearly with vocabulary size</strong> — a 128k-vocab, d_model-4096 matrix is roughly 512M parameters, often the largest single tensor in a smaller model.</li>
+        <li><strong>Weight tying reuses the input embedding matrix as the output projection</strong>, halving the cost of the two largest tensors and adding a mild regularizing effect, at some loss of representational flexibility.</li>
+        <li><strong>The same content costs different numbers of tokens in different languages</strong> — roughly 1.4x for German and 2.5x for Japanese relative to English in common multilingual tokenizers — a direct consequence of training-corpus imbalance in the merge/prune process from Lesson 2.</li>
+        <li><strong>The multilingual token tax has real downstream costs</strong>: less usable context window and higher per-request price for languages the tokenizer represents less efficiently.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 3 quiz</h2>
+    <p class="quiz-intro">Eight questions covering the tokenization spectrum, BPE/WordPiece/Unigram/SentencePiece mechanics, and embedding matrix costs.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A whitespace tokenizer is run over the Japanese title "洗濯機用ステンレスホース" (no spaces in the original). What is the most likely outcome?</p>
+      <ol class="choices" type="A">
+        <li>The title splits cleanly into individual words.</li>
+        <li>The entire title becomes a single token, since there is no whitespace to split on.</li>
+        <li>The tokenizer throws an error because Japanese uses a non-Latin script.</li>
+        <li>The title is automatically transliterated to Latin script before splitting.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Whitespace tokenization can only split where whitespace exists. Japanese doesn't use whitespace between words, so the whole string is treated as one indivisible token — exactly the failure mode Lesson 1 opens with.</p>
+          <p>Option A is the tempting distractor because it assumes the tokenizer has some awareness of word boundaries — it doesn't; whitespace splitting has no model of language, only of the space character. Options C and D describe behaviors no whitespace tokenizer implements.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Lowercasing ("casefolding") a multilingual product catalogue before tokenization is generally a safe, meaning-preserving normalization step.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> Lowercasing destroys information in this domain: SKU and model-number case conventions carry meaning, and Turkish has a dotted <code>i</code> / dotless <code>ı</code> distinction that English-centric lowercasing logic (which assumes <code>I → i</code>) gets wrong.</p>
+          <p>It's tempting to think of lowercasing as purely cosmetic because it usually is for ordinary prose — but a catalogue mixing SKUs, model numbers, and Turkish text is exactly the case where that assumption fails.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">Byte-Pair Encoding was originally published in 1994 as a general-purpose <span class="blank">&nbsp;</span> algorithm, and was repurposed for neural machine translation by Sennrich et al. in 2016.</p>
+      <ol class="choices" type="A">
+        <li>encryption</li>
+        <li>compression</li>
+        <li>parsing</li>
+        <li>hashing</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B, compression.</strong> Philip Gage's original 1994 BPE replaced frequent adjacent byte pairs with new symbols to shrink data — a compression technique, not a language-modeling one, until Sennrich et al. adapted the merge loop for subword vocabularies.</p>
+          <p>Encryption and hashing both transform data but for confidentiality or fixed-size fingerprinting, not size reduction, which is what BPE's merge loop actually does. Parsing is closer conceptually but was never the stated purpose of Gage's algorithm.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">This BPE pair-counting function is supposed to count every adjacent character pair in a word, weighted by that word's corpus frequency. Fill in the blank so it does that correctly.</p>
+      <pre><code>def get_pair_counts(corpus):
+    counts = Counter()
+    for word, freq in corpus.items():
+        for a, b in zip(word, word[1:]):
+            counts[(a, b)] += <span class="blank">&nbsp;</span>
+    return counts</code></pre>
+      <ol class="choices" type="A">
+        <li><code>1</code></li>
+        <li><code>freq</code></li>
+        <li><code>len(word)</code></li>
+        <li><code>counts[(a, b)]</code></li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B, <code>freq</code>.</strong> Each occurrence of a pair inside a word should count once per occurrence of that word in the corpus — a pair inside a word that appears 5 times contributes 5 to the pair's total count, which is exactly the weighting used in the merge-loop walkthrough (the <code>(s,c)</code> pair reaching 14 by summing 5+3+4+2 across four distinct words).</p>
+          <p><code>1</code> would undercount every pair by ignoring word frequency entirely, silently turning the corpus into an unweighted set of distinct word types. <code>len(word)</code> and <code>counts[(a,b)]</code> (a self-referential increment) don't correspond to any sensible counting scheme here.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Unigram tokenization (Kudo, 2018) builds its final vocabulary by:</p>
+      <ol class="choices" type="A">
+        <li>Starting from individual characters and merging the most frequent adjacent pair repeatedly.</li>
+        <li>Starting from a large candidate vocabulary and pruning the least-useful pieces until the target size is reached.</li>
+        <li>Starting from whole words and splitting the least frequent ones into characters.</li>
+        <li>Training a neural network to predict optimal split points directly.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Unigram inverts the direction of BPE/WordPiece: it starts large (a huge set of candidate substrings) and repeatedly removes the pieces whose loss hurts corpus likelihood the least, stopping at the target vocabulary size.</p>
+          <p>Option A describes BPE/WordPiece's merge-upward approach, the opposite direction from Unigram. Option C inverts which words get treated specially, and no widely used subword scheme covered in this unit trains a neural network to choose split points directly.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Byte-level BPE (as used in GPT-2) can still produce an UNK token when it encounters a character it has never seen during training, such as an emoji.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> Byte-level BPE's base vocabulary is all 256 possible byte values, and every string in any encoding decomposes into some sequence of those bytes. An unseen emoji just costs more tokens (its UTF-8 bytes, individually or partially merged) — it is never unrepresentable.</p>
+          <p>This is easy to confuse with character-level BPE, which operates over Unicode codepoints rather than bytes and can in principle be handed a codepoint outside its trained vocabulary — byte-level BPE closes exactly that gap by working one level lower, on the closed 256-value byte alphabet.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">A tied-weight embedding matrix of shape (128,000, 4,096) has approximately <span class="blank">&nbsp;</span> parameters, and this single matrix serves as both the input embedding and, transposed, the output projection.</p>
+      <ol class="choices" type="A">
+        <li>4.1 million</li>
+        <li>132 million</li>
+        <li>512 million</li>
+        <li>1.05 billion</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C, 512 million.</strong> 128,000 × 4,096 = 524,288,000, roughly 512M parameters — and because the matrix is tied, that single count covers both the input lookup and the output logits projection.</p>
+          <p>1.05 billion is the untied total (roughly double, one matrix for input and a separate one for output) — the tempting distractor if you forget that tying means one matrix serves both roles rather than two independently sized ones.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">This embedding lookup is meant to return the vector for a batch of token ids by directly indexing the embedding matrix, the way <code>nn.Embedding</code> does it — a gather, not a matmul. Find the bug.</p>
+      <pre><code>def embed_lookup(E, token_ids, vocab_size):
+    one_hot = np.zeros((len(token_ids), vocab_size))
+    for i, tok in enumerate(token_ids):
+        one_hot[i, tok] = 1
+    return one_hot @ E   # returns embedded vectors, shape (len(token_ids), d_model)</code></pre>
+      <ol class="choices" type="A">
+        <li>There is no bug — the one-hot matmul returns the mathematically correct vectors.</li>
+        <li>The bug is that <code>one_hot</code> should have shape <code>(vocab_size, len(token_ids))</code> instead.</li>
+        <li>The bug is that <code>E</code> should be transposed before the matmul.</li>
+        <li>The bug is that this uses <code>@</code> instead of element-wise multiplication.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: A, there is no bug.</strong> This is a direct, correct implementation of Lesson 3's one-hot-matmul equivalence — <code>one_hot @ E</code> does zero out every row of <code>E</code> except the ones at each token's index and correctly returns shape <code>(len(token_ids), d_model)</code>. It's mathematically right; the actual problem with this code is that it's wasteful, not wrong — a real implementation would use direct indexing (<code>E[token_ids]</code>) instead of building and multiplying a mostly-zero one-hot matrix, exactly the distinction Lesson 3 draws between "mathematically equivalent" and "how it's actually implemented."</p>
+          <p>The shape and transpose distractors (B and C) both describe changes that would actually break the matmul dimensions or produce the wrong result — the code as written is dimensionally and numerically correct, just computationally wasteful compared to a gather.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Foundational Model Development · Unit 3 of 8 — Unit 4 picks up where the embedding matrix leaves off, covering the pretraining objectives (MLM, CLM, contrastive) that actually teach those vectors something.</p>
+</footer>
+</body>
+</html>

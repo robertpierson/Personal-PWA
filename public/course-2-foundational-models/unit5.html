@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 5 · Scaling laws and architecture design — Foundational Model Development</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Foundational Model Development · Unit 5 of 8</p>
+  <h1>Scaling laws and architecture design</h1>
+  <p class="lede">How to spend a fixed FLOP budget on parameters versus data, why a million-cell weather grid breaks naive attention, and how Mixture of Experts buys capacity without buying proportional compute — worked through a global 0.25-degree atmospheric emulator, in the lineage of GraphCast, Pangu-Weather, and FourCastNet.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. Scaling laws</a></li>
+      <li><a href="#lesson-2">2. Depth, width, context length, and the attention bottleneck</a></li>
+      <li><a href="#lesson-3">3. Mixture of Experts</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>Scaling laws</h2>
+    <p class="opening">In 2020, Jared Kaplan and collaborators at OpenAI published a paper that reshaped how the field spent its money. They trained hundreds of small language models across a wide range of parameter counts and dataset sizes, plotted loss against compute on log-log axes, and found something that looked almost too clean: loss falls as a straight line. From that they drew a practical conclusion — for a fixed compute budget, you get more out of making the model bigger than making the dataset bigger. Model size should grow faster than data size as compute grows. Two years later, Jordan Hoffmann and the DeepMind team behind the paper nicknamed <span class="term">Chinchilla</span> re-ran the experiment more carefully and overturned the recommendation, not the method. The straight line was real. The slope Kaplan's team had fit to it was biased by an artifact of how they trained: they held the learning-rate schedule's decay length fixed across runs of different lengths, which systematically penalized models that should have kept training longer. Correcting for that, Hoffmann's team found the optimal split was far more balanced — roughly 20 tokens of training data per parameter — and that most large models of that era, including OpenAI's own GPT-3, were substantially over-parameterized and under-trained for the compute that had gone into them.</p>
+
+    <p>That correction matters here for a specific reason: weather and climate emulation is one of the few domains outside language where a genuine pretraining corpus of this scale exists and keeps growing. ERA5, the reanalysis dataset most of this lineage trains on, covers the full globe at 6-hour steps back to 1940 — on the order of 60,000 to 120,000 global snapshots depending on the window you use, each one a token grid of roughly 1,038,240 cells (720 latitude steps by 1,440 longitude steps at 0.25-degree resolution) with on the order of 100-plus channels per cell once you count wind, temperature, humidity, and geopotential across dozens of pressure levels. Multiply cells by channels by snapshots and the effective token count per epoch is enormous, even though the current generation of weather emulators — GraphCast at roughly 37 million parameters, Pangu-Weather at roughly 256 million — are tiny by language-model standards. That gap is exactly why this unit's math matters going forward: as climate foundation models move toward pretraining once on decades of reanalysis and fine-tuning for many downstream tasks (Units 6 and 7's territory), the parameter counts will climb into the billions, and the question of where to spend a FLOP budget stops being academic.</p>
+
+    <h3>The power-law form, and what a straight line promises</h3>
+    <p>The empirical finding underneath both papers is a <span class="term">power law</span>: loss <code>L</code> falls with compute <code>C</code>, parameters <code>N</code>, or data <code>D</code> as a constant times that quantity raised to a small negative exponent.</p>
+    <p class="math">L(X) ≈ (X₀ / X)^α  →  log L = α·(log X₀ − log X)</p>
+    <p>On log-log axes this is a straight line, which is why these curves are so persuasive — and so easy to over-read. A straight line across the range you measured tells you the trend is smooth and predictable <em>within that range</em>; it does not promise the line continues forever. Every scaling law in this field has been fit over a finite window of compute and has eventually bent — from data exhaustion, from numerical instability at extreme widths, or from the loss approaching an irreducible floor set by the entropy of the data itself. Treat a scaling curve as an extrapolation tool for the next 10-100x of compute you can actually afford to spend, not as physics.</p>
+
+    <h3>Three axes, one budget: C ≈ 6ND</h3>
+    <p>Kaplan's and Chinchilla's papers both organize the problem around three quantities: parameter count <code>N</code>, training tokens <code>D</code>, and compute <code>C</code> measured in floating-point operations. They're linked by an approximation worth deriving rather than memorizing. A forward pass through a dense transformer costs roughly <code>2N</code> FLOPs per token — one multiply-add per parameter, counted as 2 FLOPs, ignoring attention's own quadratic term as a second-order correction at typical sequence lengths. Training needs a backward pass too, which costs about twice the forward pass, so one token of training costs roughly <code>2N + 4N = 6N</code> FLOPs. Across <code>D</code> tokens:</p>
+    <p class="math">C ≈ 6·N·D</p>
+    <p>This is the single most load-bearing approximation in this lesson, and it is what turns "how should I spend my compute" into a two-variable optimization instead of a search.</p>
+
+    <h3>Chinchilla's correction and compute-optimal allocation</h3>
+    <p>Given a fixed <code>C</code>, Chinchilla's re-derivation says the loss-minimizing choice keeps <code>N</code> and <code>D</code> in a roughly fixed ratio — about 20 tokens of data per parameter — rather than growing <code>N</code> disproportionately as Kaplan's original fit implied. Substituting <code>D ≈ 20N</code> into <code>C ≈ 6ND</code> gives <code>C ≈ 120N²</code>, so the compute-optimal parameter count for a given budget is <code>N ≈ √(C/120)</code>, with <code>D</code> following directly. This is the calculation the first code block below performs.</p>
+
+    <h3>When training compute isn't the constraint: the Llama argument</h3>
+    <p>Compute-optimal training minimizes loss for a fixed <em>training</em> budget. It says nothing about what happens after training ends. A weather emulator that ships is not run once — it is run every 6 hours, forever, against the freshest analysis, for every region and every downstream user who wants a forecast. Inference cost scales with <code>N</code> just as training cost does, and a model queried millions of times a day amortizes its training compute quickly while paying its inference compute forever. Meta's Llama team made this explicit: rather than train the Chinchilla-optimal <code>N</code> for their budget, they deliberately trained smaller models on far more tokens than the ~20-per-parameter ratio would suggest, accepting a training run that was no longer compute-optimal by Chinchilla's own metric, in exchange for a smaller, cheaper-to-serve model that reached comparable quality. For an operational forecasting system, that trade is usually the right one — the training run happens once; the inference happens forever.</p>
+
+    <pre><code>def chinchilla_optimal(flop_budget, tokens_per_param=20.0):
+    """Compute-optimal (N, D) for a fixed training FLOP budget C.
+    Derivation: C ~= 6*N*D, D ~= tokens_per_param*N
+             => C ~= 6*tokens_per_param*N**2
+             => N ~= sqrt(C / (6*tokens_per_param))
+    """
+    n = (flop_budget / (6.0 * tokens_per_param)) ** 0.5
+    d = tokens_per_param * n
+    return n, d
+
+def inference_aware_allocation(flop_budget, tokens_per_param=20.0, shrink=4.0):
+    """Same training budget, deliberately off the Chinchilla-optimal point:
+    shrink N (cheaper to serve every 6-hour forecast cycle) and spend the
+    freed compute on extra tokens instead, holding C ~= 6*N*D fixed.
+    'shrink' is how many times smaller the deployed model gets, in FLOPs-
+    per-training-step terms; this is illustrative, not a loss-matching
+    optimizer — real over-training choices are validated against measured
+    loss curves, not derived in closed form.
+    """
+    n_opt, _ = chinchilla_optimal(flop_budget, tokens_per_param)
+    n_small = n_opt / (shrink ** 0.5)
+    d_small = flop_budget / (6.0 * n_small)          # same C, smaller N -> bigger D
+    return n_small, d_small
+
+C = 1.2e22  # FLOP budget for a global 0.25-degree emulator pretraining run
+n_opt, d_opt = chinchilla_optimal(C)
+n_inf, d_inf = inference_aware_allocation(C)
+print(f"compute-optimal:   N={n_opt/1e9:.2f}B params  D={d_opt/1e9:.1f}B tokens")
+print(f"inference-aware:   N={n_inf/1e9:.2f}B params  D={d_inf/1e9:.1f}B tokens")
+# compute-optimal:   N=10.00B params  D=200.0B tokens
+# inference-aware:   N=5.00B  params  D=400.0B tokens</code></pre>
+    <p class="caption">Both allocators spend the same <code>C</code>; the inference-aware one trades training-compute-efficiency for a model that is half the size to serve at every 6-hourly forecast cycle, by over-training relative to the 20-tokens-per-parameter ratio.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Chinchilla corrected a methodology bug, not the existence of scaling laws</strong> — Kaplan's fixed learning-rate schedule across differing run lengths biased the fitted slope toward oversized models; the power-law relationship itself held up.</li>
+        <li><strong>C ≈ 6ND comes from counting FLOPs per token</strong>: ~2N for the forward pass, ~4N more for the backward pass, giving 6N per token times D tokens.</li>
+        <li><strong>Compute-optimal allocation solves N ≈ √(C/120)</strong> once you substitute the ~20-tokens-per-parameter ratio into C ≈ 6ND — a two-line calculation, not a grid search.</li>
+        <li><strong>A straight log-log line is a local promise, not a law of nature</strong> — it holds over the compute range it was fit on and bends at data exhaustion, instability, or an irreducible entropy floor.</li>
+        <li><strong>Compute-optimal and inference-optimal are different objectives</strong> — a forecasting system queried every 6 hours forever should often under-shoot Chinchilla's N and over-shoot its D, as Llama's team argued.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Depth, width, context length, and the attention bottleneck</h2>
+    <p class="opening">Tokenize a single global snapshot at 0.25-degree resolution the naive way — one token per grid cell — and you get 720 latitude steps by 1,440 longitude steps, 1,038,240 tokens, before you've added a second variable or a second timestep. Standard self-attention builds an <code>(seq, seq)</code> matrix of pairwise scores. At just over a million tokens, that matrix has roughly 1.08 × 10¹² entries. Stored in bf16 (2 bytes each), a single attention map for a single head in a single layer is about 2.15 terabytes — and a real model has dozens of layers and dozens of heads, each wanting its own such matrix during training. This is not a "use a bigger GPU" problem; no GPU built stores a 2-terabyte matrix per head. It is why none of the major weather-emulation architectures run naive full attention over the raw grid, and understanding the workarounds is the actual content of this lesson.</p>
+
+    <h3>Depth versus width, and the head-dimension floor</h3>
+    <p>Before the attention bottleneck, there's a smaller, more mundane shape question: for a given parameter budget, how many layers (<span class="term">depth</span>) versus how wide should each layer be (<code>d_model</code>, or <span class="term">width</span>)? Empirically, across transformer families from language models to vision transformers to the 3D Earth-Specific Transformer inside Pangu-Weather, the aspect ratio <code>d_model / n_layers</code> that trains stably and generalizes well tends to sit in a fairly narrow band — very roughly 100-200 for well-tuned deep models — with very deep, very narrow networks becoming harder to optimize and very shallow, very wide ones under-using their parameter budget on representational depth. The other shape constraint is per-head dimension: split <code>d_model</code> across too many heads and <code>d_head = d_model / n_heads</code> shrinks toward single digits, at which point each head's query-key dot product is computed over so few dimensions that the softmax it feeds becomes noisy and the head can't express a meaningfully selective attention pattern. Production transformer families rarely let <code>d_head</code> drop below about 64, which is why scaling <code>n_heads</code> and <code>d_model</code> together, rather than independently, is the standard move.</p>
+
+    <h3>The quadratic wall, in real gigabytes</h3>
+    <p>The million-cell number above is the extreme case — full global attention over every raw grid cell at once. In practice, weather transformers patchify the grid first, the same trick vision transformers use on images: group cells into, say, 4×4 patches, and the sequence length drops to 180 × 360 = 64,800 tokens. That's the number GraphCast, Pangu-Weather, and FourCastNet-style architectures actually contend with per snapshot, and it is still enough to make full attention expensive: 64,800² ≈ 4.2 billion score entries, about 8.4 GB in bf16 for one head in one layer — multiply by heads and layers and a single training step's attention activations alone can exceed the memory of the GPU holding the rest of the model. This is why GraphCast sidesteps attention almost entirely, using a graph neural network with local message-passing instead; why Pangu-Weather restricts attention to local 3D windows over its earth-specific grid; and why FourCastNet replaces attention with an Adaptive Fourier Neural Operator that mixes tokens in frequency space at roughly log-linear cost instead of quadratic. All three are answers to the same arithmetic.</p>
+
+    <h3>The KV-cache: quadratic training cost's quieter cousin</h3>
+    <p>A second memory cost shows up specifically at inference (or during rollout, when a weather model autoregressively feeds its own 6-hour-ahead prediction back in as the next input): the <span class="term">KV-cache</span>. To avoid recomputing key and value projections for every past token at every new step, autoregressive generation caches them. The size of that cache follows directly from Course 1 Unit 8's GPU memory arithmetic, extended across layers and heads:</p>
+    <p class="math">KV-cache bytes = 2 · layers · kv_heads · d_head · seq_len · batch · bytes_per_value</p>
+    <p>The leading 2 is for storing both keys <em>and</em> values; <code>kv_heads</code> is ordinarily just <code>n_heads</code>, but as the next section covers, it doesn't have to be. Run this formula on a plausible medium-size emulator — 24 layers, 16 heads, <code>d_head</code>=64 (so <code>d_model</code>=1,024), batch size 1, bf16 — and a 65,536-token rollout window (roughly a season of patchified 6-hourly steps at the 64,800-per-snapshot patch count above) costs <code>2 × 24 × 16 × 64 × 65,536 × 1 × 2</code> bytes ≈ 6.44 GB, just for cached keys and values, before the model's own weights or activations. That number gets worse fast with batch size and sequence length, which is exactly why it's worth computing rather than guessing.</p>
+
+    <h3>Multi-query and grouped-query attention: shrinking the cache, not the model</h3>
+    <p>The KV-cache formula has an obvious lever: <code>kv_heads</code>. <span class="term">Multi-query attention</span> (MQA) uses a single shared key/value head across all query heads — <code>kv_heads = 1</code> — cutting the cache by a factor of <code>n_heads</code> at the cost of some representational flexibility. <span class="term">Grouped-query attention</span> (GQA) is the compromise adopted by most current large models: split heads into a handful of groups (commonly 4-8) that each share one key/value head, giving most of MQA's memory savings with less of its quality cost. Applied to the 6.44 GB example above with 4 groups instead of 16 independent KV heads, the cache shrinks to roughly 1.61 GB — a real, immediately usable saving for a model that has to hold a full season's rollout in memory during autoregressive forecasting.</p>
+
+    <h3>Beyond quadratic: long-context strategies for a grid</h3>
+    <p>Where the cache and the attention matrix are both still too large, four families of fix recur. <span class="term">Sliding-window attention</span> restricts each token to attend only within a fixed local window, appropriate when a weather signal (a storm system, a pressure front) has strong local spatial correlation and limited long-range dependence per layer, with depth accumulating a larger effective receptive field across layers. <span class="term">Dilated attention</span> spaces the window out — attending to every k-th cell — to grow the receptive field without growing compute proportionally. <span class="term">Factorised axial attention</span>, particularly relevant to a lat-lon grid, decomposes full 2D attention into a pass along latitude and a separate pass along longitude, each individually cheap, approximating full 2D attention at a fraction of the cost — a natural fit for gridded data rather than a general-purpose hack. And graph- or operator-based approaches (GraphCast's message-passing, FourCastNet's Fourier operator) abandon attention's dense pairwise comparison altogether in favor of structures with locality or spectral sparsity built in from the start.</p>
+
+    <pre><code>def kv_cache_bytes(layers, heads, d_head, seq_len, batch=1, bytes_per_val=2, kv_heads=None):
+    """2 * layers * kv_heads * d_head * seq_len * batch * bytes_per_val
+    kv_heads defaults to heads (plain multi-head attention); pass a smaller
+    kv_heads for MQA (kv_heads=1) or GQA (kv_heads=heads // groups).
+    """
+    kv_heads = kv_heads or heads
+    return 2 * layers * kv_heads * d_head * seq_len * batch * bytes_per_val
+
+models = {
+    "small  (patch-ViT scale)":       dict(layers=12, heads=8,  d_head=64),  # d_model=512
+    "medium (Pangu-scale)":           dict(layers=24, heads=16, d_head=64),  # d_model=1024
+    "large  (GraphCast-era ceiling)": dict(layers=32, heads=32, d_head=64),  # d_model=2048
+}
+context_lengths = [4_096, 65_536]   # one patchified snapshot vs. a season-long rollout
+
+for name, cfg in models.items():
+    for seq in context_lengths:
+        mha = kv_cache_bytes(seq_len=seq, **cfg)                              # heads == kv_heads
+        gqa = kv_cache_bytes(seq_len=seq, kv_heads=cfg["heads"] // 4, **{k: v for k, v in cfg.items() if k != "heads"}, )
+        print(f"{name:32s} seq={seq:>6}  MHA={mha/1e9:6.2f} GB   GQA(g=4)={gqa/1e9:6.2f} GB")</code></pre>
+    <p class="caption">Run for three model sizes across two context lengths, GQA with 4 groups consistently lands at a quarter of plain multi-head attention's cache — the same lever regardless of model size.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Full attention over a raw 0.25-degree grid is a non-starter</strong> — roughly 1.04 million tokens per snapshot puts a single head's attention matrix in the terabyte range; patchification brings it down to tens of thousands of tokens, and still isn't free.</li>
+        <li><strong>d_head below roughly 64 starts hurting quality</strong>, which is why n_heads and d_model scale together rather than independently.</li>
+        <li><strong>The KV-cache formula (2 · layers · kv_heads · d_head · seq · batch · bytes) is a direct extension of Unit 8's GPU memory arithmetic</strong> — worth computing per deployment, not assumed.</li>
+        <li><strong>MQA and GQA cut the KV-cache by cutting kv_heads, not by shrinking the model</strong> — GQA with 4-8 groups is the standard middle ground between MQA's aggressive savings and full multi-head attention's quality.</li>
+        <li><strong>Sliding-window, dilated, and axial-factorised attention, plus non-attention operators like GraphCast's GNN and FourCastNet's Fourier operator, are all responses to the same quadratic-cost arithmetic</strong>, each trading some global receptive field for tractable memory.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Mixture of Experts</h2>
+    <p class="opening"><span class="term">Mixture of Experts</span> (MoE) replaces a transformer layer's single feed-forward network with several independent feed-forward networks — "experts" — plus a small router network that decides, per token, which experts should process that token. Instead of every token flowing through the same dense FFN, a router looks at each token's hidden state and sends it to a small subset of experts, typically the top <code>k</code> by a learned score. The point of the exercise is that the model's total parameter count can grow by adding more experts almost for free in compute terms, because each token still only activates <code>k</code> of them — capacity scales with the number of experts; compute scales with <code>k</code>, which stays fixed.</p>
+
+    <h3>Top-k gating, and why k=2 became the standard</h3>
+    <p>The router is ordinary: a linear layer projecting each token's hidden state to one score per expert, followed by a softmax to turn scores into a probability distribution. <span class="term">Top-k gating</span> keeps only the <code>k</code> highest-probability experts per token, renormalizes their weights to sum to 1, and combines their outputs weighted by those renormalized probabilities; every other expert contributes nothing for that token, and gets no gradient from it. <code>k=1</code> (the original Switch Transformer's choice) is the cheapest option but gives the router no redundancy — if the single chosen expert is a poor fit, there's no second opinion, and the router's discrete choice makes the gradient signal noisier. <code>k=2</code>, used in Mixtral and GShard-style architectures since, adds one more expert's worth of compute per token in exchange for a meaningfully more stable training signal and a soft blend between two specialists instead of a single hard choice, which in practice has been worth the roughly 2x FFN compute over <code>k=1</code>. Values above 2 exist but are rarer, since each additional expert narrows the active-versus-total-parameter gap that is MoE's whole reason to exist.</p>
+
+    <h3>Total parameters versus active parameters</h3>
+    <p>This distinction is the entire economic argument for MoE. <span class="term">Total parameters</span> counts every expert's weights, whether or not a given token used them — it determines how much memory the model needs to sit on disk or across a serving cluster. <span class="term">Active parameters</span> counts only the shared components (attention, embeddings, router) plus the <code>k</code> experts a given token actually visited — it determines the FLOPs that token costs, and therefore inference latency and training compute per token. An emulator with 8 experts of 350M parameters each, plus 200M parameters of shared attention and embedding, has 3.0B total parameters but only 900M active per token under top-2 routing — the model behaves, compute-wise, like a 900M-parameter dense model while having the representational capacity of one over three times larger. That gap is the entire trade MoE offers: more capacity to specialize (some experts, in a climate model, might implicitly specialize toward convective-regime dynamics, others toward large-scale synoptic flow) without paying for that capacity in FLOPs per token.
+
+    <h3>The load-balancing problem, and what happens without it</h3>
+    <p>Left to its own gradient signal, a router tends toward <span class="term">expert collapse</span>: an expert that is marginally better early in training gets routed slightly more tokens, which gives it more gradient updates, which makes it marginally better still — a rich-get-richer dynamic that can converge to a handful of experts absorbing nearly all tokens while the rest sit undertrained and effectively dead weight. The standard fix, introduced with the Switch Transformer and used in essentially every MoE since, is an auxiliary <span class="term">load-balancing loss</span> added to the training objective:</p>
+    <p class="math">L_aux = num_experts · Σₑ f_e · P_e</p>
+    <p>where <code>f_e</code> is the fraction of tokens actually routed to expert <code>e</code> in a batch and <code>P_e</code> is the router's average softmax probability assigned to expert <code>e</code> across all tokens (not just the ones routed there). This product is minimized, for a fixed total probability mass, when both <code>f_e</code> and <code>P_e</code> are uniform across experts — so pushing this loss down directly discourages the router from concentrating either its hard routing decisions or its soft probabilities on a few experts.</p>
+
+    <h3>Expert capacity and the honest trade</h3>
+    <p>Even with load balancing, hardware requires a hard per-expert <span class="term">capacity</span> — a maximum number of tokens each expert will process in a batch, usually set as a capacity factor (commonly 1.25-2×) above the perfectly-even share, to leave headroom for the imbalance that always remains. Tokens that would exceed a full expert's capacity are <span class="term">dropped</span> — they skip that expert's contribution entirely for that step, a real quality cost concentrated on whichever tokens the router happened to prefer that batch. This is the honest ledger for MoE as an architecture choice: it buys capacity — and therefore quality — per FLOP spent, but it costs memory (all those experts must sit somewhere, even unused ones), serving complexity (routing decisions, load balancing across accelerators, and capacity-drop handling all need real infrastructure), and fine-tuning stability (a router well-calibrated for pretraining data can misroute on a narrower fine-tuning distribution, an issue Units 6 and 7 pick up directly). None of that makes MoE the wrong choice for a large emulator — it is the reason models like Mixtral and, in this domain, larger successors to the current generation of weather transformers reach for it — but it is not a free lunch, and treating it as one is how serving costs quietly explode after a model that trained cheaply ships.</p>
+
+    <pre><code>import numpy as np
+
+def softmax(z, axis=-1):
+    z = z - z.max(axis=axis, keepdims=True)
+    e = np.exp(z)
+    return e / e.sum(axis=axis, keepdims=True)
+
+def top2_route(x, w_gate, num_experts, capacity_factor=1.25):
+    """x: (T, d_model) token hidden states for one grid patch batch.
+    w_gate: (d_model, num_experts) router projection.
+    Returns the chosen experts, their renormalized gate weights, the
+    load-balancing auxiliary loss, and how many assignments were dropped.
+    """
+    logits = x @ w_gate                                  # (T, E)
+    probs = softmax(logits)                               # router probabilities
+    top2 = np.argsort(-probs, axis=1)[:, :2]               # (T, 2) chosen expert ids
+    gate = np.take_along_axis(probs, top2, axis=1)
+    gate = gate / gate.sum(axis=1, keepdims=True)          # renormalize the 2 kept weights
+
+    T = x.shape[0]
+    capacity = int(capacity_factor * (T * 2) / num_experts)  # T*2 assignments for top-2
+    fill = np.zeros(num_experts, dtype=int)
+    assigned = np.zeros((T, num_experts), dtype=bool)
+    dropped = 0
+    for t in range(T):
+        for slot in range(2):
+            e = top2[t, slot]
+            if fill[e] < capacity:
+                assigned[t, e] = True
+                fill[e] += 1
+            else:
+                dropped += 1
+
+    f = assigned.sum(axis=0) / T                           # actual routed fraction per expert
+    p = probs.mean(axis=0)                                 # average router probability per expert
+    aux_loss = num_experts * np.sum(f * p)                 # minimized when f, p both uniform
+    return top2, gate, aux_loss, dropped</code></pre>
+    <p class="caption">Trace it by hand for a small <code>T</code> and <code>num_experts=8</code>: with perfectly uniform routing, <code>f</code> and <code>p</code> are both <code>1/8</code> everywhere and <code>aux_loss</code> hits its minimum of exactly 1.0; any concentration of routing pushes it above that.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>MoE swaps one dense FFN for N experts plus a router</strong> that sends each token to only <code>k</code> of them, decoupling total capacity from per-token compute.</li>
+        <li><strong>k=2 is the standard because it's the cheapest k that gives the router a soft blend instead of one brittle hard choice</strong> — k=1 is faster but noisier to train, k&gt;2 narrows the capacity-per-FLOP advantage that is the point of MoE.</li>
+        <li><strong>Total parameters govern memory footprint; active parameters govern FLOPs per token</strong> — a model can have several times more total than active parameters, and that ratio is exactly what MoE is bought for.</li>
+        <li><strong>Without a load-balancing auxiliary loss, routers tend toward expert collapse</strong> — a rich-get-richer dynamic that leaves most experts undertrained, not toward the naturally even split intuition might suggest.</li>
+        <li><strong>Expert capacity limits, and the token-dropping they force under imbalance, are a real quality cost</strong> — MoE trades FLOPs for memory, serving complexity, and this dropping behavior, not a free capacity upgrade.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 5 quiz</h2>
+    <p class="quiz-intro">Eight questions covering scaling-law history and arithmetic, the attention and KV-cache memory bottleneck, and Mixture of Experts — including two numeric compute-budget and memory computations.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">According to Hoffmann et al. 2022 ("Chinchilla"), what was the primary flaw in Kaplan et al. 2020's original scaling-law conclusions?</p>
+      <ol class="choices" type="A">
+        <li>Power laws don't actually describe how loss falls with compute.</li>
+        <li>Kaplan's team held the learning-rate schedule's decay length fixed across runs of different lengths, which systematically biased the fitted curves toward favoring larger models on relatively less data.</li>
+        <li>Kaplan's team didn't test models large enough to reveal the true trend.</li>
+        <li>Kaplan's team ignored batch size entirely, which invalidated the compute axis.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> The power-law relationship itself held up under Chinchilla's more careful re-run — the problem was methodological, not conceptual. Fixing the learning-rate schedule bug shifted the optimal ratio to roughly 20 tokens per parameter, revealing that most large models of that era, including GPT-3, were over-parameterized relative to the data they'd been trained on.</p>
+          <p>A is wrong because Chinchilla's whole re-analysis assumes and confirms the power-law form; it corrects the fitted slope, not the shape of the relationship. C is a tempting distractor because "not enough scale" is a common failure mode in ML research generally, but it wasn't the documented issue here. D is wrong — batch size wasn't the identified culprit.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">A climate-emulation pretraining run is budgeted at C = 1.2 × 10²² FLOPs. Using C ≈ 6ND and the Chinchilla ratio D ≈ 20N, the compute-optimal parameter count N is approximately <span class="blank">&nbsp;</span> billion parameters.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: 10 billion.</strong> Substituting D ≈ 20N into C ≈ 6ND gives C ≈ 120N², so N ≈ √(C/120) = √(1.2×10²²/120) = √(1×10²⁰) = 1×10¹⁰ = 10 billion parameters, with D ≈ 20 × 10B = 200 billion tokens following directly.</p>
+          <p>A common arithmetic slip is forgetting the factor of 6 (or the factor of 20) and computing N ≈ √(C/6) or √(C/20) instead of √(C/120) — either mistake gives an N several times too large, which would in turn imply a D far below the Chinchilla-optimal ratio for that N.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Because a 0.25-degree global atmospheric grid tokenizes to roughly 1 million cells, GraphCast and similar weather-emulation models typically run full quadratic self-attention over the entire global grid at every layer.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> A single head's attention matrix over ~1.04 million tokens would need roughly 2.15 TB in bf16 — no accelerator holds that. GraphCast instead uses a graph neural network with local message-passing; Pangu-Weather restricts attention to local 3D windows; FourCastNet replaces attention with an Adaptive Fourier Neural Operator. All three exist specifically to avoid full quadratic attention at this token count.</p>
+          <p>The statement is designed to sound plausible because these models genuinely do operate on million-cell grids — the error is assuming that scale implies full dense attention rather than one of the architectural workarounds the lesson covers.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A model has 24 layers, 16 attention heads, d_head = 64 (so d_model = 1,024), plain multi-head attention (kv_heads = heads), batch size 1, bf16 values (2 bytes), and a rollout sequence length of 65,536 tokens. Using KV-cache bytes = 2 · layers · kv_heads · d_head · seq_len · batch · bytes_per_value, the KV-cache size is closest to:</p>
+      <ol class="choices" type="A">
+        <li>0.10 GB</li>
+        <li>3.22 GB</li>
+        <li>6.44 GB</li>
+        <li>12.88 GB</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> 2 × 24 × 16 × 64 × 65,536 × 1 × 2 = 6,442,450,944 bytes ≈ 6.44 GB.</p>
+          <p>Option B (3.22 GB) is what you get if you drop the leading factor of 2 for storing both keys and values. Option D (12.88 GB) double-counts that factor. Option A is off by roughly two orders of magnitude, the kind of error that comes from using a much shorter sequence length (around 4,096) instead of the 65,536 specified.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">Complete the line so that <code>kv_cache_bytes</code> correctly computes the KV-cache for grouped-query attention with 4 groups, given <code>heads</code> total query heads:</p>
+      <pre><code>def kv_cache_bytes(layers, heads, d_head, seq_len, batch=1, bytes_per_val=2, kv_heads=None):
+    kv_heads = kv_heads or heads
+    return 2 * layers * kv_heads * d_head * seq_len * batch * bytes_per_val
+
+groups = 4
+gqa_bytes = kv_cache_bytes(layers=24, heads=16, d_head=64, seq_len=65536,
+                            kv_heads=<span class="blank">&nbsp;</span>)</code></pre>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: <code>heads // groups</code></strong> (16 // 4 = 4 shared KV heads). GQA groups the 16 query heads into 4 sets, each set sharing one key/value head, so the effective <code>kv_heads</code> passed to the formula is <code>heads / groups</code>, not <code>heads</code> or <code>groups</code> alone.</p>
+          <p>Passing <code>groups</code> directly (4) happens to give the same number here only because 16/4 = 4 — with a different head count, say 32 heads and 4 groups, <code>kv_heads</code> should be 8, not 4, so the division must actually be performed rather than substituting the group count.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">This capacity function feeds a top-2 MoE layer processing T=4,096 grid-cell tokens across num_experts=8 experts. Even when the router's routing is perfectly balanced across experts, roughly half of all token-expert assignments get dropped. Find the bug.</p>
+      <pre><code>def compute_capacity(T, num_experts, capacity_factor=1.25):
+    # capacity_factor gives headroom above a perfectly even split
+    return int(capacity_factor * T / num_experts)</code></pre>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Bug: the capacity formula assumes top-1 routing.</strong> A top-2 router produces T × 2 total token-expert assignments, not T — so a perfectly even split routes <code>(T·2)/num_experts</code> assignments to each expert, not <code>T/num_experts</code>. The fix is <code>int(capacity_factor * (T * 2) / num_experts)</code>. Without it, capacity is set to half of what a perfectly balanced top-2 router actually needs, so even ideal routing overflows every expert's capacity and drops roughly half of all assignments.</p>
+          <p>It's tempting to assume the <code>capacity_factor</code> of 1.25 is meant to absorb this gap, but 1.25× headroom above an already-halved baseline still lands well short of the true even-split load — the missing top-k multiplier isn't something a small headroom factor can paper over.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A climate-emulation MoE layer has 8 experts of 350M parameters each, plus 200M parameters of shared attention, embeddings, and router combined. Under top-2 routing, what are the active parameters used to process a single token (as opposed to the model's total parameter count)?</p>
+      <ol class="choices" type="A">
+        <li>0.9B — 200M shared plus 2 × 350M for the two routed experts</li>
+        <li>3.0B — every expert's parameters, whether or not this token used them</li>
+        <li>2.8B — all 8 experts, excluding the shared components</li>
+        <li>1.75B — the shared components plus half of every expert's parameters</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: A.</strong> Active parameters count only what a given token actually passes through: the always-on shared components (200M) plus the two experts top-2 routing selected (2 × 350M = 700M), for 900M total — this is what determines that token's FLOPs and latency.</p>
+          <p>Option B (3.0B) is the model's <em>total</em> parameter count — every expert's weights, whether or not this token was routed there — which governs memory footprint, not per-token compute. It's the most common confusion in reasoning about MoE cost. C and D are arithmetic distractors that don't correspond to how top-2 routing actually selects and weights experts.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Training a MoE router with only the task loss (e.g. next-step forecast error) and no load-balancing auxiliary loss will typically still converge to routing tokens roughly evenly across experts, since gradient descent naturally spreads load to minimize total compute.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> Without an explicit load-balancing signal, routers tend toward expert collapse: an expert that performs marginally better early in training gets routed slightly more tokens, receives more gradient updates as a result, and improves further — a rich-get-richer dynamic, not a self-correcting one. The load-balancing auxiliary loss (num_experts · Σ f_e · P_e) exists precisely because gradient descent on the task loss alone does not produce even routing.</p>
+          <p>The intuition that "the model has no incentive to concentrate load, so it won't" mistakes the absence of an explicit penalty for the presence of a countervailing pressure — nothing in the task loss discourages concentration, so nothing stops it.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Foundational Model Development · Unit 5 of 8 — Unit 6 turns to fine-tuning: adapting a pretrained emulator to a new region or variable set without retraining from scratch.</p>
+</footer>
+</body>
+</html>

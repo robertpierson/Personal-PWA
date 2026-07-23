@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 4 · Pretraining objectives — Foundational Model Development</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Foundational Model Development · Unit 4 of 8</p>
+  <h1>Pretraining objectives</h1>
+  <p class="lede">The architecture from Units 1–3 is inert until you decide what it is trying to predict. This unit covers the three families of pretraining objective — causal, masked/denoising, and contrastive — through the lens of building a model over public source code: completion, infilling, and docstring-to-function search.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. Causal language modelling</a></li>
+      <li><a href="#lesson-2">2. Masked language modelling and denoising</a></li>
+      <li><a href="#lesson-3">3. Contrastive objectives</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>Causal language modelling</h2>
+    <p class="opening">Causal language modelling (<span class="term">CLM</span>) is the objective that turns a decoder-only transformer into a next-token predictor: given every token up to position <code>i</code>, produce a distribution over the vocabulary for the token at position <code>i+1</code>, and do this at every position in every training sequence at once. It is the objective behind GPT-family models, and it is the one you will spend the most wall-clock time on, because it is what a code-completion model — the kind that finishes a line as you type it in an editor — is actually trained to do.</p>
+    <p>Feed the model a batch of tokenized functions from your pretraining corpus — say, four snippets that survived the license filter and near-duplicate removal from your crawl, tokenized with the byte-pair tokenizer you built in Unit 3 across Python, Java, Go, and JavaScript source. The causal mask from Unit 2 guarantees that position <code>i</code>'s output can only attend to positions <code>0..i</code>; it can never peek at position <code>i+1</code>. That masking is what makes the training procedure below sound — without it, "predicting" the next token would just be copying it.</p>
+    <h3>Teacher forcing and the shift</h3>
+    <p>During training you do not let the model generate its own prefix and then predict from that (self-generated) prefix — you feed it the <em>ground-truth</em> prefix at every step, regardless of what the model would have predicted on its own. This is <span class="term">teacher forcing</span>: at position <code>i</code> the model conditions on the real tokens <code>0..i</code> from the training corpus, not on its own possibly-wrong guesses. It is what makes CLM training parallelizable — every position's loss term can be computed independently in a single forward pass, because you already know what every position's input should be.</p>
+    <p>The mechanical consequence of teacher forcing is the single most common implementation bug in this objective: the <span class="term">input/label shift</span>. Your raw tensor is one sequence of token ids. The model's <em>input</em> at position <code>i</code> is the token at position <code>i</code>; the model's <em>label</em> at position <code>i</code> is the token at position <code>i+1</code> — the one it's supposed to predict. Concretely, if your tokenized tensor is <code>tokens</code> with shape <code>(batch, seq_len)</code>, the input is <code>tokens[:, :-1]</code> and the label is <code>tokens[:, 1:]</code> — both of shape <code>(batch, seq_len-1)</code>. Get this wrong — feed the model the same slice as both input and label, or shift in the wrong direction — and the loss will look deceptively reasonable (the model can partially solve "predict the token you were just given" by learning an identity-like shortcut through the earlier layers) while validation perplexity and generation quality quietly collapse. This is the bug that Question 5 below asks you to catch.</p>
+    <h3>Cross-entropy and perplexity</h3>
+    <p>At each position, the model outputs a logit vector of size <code>vocab_size</code>; softmax turns it into a probability distribution; the loss at that position is the negative log-probability the model assigned to the true next token — <span class="term">cross-entropy</span>. Averaged over every valid position in the batch:</p>
+    <p class="math">L = -(1/N) Σᵢ log P(yᵢ | y&lt;ᵢ)</p>
+    <p>where <code>yᵢ</code> is the true token at position <code>i</code> and <code>N</code> is the total number of predicted positions across the batch. <span class="term">Perplexity</span> is just this loss re-expressed on a scale that is easier to reason about: <code>PPL = exp(L)</code>. A perplexity of 1 means the model assigns probability 1 to every correct next token — perfect prediction. A perplexity of <code>V</code> (your vocabulary size) means the model is doing no better than picking uniformly at random among all tokens. For a code model with a ~50k-token BPE vocabulary, a well-trained model typically lands in the range of 2–4 perplexity on held-out repository code — meaning that, on average, the model behaves as if it were choosing uniformly among only 2 to 4 plausible next tokens at each position, not 50,000. That's a useful mental model: perplexity is "effective branching factor," not an abstract log-loss number.</p>
+    <h3>The training/generation asymmetry</h3>
+    <p>Because teacher forcing supplies the true prefix at every position, CLM training computes the loss at all <code>seq_len - 1</code> positions in one forward pass — it is embarrassingly parallel across positions, which is exactly why transformers pretrain efficiently on accelerators built for parallel matrix multiplication. Generation is the opposite: at inference time there is no ground-truth prefix to feed, so the model must produce token <code>i+1</code>, append it, and feed the whole extended sequence back in to produce token <code>i+2</code>. Generation is inherently <span class="term">serial</span> — one forward pass per output token (modulo tricks like speculative decoding, which are out of scope here). This asymmetry — parallel training, serial inference — is why a code-completion model is cheap to pretrain on a cluster and comparatively expensive to serve one keystroke at a time in an IDE.</p>
+    <pre><code>import torch
+import torch.nn.functional as F
+
+# tokens: BPE ids from the Unit 3 tokenizer, one row per function opening
+# "def add(a, b):" / "def sub(a, b):" / "def mul(a, b):" / "def div(a, b):"
+tokens = torch.tensor([
+    [101, 45, 902, 17, 6, 88, 231, 5],
+    [101, 45, 77,  17, 6, 12, 231, 5],
+    [101, 45, 300, 17, 6, 88, 231, 5],
+    [101, 45, 512, 17, 6, 12, 231, 5],
+])                                    # shape: (4, 8)
+
+# THE OFF-BY-ONE, done correctly:
+inputs = tokens[:, :-1]               # shape: (4, 7)  -- what the model sees
+labels = tokens[:, 1:]                # shape: (4, 7)  -- what it must predict
+
+print("inputs[0]:", inputs[0].tolist())   # [101, 45, 902, 17, 6, 88, 231]
+print("labels[0]:", labels[0].tolist())   # [45, 902, 17, 6, 88, 5*]
+# position i of `inputs` and position i of `labels` are DIFFERENT tokens:
+# labels[i] is whatever came immediately after inputs[i] in the source file.
+
+vocab_size = 4096
+logits = model(inputs)                            # (4, 7, vocab_size)
+loss = F.cross_entropy(
+    logits.reshape(-1, vocab_size),
+    labels.reshape(-1),
+    reduction="mean",
+)
+perplexity = torch.exp(loss)
+print(f"mean NLL = {loss.item():.3f}   perplexity = {perplexity.item():.2f}")</code></pre>
+    <p class="caption">The input and label tensors are the same underlying data at different offsets, not two different tensors — notice they share every value, just shifted by one column. Perplexity is computed once, over the whole batch, from the mean cross-entropy.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>CLM predicts token <code>i+1</code> from tokens <code>0..i</code></strong>, using the causal mask from Unit 2 to prevent any position from seeing its own answer.</li>
+        <li><strong>Teacher forcing feeds the true prefix</strong>, not the model's own generations, which is what makes every position's loss independently computable in one parallel forward pass.</li>
+        <li><strong>The input/label shift is <code>tokens[:, :-1]</code> vs. <code>tokens[:, 1:]</code></strong> — the single most common CLM bug is getting this shift wrong or omitting it.</li>
+        <li><strong>Perplexity is <code>exp(mean cross-entropy)</code></strong> and reads as an effective branching factor: a well-trained code model sits around 2–4, not near the vocabulary size.</li>
+        <li><strong>Training is parallel across positions; generation is serial across tokens</strong> — the same objective that pretrains cheaply is expensive to sample from one token at a time.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Masked language modelling and denoising</h2>
+    <p class="opening">Say you want to build code <em>search</em>: given a natural-language query like "parse a JSON config file and validate required keys," retrieve the function in your indexed repositories that does that. To rank candidates you need a single vector representing each whole function — but a causal model, by construction, has never let its representation of line 1 see line 40. Its encoding of the function's opening is permanently ignorant of the function's return statement, because the causal mask from Unit 2 forbids it. For generation that's the whole point; for building a representation of a complete, already-written function, it's a real limitation. This is the problem masked language modelling and its descendants solve: how do you get a transformer to build representations that are informed by <em>both directions</em> of context, when the objective that made training parallel and cheap (CLM) explicitly denies it that context?</p>
+    <h3>BERT-style masking: 15%, 80/10/10</h3>
+    <p>BERT's answer is <span class="term">masked language modelling</span> (MLM): remove the causal mask entirely (full bidirectional attention), corrupt roughly 15% of the input tokens, and train the model to reconstruct the corrupted positions from the uncorrupted rest of the sequence in both directions. Naively you'd corrupt all 15% by replacing them with a special <code>[MASK]</code> token. BERT instead splits that 15% three ways: <strong>80%</strong> of selected positions are replaced with <code>[MASK]</code>, <strong>10%</strong> are replaced with a random token from the vocabulary, and <strong>10%</strong> are left completely unchanged — yet all three groups still count toward the loss (the model must still predict the original identifier at all three types of positions).</p>
+    <p>The reason for the split is subtler than "add noise." If 100% of masked positions became <code>[MASK]</code>, the model would learn to produce good representations for <code>[MASK]</code> tokens specifically — but at finetuning or downstream-inference time, on a real function you feed it, <code>[MASK]</code> never appears at all. That's the <span class="term">pretrain-finetune mismatch</span>: a representation-quality gap caused by the model over-specializing to an artifact of the pretraining recipe. The 10% random-token branch forces the model to keep verifying every position against its context — including positions that look perfectly plausible on the surface — rather than learning "only bother checking positions that are literally <code>[MASK]</code>." The 10% unchanged branch goes one step further: since the model cannot tell, from the token alone, whether a given real-looking token (say, an identifier like <code>config</code>) is one of the 15% it must reconstruct or one of the 85% it can trust outright, it is forced to build a genuinely contextual representation of <em>every</em> token, not just the visibly corrupted ones. Both branches exist to close the same gap: making the representation the model learns during pretraining match the representation it will need to produce at inference, when no <code>[MASK]</code> tokens exist.</p>
+    <h3>T5-style span corruption</h3>
+    <p>T5 generalizes single-token masking to <span class="term">span corruption</span>: instead of masking scattered individual tokens, mask contiguous spans (a run of 2–5 tokens, say a full argument list or a whole conditional expression) and replace each entire span with a single unique <span class="term">sentinel token</span> (<code>&lt;extra_id_0&gt;</code>, <code>&lt;extra_id_1&gt;</code>, ...). The encoder sees the corrupted sequence with sentinels standing in for the missing spans; a separate decoder is trained, causally, to generate the sequence: sentinel, the missing span, next sentinel, its missing span, and so on. For code, this is a much better match to real corruption than independent token masking, because code's syntax is spanned — an entire slice expression or an entire decorator is the unit that's missing, not a scattered token here and there. It also reframes MLM as a sequence-to-sequence generation task, which is why T5-family models can be finetuned generatively in a way vanilla BERT cannot.</p>
+    <h3>Fill-in-the-middle: denoising for a causal model</h3>
+    <p>You don't have to give up the causal architecture (and its cheap, parallel training) to get infilling. <span class="term">Fill-in-the-middle</span> (FIM), used to pretrain code models like Codex/CodeGen-style infilling variants, uses a <span class="term">document rotation</span> trick: take a training document (a function body), split it at two random points into prefix, middle, and suffix, then reorder the pieces as <em>prefix, suffix, middle</em> (the "PSM" layout), wrapping each piece with a sentinel (<code>&lt;PRE&gt;</code>, <code>&lt;SUF&gt;</code>, <code>&lt;MID&gt;</code>). The model is still trained with plain next-token CLM and the plain causal mask — nothing about the architecture changes. But because the suffix now appears in the sequence <em>before</em> the middle, the model conditions on tokens that came both before <em>and</em> after the missing region in the original source, without ever needing bidirectional attention. At inference time, an IDE plugin gives the model the code before the cursor as the prefix and the code after the cursor as the suffix, and asks it to generate the middle — exactly the "complete what I'm typing given everything already in the file" use case that a pure left-to-right model can't do on its own.</p>
+    <pre><code>import torch
+
+def bert_style_mask(tokens, vocab_size, mask_id, special_ids, p_mask=0.15):
+    """tokens: 1D LongTensor of code token ids for one function body."""
+    labels = tokens.clone()
+    candidate = torch.rand(tokens.shape) &lt; p_mask
+    for sid in special_ids:                 # never corrupt CLS/SEP/pad, etc.
+        candidate &= tokens != sid
+    labels[~candidate] = -100               # -100: ignored by cross_entropy
+
+    choice = torch.rand(tokens.shape)
+    to_mask   = candidate & (choice &lt; 0.80)                    # 80%: -> [MASK]
+    to_random = candidate & (choice &gt;= 0.80) & (choice &lt; 0.90)  # 10%: -> random id
+    # remaining 10% of `candidate`: left unchanged, but still scored in `labels`
+
+    tokens = tokens.clone()
+    tokens[to_mask] = mask_id
+    n_rand = int(to_random.sum())
+    tokens[to_random] = torch.randint(0, vocab_size, (n_rand,))
+    return tokens, labels                   # (corrupted_input, reconstruction_target)
+
+
+def fim_reorder(func_tokens, split_a, split_b, pre_id, suf_id, mid_id):
+    """Document-rotation FIM: causal model, PSM layout."""
+    prefix = func_tokens[:split_a]
+    middle = func_tokens[split_a:split_b]
+    suffix = func_tokens[split_b:]
+    return [pre_id] + prefix + [suf_id] + suffix + [mid_id] + middle
+    # trained with plain CLM + plain causal mask on THIS reordered sequence --
+    # the model still only ever predicts left-to-right</code></pre>
+    <p class="caption">In <code>bert_style_mask</code>, all three branches (mask / random / unchanged) still show up in <code>labels</code> as positions to reconstruct — only the <em>input</em> token differs between them. In <code>fim_reorder</code>, note that no attention mask changes at all; the "bidirectionality" comes entirely from reordering the tokens the causal model reads.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>MLM exists because a causal model's early-token representations can't see later tokens</strong> — a real limitation for whole-function representations needed for search, not a limitation for generation.</li>
+        <li><strong>The 80/10/10 split closes the pretrain-finetune mismatch</strong>: pure <code>[MASK]</code> would teach the model to build good representations only for a token that never appears outside pretraining.</li>
+        <li><strong>The 10% random branch forces contextual verification everywhere</strong>, and the 10% unchanged branch forces it precisely because the model can't tell which real tokens are "trustworthy" from the token alone.</li>
+        <li><strong>T5 span corruption masks contiguous spans with sentinel tokens</strong> and reframes reconstruction as sequence generation — a better match to code's syntactic, spanned structure than scattered single-token masking.</li>
+        <li><strong>FIM gets bidirectional-ish infilling out of a purely causal model</strong> via document rotation (prefix, suffix, middle) — no architecture change, just a reordering of the training document.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Contrastive objectives</h2>
+    <p class="opening">Think about how you'd teach someone to recognize a composer's style without ever describing the notes: you'd play one of their pieces next to a piece by someone else and ask "which two sound like the same hand?" You never reconstruct a missing note; you never generate anything. You just learn a notion of <em>similar</em> versus <em>different</em> by comparison. That's the whole idea behind <span class="term">contrastive</span> pretraining objectives — instead of reconstructing corrupted or shifted input (as in Lessons 1 and 2), the model learns by being shown pairs and asked to pull true pairs together and push everything else apart in embedding space. For code search specifically — matching a docstring like "recursively deletes empty directories under a path" to the function that implements it — this comparison-based framing turns out to be a more direct fit than either CLM or MLM, because search is fundamentally a comparison problem, not a generation problem.</p>
+    <h3>Positive and negative pairs, and InfoNCE</h3>
+    <p>A contrastive dataset for code search consists of <span class="term">positive pairs</span> — a docstring and the function it documents, mined straight out of your license-filtered, de-duplicated repository corpus — and, implicitly, every other docstring/function combination in the batch serves as a <span class="term">negative pair</span>. Given a batch of <code>batch_size</code> such pairs, encode all the docstrings with one encoder and all the functions with another (or a shared one), producing two matrices of embeddings, then compute the similarity between every docstring and every function. The loss most commonly used is <span class="term">InfoNCE</span> (used in SimCLR, CLIP, and code-search systems like CodeSearchNet-derived setups):</p>
+    <p class="math">L = -(1/N) Σᵢ log [ exp(sim(dᵢ, cᵢ)/τ) / Σⱼ exp(sim(dᵢ, cⱼ)/τ) ]</p>
+    <p>Read the inner fraction as a softmax over "which code snippet, among all <code>N</code> in the batch, is the one this docstring goes with" — the numerator is the score for the true match <code>cᵢ</code>, the denominator sums over every candidate <code>cⱼ</code> in the batch including the true one. It is literally a cross-entropy loss where the "classes" are the other items in the batch and the correct class index for row <code>i</code> is <code>i</code> itself.</p>
+    <h3>Temperature, and in-batch negatives as the difficulty knob</h3>
+    <p>The <code>τ</code> (<span class="term">temperature</span>) parameter rescales the similarity scores before the softmax. As <code>τ → 0</code>, the softmax sharpens toward a one-hot distribution concentrated on whichever candidate has the single highest similarity — the loss becomes dominated by hard negatives (near-miss functions that are almost, but not quite, the right match) and gradients become large and noisy. As <code>τ → ∞</code>, every similarity score gets crushed toward the same value, the softmax flattens toward uniform, and the loss gradient vanishes — the model gets almost no signal about which negatives it's failing to distinguish. In practice <code>τ</code> is a tuned hyperparameter (commonly 0.05–0.1 for normalized embeddings), not something you set at either extreme.</p>
+    <p>The negatives in the denominator above come from other pairs already in the same training batch — <span class="term">in-batch negatives</span> — which is why <span class="term">effective batch size is the difficulty knob</span> for this objective in a way it simply isn't for CLM or MLM. A batch of 64 pairs gives the model 63 negatives per anchor to distinguish against; a batch of 8,192 pairs (achievable with large-batch contrastive training, as CLIP and later code-search systems do) gives it 8,191 — a much harder discrimination problem, which drives the encoders toward finer-grained, more separable representations. This is also why contrastive pretraining is unusually batch-size-sensitive compared to the other two objectives in this unit: shrinking the batch doesn't just slow training, it changes what the model is being asked to learn.
+    <h3>Dual encoders, collapse, and when to prefer this objective</h3>
+    <p>The architecture that pairs naturally with InfoNCE is the <span class="term">dual encoder</span> (CLIP-style, but for docstrings and functions instead of captions and images): one encoder maps docstrings to vectors, a separate encoder maps code to vectors, both projected into a shared embedding space, trained jointly so that matching pairs land near each other under cosine similarity and everything else lands far apart. At serving time this is what makes large-scale code search fast — you embed every function in your corpus once, offline, and a query only needs one forward pass through the docstring encoder plus a nearest-neighbor lookup, rather than a forward pass of a joint model against every candidate function.</p>
+    <p>The failure mode specific to this objective is <span class="term">representation collapse</span>: without care, an encoder can satisfy "positives close, negatives far" by mapping every input to a nearly identical vector (which trivially makes all pairwise similarities equal and, degenerately, minimizes badly-normalized versions of the loss) or by collapsing onto a narrow subspace that loses the information a retrieval system actually needs. The standard countermeasures are L2-normalizing every embedding before the dot product (turning similarity into pure cosine similarity, so blowing up vector norms can't cheat the loss), using a large and diverse negative pool (a bigger, more varied batch makes the "map everything to one point" solution score badly, since it would confuse every negative for the positive too), and a properly tuned, non-degenerate temperature.</p>
+    <p>Prefer a contrastive objective over CLM or MLM specifically when the downstream task is retrieval or ranking across a large candidate set that must be searched by comparison, not generated. A generative model (CLM decoder, or an MLM-derived encoder finetuned with a classification head) can be adapted for search, but it wasn't optimized for "produce a vector such that true matches are near and everything else is far" — that alignment has to be bolted on after the fact, usually with a worse embedding geometry than an encoder trained contrastively from the start. Conversely, don't reach for a contrastive objective when you need the model to actually produce new text — completion, infilling, and summarization stay squarely CLM/FIM/span-corruption territory.</p>
+    <pre><code>import torch
+import torch.nn.functional as F
+
+# doc_emb, code_emb: (batch, d) -- already L2-normalized outputs of the two
+# encoders. doc_emb[i] is the docstring paired with code_emb[i]: the ONLY
+# positive for row i is column i -- every other column is a negative.
+temperature = 0.07
+sim = doc_emb @ code_emb.T / temperature      # (batch, batch) similarity matrix
+print("similarity matrix shape:", sim.shape)  # e.g. (256, 256)
+print("diagonal (positive) scores:", sim.diag()[:5])
+
+targets = torch.arange(sim.size(0))           # [0, 1, 2, ..., batch-1]
+# row i's correct "class" is class i -- the diagonal IS the label vector
+loss_doc_to_code = F.cross_entropy(sim, targets)      # doc -> best-matching code
+loss_code_to_doc = F.cross_entropy(sim.T, targets)    # code -> best-matching doc
+loss = (loss_doc_to_code + loss_code_to_doc) / 2       # symmetric InfoNCE</code></pre>
+    <p class="caption">The similarity matrix's diagonal holds every true (docstring, function) match; everything off the diagonal is a negative supplied for free by the rest of the batch. Doubling <code>batch</code> doubles the negatives every row must be distinguished from — that's the difficulty knob in code.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Contrastive objectives learn by comparison</strong>, pulling positive (docstring, function) pairs together and pushing every other in-batch pairing apart, rather than reconstructing corrupted input.</li>
+        <li><strong>InfoNCE is a softmax classification loss</strong> where the "class" for row <code>i</code> is index <code>i</code> itself — the similarity matrix's diagonal is the entire label structure.</li>
+        <li><strong>Temperature trades off signal against noise</strong>: <code>τ → 0</code> overweights the hardest negative and produces noisy gradients; <code>τ → ∞</code> flattens the softmax and the gradient vanishes.</li>
+        <li><strong>Effective batch size is the difficulty knob</strong> for contrastive training specifically, because in-batch negatives scale directly with batch size — a property CLM and MLM training don't share.</li>
+        <li><strong>Dual encoders trained contrastively beat generative models for large-scale retrieval</strong> because they directly optimize the embedding geometry search depends on; guard against collapse with normalization, big/diverse negative pools, and a tuned temperature.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 4 quiz</h2>
+    <p class="quiz-intro">7 questions, scenario-driven: pick the right objective for a stated goal, trace temperature and batch-size effects, and find a planted bug in a training snippet.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">You're building a search index over 40 million functions scraped from public repositories: given a natural-language query, return the best-matching function. You need embeddings such that true (query, function) matches are close and everything else is far, checked against millions of candidates at query time. Which pretraining objective should the two encoders use?</p>
+      <ol class="choices" type="A">
+        <li>Causal language modelling, then take the last hidden state as the embedding.</li>
+        <li>BERT-style masked language modelling on each side independently, with no shared training signal between the two encoders.</li>
+        <li>A contrastive objective (InfoNCE) trained jointly over (docstring, function) pairs.</li>
+        <li>Span corruption with sentinel tokens, generating the function from the docstring.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> Retrieval at this scale needs an embedding space explicitly optimized so that true matches are close and everything else is far under a fast similarity operation (cosine/dot product) — that is exactly what InfoNCE trains for, and a dual encoder lets you embed all 40 million functions once, offline.</p>
+          <p>Option A produces representations optimized for predicting the next token, not for being compared to unrelated text; nothing in CLM training ever asks two different sequences' representations to be near or far from each other. Option B trains each encoder to reconstruct its own masked tokens in isolation — there's no joint signal at all linking docstring space to function space, so their embeddings aren't even guaranteed to be comparable. Option D would work eventually but is generation, not retrieval — you'd need to run a full generative pass per candidate rather than one embedding lookup, which doesn't scale to 40 million candidates.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Raising the InfoNCE temperature τ toward infinity makes the loss focus more sharply on the hardest negative in the batch (the highest-similarity wrong function for a given docstring).</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B — False.</strong> It's the opposite. As τ → 0, dividing similarities by a tiny number amplifies differences between them, so the softmax sharpens toward whichever candidate has the single highest score — that's when the hardest negative dominates the gradient. As τ → ∞, dividing by a huge number crushes all similarities toward the same value, the softmax flattens toward uniform, and the gradient signal vanishes.</p>
+          <p>It's tempting to assume "higher temperature = more intense training signal" by analogy with everyday language, but in the softmax-temperature sense it's the reverse: low temperature sharpens, high temperature flattens.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">In causal language modelling with teacher forcing, if your tokenized batch has shape <code>(batch, seq_len)</code>, the label tensor is constructed by slicing the same tensor and shifting it by <span class="blank">&nbsp;</span> position(s), so that <code>labels[:, i]</code> holds the token that came immediately <span class="blank">&nbsp;</span> <code>inputs[:, i]</code> in the original source file.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: 1 (one), and "after."</strong> <code>inputs = tokens[:, :-1]</code>, <code>labels = tokens[:, 1:]</code> — the label tensor is the input tensor's data shifted left by exactly one column, so that at every position the target is literally the next real token from the source file, not a copy of the input at that position.</p>
+          <p>A common wrong instinct is "shifted by one <em>token id</em>" (as if you add 1 to the id) rather than shifted by one <em>position</em> in the sequence — the shift is positional (an index offset into the same sequence), not arithmetic on the token id values themselves.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">A teammate's CLM training loop trains without crashing, but held-out perplexity never drops below the vocabulary size (i.e., it's no better than random), and sampled completions are nonsense that ignores the given prompt. Find and fix the bug.</p>
+      <pre><code>tokens = batch["input_ids"]          # (batch, seq_len), causal-masked model
+
+inputs = tokens[:, :-1]
+labels = tokens[:, :-1]              # &lt;-- bug is somewhere in this block
+
+logits = model(inputs)               # (batch, seq_len-1, vocab_size)
+loss = F.cross_entropy(
+    logits.reshape(-1, vocab_size),
+    labels.reshape(-1),
+)</code></pre>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer:</strong> <code>labels</code> is sliced identically to <code>inputs</code> (<code>tokens[:, :-1]</code> for both), so the model is being trained to predict the token it was just given, at the same position — not the next one. The fix is <code>labels = tokens[:, 1:]</code>, so <code>inputs</code> and <code>labels</code> are offset by one position as in Lesson 1's worked example. With the bug in place, the "easiest" solution to the (wrong) objective is closer to an identity/copy function, which is why perplexity plateaus near the vocabulary size and generated text ignores the actual prompt — the model never learned to predict forward at all.</p>
+          <p>It's tempting to suspect the <code>reshape(-1, vocab_size)</code> call, since flattening errors are a classic shape bug elsewhere — but the shapes here are consistent (both tensors are <code>(batch, seq_len-1)</code> before flattening); the defect is semantic (wrong slice), not dimensional, so no shape-related exception is ever raised.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">You want a single causal, left-to-right decoder — not a separate bidirectional encoder — to autocomplete a function body in an IDE, using both the code already typed before the cursor <em>and</em> the code that already exists after the cursor (e.g., a later <code>return</code> statement). Which technique achieves this without adding bidirectional attention?</p>
+      <ol class="choices" type="A">
+        <li>BERT-style 80/10/10 masking applied to the causal model's input.</li>
+        <li>Fill-in-the-middle with document rotation: reorder training documents as prefix, suffix, middle, and train with ordinary next-token prediction.</li>
+        <li>Lower the softmax temperature during generation so the model attends further ahead.</li>
+        <li>Increase the effective batch size so in-batch negatives expose more context.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> FIM reorders the document so the suffix appears in the token sequence before the middle the model must generate — the causal mask and the CLM objective never change, but the model now conditions on tokens from both sides of the gap by the time it has to fill it in.</p>
+          <p>Option A requires bidirectional attention to work at all (that's the premise of MLM), which contradicts "without adding bidirectional attention." Option C confuses a sampling hyperparameter with an architectural attention constraint — temperature reshapes the output distribution's sharpness, it doesn't change what positions the model can attend to. Option D is an in-batch-negatives idea from contrastive training (Lesson 3) that has no bearing on what a single sequence's causal mask allows a decoder to see.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">Complete the missing line so that this BERT-style masking function correctly implements the 80/10/10 split described in Lesson 2 (80% <code>[MASK]</code>, 10% random token, 10% left unchanged — all three still scored in <code>labels</code>).</p>
+      <pre><code>candidate = torch.rand(tokens.shape) &lt; 0.15
+labels = tokens.clone()
+labels[~candidate] = -100
+
+choice = torch.rand(tokens.shape)
+to_mask   = candidate & (choice &lt; 0.80)
+to_random = ____________________________________   # &lt;-- complete this line
+# remaining 10% of `candidate`: left unchanged</code></pre>
+      <ol class="choices" type="A">
+        <li><code>candidate & (choice &gt;= 0.80)</code></li>
+        <li><code>candidate & (choice &gt;= 0.80) & (choice &lt; 0.90)</code></li>
+        <li><code>candidate & (choice &lt; 0.10)</code></li>
+        <li><code>~to_mask & candidate</code></li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> The random-replacement bucket must be exactly the middle 10% of the corrupted positions — those with <code>choice</code> in <code>[0.80, 0.90)</code> — leaving the top 10% (<code>choice &gt;= 0.90</code>) as the "left unchanged" bucket. Both bounds are needed, or the random bucket would swallow the unchanged bucket too.</p>
+          <p>Option A looks plausible but includes everything from 0.80 up to 1.0 (20% of candidates, not 10%), silently merging the random and unchanged buckets into one 20% random-replacement group and leaving nothing for "unchanged." Option D would correctly capture the remaining 20% but still doesn't separate the random 10% from the unchanged 10% — it only distinguishes "masked" from "not masked."</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">During contrastive pretraining of your docstring/function dual encoder, both embedding towers converge to output nearly identical vectors regardless of input, and training loss stays suspiciously low. Which combination of causes and fixes is most consistent with this failure?</p>
+      <ol class="choices" type="A">
+        <li>This is expected behavior once InfoNCE converges — it's a sign of a well-trained encoder, not a bug.</li>
+        <li>Representation collapse — likely from a too-small or too-uniform negative pool and/or missing embedding normalization; fix with L2-normalized embeddings, a larger and more diverse batch of in-batch negatives, and a properly tuned (non-extreme) temperature.</li>
+        <li>The causal mask from Unit 2 is misconfigured, letting the decoder see future tokens; fix by re-checking the attention mask.</li>
+        <li>The tokenizer from Unit 3 has an unresolved out-of-vocabulary bug; fix by increasing the BPE merge count.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Mapping every input to nearly the same vector is the textbook signature of representation collapse: if negatives are scarce, easy to tell apart trivially, or embeddings aren't normalized (letting norm inflation game the loss), the model can drive the loss down without learning a meaningful embedding geometry at all. The standard fixes are exactly normalization, negative pool size/diversity, and temperature tuning — the three tools named in Lesson 3.</p>
+          <p>Option A mistakes a low loss number for genuine convergence; a collapsed encoder can produce low loss on a weak setup (small/easy negative pool) while providing zero retrieval usefulness, which is precisely why this is a "gotcha" failure mode rather than success. Options C and D misattribute the problem to unrelated components from Units 2 and 3 that this training setup doesn't even use in the same way — dual encoders for contrastive training are typically not causally masked in the way a CLM decoder is, and a tokenizer OOV bug would show up as garbled/unknown tokens, not as embedding collapse.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Foundational Model Development · Unit 4 of 8 — Next: Unit 5 puts a price on all three of these objectives, covering scaling laws and how compute, data, and parameter count trade off against each other.</p>
+</footer>
+</body>
+</html>

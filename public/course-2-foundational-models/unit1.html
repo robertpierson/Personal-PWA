@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 1 · Foundation models and the pretrain-then-adapt paradigm — Foundational Model Development</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Foundational Model Development · Unit 1 of 8</p>
+  <h1>Foundation models and the pretrain-then-adapt paradigm</h1>
+  <p class="lede">Why the field stopped training one model per task and started training one backbone for everything — and what that backbone has to look like to earn the name "foundational." Every example here runs on protein sequences: UniRef, the ESM lineage, and structure prediction as the task that made it obvious the approach worked.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. What makes a model "foundational"</a></li>
+      <li><a href="#lesson-2">2. The pretrain-then-adapt pipeline</a></li>
+      <li><a href="#lesson-3">3. Self-supervision: where labels come from when there are none</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>What makes a model "foundational"</h2>
+    <p class="opening">In 2013, word2vec showed that a shallow network trained to predict neighboring words from a huge unlabeled corpus produced vectors useful for almost any downstream text task — analogy solving, clustering, classification — without ever being told what those tasks were. It was a single, fixed set of embeddings reused everywhere. Five years later, ELMo (2018) showed the vectors could depend on context — the same word gets a different vector in different sentences — by running a full bidirectional LSTM language model and reading off its internal states. Later that year and into 2019, BERT and GPT replaced the LSTM with the transformer (Course 2 covers the mechanism; here you only need to know it scaled better) and showed that a single pretrained network, lightly adapted, could top the leaderboard on nearly every standard NLP benchmark simultaneously. None of this was named at the time. It was just "pretraining," a step bolted onto whatever task you actually cared about.</p>
+    <p>The name arrived in 2021, when a Stanford group (the Center for Research on Foundation Models, CRFM) published a report proposing <span class="term">foundation model</span> as the umbrella term for this whole family: models trained on broad data at scale, adaptable to a wide range of downstream tasks. The term was immediately controversial — critics pointed out that it renamed a practice (transfer learning from large pretrained networks) that NLP researchers had already been doing for three years, and that "foundation" implied a solidity and safety the models hadn't earned. That criticism is worth taking seriously rather than dismissing as academic turf war: a good chunk of what makes "foundation model" feel like a new category is branding for a trend already well underway. The useful part of the term isn't that it describes something new — it's that it gives a name to a cluster of properties that previously got treated as separate observations about separate models.</p>
+    <h3>The three ingredients</h3>
+    <p>Strip away the branding debate and three ingredients recur across every model people are willing to call foundational. The first is <span class="term">scale</span> — not just parameter count, but scale across data, compute, and (usually) model size together, well beyond what any single downstream task could justify collecting or training for. The second is <span class="term">self-supervision</span>: the training objective is derived automatically from the raw data itself, with no human-authored labels (Lesson 3 unpacks this in depth). The third, and the one that actually matters for calling something "foundational" rather than just "big," is <span class="term">generality of the resulting representation</span> — the internal vectors the network produces have to be useful for tasks the model never saw during training, not just the one objective it was optimized for. A large model trained end-to-end on a single narrow task, however many GPU-hours it burns, is not a foundation model by this definition. A protein network trained purely to output a Rosetta energy score is not a foundation model. A protein network trained to reconstruct masked residues, whose intermediate representations turn out to encode secondary structure, contact maps, and remote homology all at once, is one.</p>
+    <p>This generality is what let a single family of pretrained protein language models — the ESM lineage (ESM-1, ESM-1b, ESM-2, trained by Meta AI on sequences from UniRef) — feed into structure prediction, function annotation, mutational-effect scoring, and design, all from encoders that were only ever trained to fill in masked amino acids. The pretraining objective (Lesson 3) never mentions structure. Structure just falls out of the representation because predicting a masked residue well requires implicitly modeling which residues are folded near which others.</p>
+    <h3>Homogenisation: benefit and risk in the same fact</h3>
+    <p>Because one backbone now feeds dozens of downstream systems, the field has undergone what the CRFM report calls <span class="term">homogenisation</span>: instead of a hundred labs each building bespoke architectures for antibody design, enzyme classification, and stability prediction, most of them now start from the same handful of pretrained checkpoints (an ESM-2 checkpoint, say) and adapt from there. The benefit is real and large — adaptation is cheap (Lesson 2), quality is high, and progress on the backbone lifts every downstream task at once. The risk is the same fact viewed from the other side: a systematic blind spot or bias in the pretrained representation — say, underrepresentation of sequences from a particular taxonomic clade in UniRef because that clade is undersequenced — now propagates into every downstream model built on top of it, simultaneously, rather than being an isolated failure of one team's design choice. Homogenisation concentrates both capability and failure mode in the same object.</p>
+    <h3>Emergent abilities — the claim, and the catch</h3>
+    <p>A frequently repeated claim about foundation models at sufficient scale is that they display <span class="term">emergent abilities</span>: capabilities absent or near-chance in smaller models that appear sharply, not gradually, once a model crosses some scale threshold — the qualitative jump looks less like a smooth curve and more like a phase transition. Schaeffer, Miller, and Re (2023) offered an important correction: much of the apparent sharpness is an artifact of the metric used to score the task, not a property of the underlying model. A metric like exact-match accuracy on a multi-step task is necessarily near zero until the model gets every step right, then rises — that's a property of multiplying several continuously-improving per-step probabilities together and thresholding the product, not evidence of a discontinuity in what the model learned. Switch to a continuous, per-token metric on the same task and model checkpoints, and the same capability often improves smoothly with scale all along. The honest position is that some abilities do genuinely require scale to reach useful accuracy — but "sharp and unpredictable" is often a measurement choice, not a law of nature, and you should always ask what metric produced an emergence claim before trusting it.</p>
+    <h3>Old pipeline vs. new pipeline</h3>
+    <p>The organizing shift is easiest to see by contrasting the shape of the two pipelines directly, in the protein domain.</p>
+    <pre><code># OLD: one model per task, trained from scratch each time
+def train_stability_model(labelled_seqs, labels):
+    model = RandomInitNetwork()
+    train_from_scratch(model, labelled_seqs, labels)   # needs enough labels
+    return model                                        # useless for any other task
+
+def train_function_model(labelled_seqs, labels):
+    model = RandomInitNetwork()                          # different network,
+    train_from_scratch(model, labelled_seqs, labels)     # different labels,
+    return model                                         # zero reuse from above
+
+stability_model = train_stability_model(stability_seqs, stability_labels)
+function_model  = train_function_model(function_seqs, function_labels)
+# every new task = new architecture search + new from-scratch training run
+
+
+# NEW: one backbone, many heads
+backbone = pretrain_on_uniref50(objective="masked_residue_prediction")  # once, expensive
+backbone.freeze()
+
+def adapt(task_labelled_seqs, task_labels):
+    embeddings = [backbone.embed(s) for s in task_labelled_seqs]  # cheap, reused code
+    head = SmallHead()
+    head.fit(embeddings, task_labels)          # trains in minutes, not weeks
+    return head
+
+stability_head = adapt(stability_seqs, stability_labels)
+function_head  = adapt(function_seqs, function_labels)
+contact_head   = adapt(contact_seqs, contact_labels)
+# same frozen backbone underneath all three — the expensive step happened once
+</code></pre>
+    <p class="caption">The old pipeline repeats the expensive step (from-scratch training) for every task. The new pipeline pays the expensive step (pretraining) exactly once and repeats only the cheap step (fitting a small head on frozen embeddings) — this is the asymmetry Lesson 2 quantifies in GPU-hours.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>"Foundation model" (Stanford CRFM, 2021)</strong> named a practice already three years old — critics rightly note the term is partly branding, but it does name a real, useful cluster of properties.</li>
+        <li>The three defining ingredients are <strong>scale, self-supervision, and generality of representation</strong> — not parameter count alone. Generality is the property that actually earns the name.</li>
+        <li><strong>Homogenisation</strong> is the same fact viewed twice: shared backbones make adaptation cheap and lift every downstream task at once, and they propagate any shared blind spot into every downstream system at once.</li>
+        <li><strong>Emergent abilities</strong> are real in some cases but Schaeffer et al. (2023) showed many "sharp" emergence curves are artifacts of a discontinuous metric (like exact-match) rather than a discontinuity in the model.</li>
+        <li>The ESM protein-language-model lineage is foundational precisely because a masked-residue objective — never mentioning structure — produces representations useful for structure, function, and design alike.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>The pretrain-then-adapt pipeline</h2>
+    <p class="opening">The <span class="term">pretrain-then-adapt paradigm</span> is a two-phase workflow: train one large model once on a broad, unlabeled corpus with a self-supervised objective (pretraining), then reuse that trained model, cheaply and repeatedly, to solve many specific downstream tasks (adaptation). Everything in this lesson is about what happens inside each phase and why splitting the work this way changed how the field allocates its effort.</p>
+    <h3>Stage 1 — corpus curation</h3>
+    <p>Pretraining starts with assembling the broadest defensible corpus, not the most task-relevant one. For protein language models, that corpus is typically <span class="term">UniRef50</span>: a clustering of UniProt sequences at 50% identity, containing roughly 250 million representative sequences spanning essentially every organism that has ever been sequenced. Curation choices here matter more than they look: how you deduplicate near-identical sequences, whether you filter fragments or low-complexity regions, and how you weight overrepresented families (a handful of well-studied protein families dominate raw sequence counts) all shape what the pretrained model ends up good at. Corpus curation for pretraining is much closer to database engineering than to dataset labeling — there are no labels here to check for correctness, only completeness and duplication to manage at the scale of hundreds of millions of records.</p>
+    <h3>Stage 2 — objective choice</h3>
+    <p>Once the corpus exists, you need a self-supervised task the model can practice at scale. Unit 4 owns the mechanics of these objectives in detail; for now, just note that the choice of objective is a design decision made once, up front, and it fixes what kind of representation the model is capable of learning — a masked-reconstruction objective on individual residues learns something different from a whole-sequence contrastive objective, even on the identical corpus.</p>
+    <h3>Stage 3 — the pretraining run</h3>
+    <p>This is the expensive part: optimizing a large network (hundreds of millions to tens of billions of parameters, for the current ESM-2 family) against the chosen objective over the full corpus, for as long as compute budget allows. This is where every technique from Course 1 — the Adam-family optimizers, learning-rate schedules, batch normalization variants, gradient clipping, mixed-precision training — gets deployed at its most demanding, sustained scale: runs measured in millions of GPU-hours, spread across weeks on large clusters. Nothing about the run itself is new in kind; it is familiar training practice pushed to an extreme regime.</p>
+    <h3>Stage 4 — the checkpoint as artifact</h3>
+    <p>The output of stage 3 is a <span class="term">checkpoint</span>: a frozen set of weights, versioned and distributed like any other software artifact (ESM-2 checkpoints are published with explicit parameter counts — 8M, 35M, 150M, 650M, 3B, 15B — so a downstream user can trade quality for compute cost). Treating the checkpoint as a reusable artifact rather than a one-off experimental result is the pivot point of the whole paradigm: it is the thing that gets adapted, cited, benchmarked, and built on top of, independent of whoever trained it or why.</p>
+    <h3>Stage 5 — the adaptation menu</h3>
+    <p>Given a checkpoint, a downstream user picks from a menu of adaptation strategies, ordered here roughly from cheapest to most involved. <span class="term">Linear probing</span> (also called feature extraction) freezes the entire pretrained network, runs data through it to get fixed embeddings, and trains only a small linear or shallow classifier on top — this is the code example below. <span class="term">Full fine-tuning</span> unfreezes some or all of the pretrained weights and continues training them, at a much lower learning rate, on the downstream task's labeled data — more expensive, often more accurate, and riskier because it can distort or overwrite what pretraining learned (a failure mode called catastrophic forgetting). <span class="term">Prompting</span> reframes the downstream task as an input the frozen model can answer directly, without any weight updates at all — Course 3 covers this in the language-model setting, and the same idea has protein analogues (querying a model with a partial sequence and asking it to complete or score the rest). <span class="term">Parameter-efficient fine-tuning</span> (PEFT — adapters, LoRA, and similar methods, detailed in a later unit) inserts a small number of new trainable parameters into an otherwise frozen network, capturing most of full fine-tuning's benefit at a fraction of its memory and compute cost.</p>
+    <h3>The economics, stated plainly</h3>
+    <p>Here is the number that reorganized the field: a single pretraining run costs on the order of millions of GPU-hours, paid once, by whoever trains the checkpoint. A single adaptation — a linear probe, a small fine-tune, a handful of prompts — costs hours to at most a few GPU-days, paid by whoever wants to solve one specific task. That asymmetry is not a minor efficiency gain; it inverts who can participate in state-of-the-art modeling. Before this paradigm, a lab studying, say, enzyme thermostability needed enough labeled data and enough compute to train a competitive model from scratch. After it, that lab downloads a public ESM-2 checkpoint, embeds a few hundred labeled sequences, and trains a logistic head over a lunch break — with representation quality inherited from a pretraining run that cost orders of magnitude more than the lab could ever have afforded on its own. The asymmetry is also why checkpoints get published and cited as first-class research contributions in their own right, separate from any single downstream result: the expensive, hard-to-reproduce part of the work is stage 3, and everything after it is comparatively cheap and fast to iterate on.</p>
+    <pre><code># Feature extraction: frozen encoder, small head, 400 labelled examples
+# Downstream task: does this sequence contain a signal peptide? (binary)
+
+encoder = load_pretrained_checkpoint("esm2_t12_35M")   # frozen, no grad
+encoder.eval()
+for p in encoder.parameters():
+    p.requires_grad = False
+
+def embed_sequence(seq: str) -> "vector[35M-dim -> pooled 480-dim]":
+    tokens = tokenize(seq)                    # (1, L)
+    with no_grad():
+        hidden = encoder(tokens)              # (1, L, 480)
+        pooled = hidden.mean(dim=1)           # (1, 480)  mean over residues
+    return pooled.squeeze(0)                  # (480,)
+
+# Do this ONCE, cache the result — this is the expensive-looking step
+# that is actually cheap because the encoder never trains here.
+labelled_seqs, labels = load_labelled_set(n=400)      # 400 sequences, 0/1 labels
+cached_vectors = [embed_sequence(s) for s in labelled_seqs]   # (400, 480)
+
+# The only thing that trains: a logistic regression head
+head = LogisticRegression(in_dim=480)
+head.fit(cached_vectors, labels)              # converges in seconds on a laptop CPU
+
+# Inference on a new, unlabelled sequence
+new_vec = embed_sequence(new_sequence)
+prediction = head.predict(new_vec)            # signal peptide: yes / no
+</code></pre>
+    <p class="caption">The encoder runs 400 times total, ever — one forward pass per training example, cached forever after. Only the 480-parameter logistic head ever receives a gradient; the 35M-parameter encoder's weights never move.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li>The pipeline has five stages: <strong>corpus curation, objective choice, the pretraining run, the checkpoint as artifact, and adaptation</strong> — the first three happen once, adaptation happens over and over by different users.</li>
+        <li><strong>UniRef50's ~250M sequences</strong> illustrate corpus curation at pretraining scale: the work is deduplication and coverage, not labeling.</li>
+        <li>The adaptation menu runs cheapest-to-priciest: <strong>linear probe → full fine-tune → prompting → PEFT</strong> each trade compute cost against accuracy and forgetting risk differently.</li>
+        <li>The economic asymmetry — <strong>millions of GPU-hours once vs. hours per adaptation</strong> — is why checkpoints, not individual downstream results, became the field's primary reusable artifact.</li>
+        <li>In frozen feature extraction, the pretrained encoder <strong>never receives a gradient</strong>; only the small head trains, which is what makes 400 labelled examples enough.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Self-supervision: where labels come from when there are none</h2>
+    <p class="opening">UniRef50 holds roughly 250 million protein sequences. The Protein Data Bank — the entire accumulated output of decades of X-ray crystallography, NMR, and cryo-EM — holds on the order of 200,000 experimentally solved structures. Even generously assuming every solved structure maps to a distinct sequence in UniRef50, that is under 0.1% of the corpus carrying the label ("this sequence folds into this 3D structure") that downstream users actually want. Ordinary supervised learning needs (input, label) pairs; if you tried to train a structure-aware representation supervised, on labels alone, you would be training on a rounding error's worth of data and throwing away 99.9%+ of everything known about protein sequences. Supervised learning is not merely suboptimal here — it is dead on arrival. Self-supervision exists to solve exactly this ratio.</p>
+    <h3>The pretext-task idea</h3>
+    <p>A <span class="term">pretext task</span> is a task manufactured from the raw data itself, with no external annotation, whose label is derived by a fixed, automatic rule rather than by a human expert. The recipe: take an unlabeled example, apply some corruption or transformation to it according to a rule you chose, and use the pre-corruption content (or the transformation itself) as the label. Nobody had to look at a single protein and decide anything about it. Every one of the 250 million UniRef50 sequences can generate its own pretext-task examples, for free, in parallel, forever — which is exactly the property that makes this compatible with corpora that outrun any conceivable labeling budget by six orders of magnitude.</p>
+    <h3>What makes a pretext task good</h3>
+    <p>Not every corruption rule produces a useful representation, and the difference matters more than it first appears. A good pretext task has to be <span class="term">hard enough to force the model to learn real structure</span> to solve it — reconstructing a masked residue from its surrounding context requires implicitly modeling local secondary-structure propensities, and reconstructing several masked residues that are far apart in sequence but close in 3D space (as they often are, in a folded protein) requires implicitly modeling long-range contacts. A task that's too easy teaches nothing worth transferring. A task that's impossible teaches nothing either — there is no signal to learn from, only noise. The sweet spot is a task solvable only by building an internal model of the thing you actually care about (fold geometry, evolutionary constraint, chemical plausibility) as a side effect of getting better at the manufactured task.</p>
+    <h3>Shortcut learning: the failure mode this creates</h3>
+    <p><span class="term">Shortcut learning</span> is what happens when a pretext task admits a solution that doesn't require the real structure at all — some superficial statistical regularity in the corpus lets the model solve the pretext task while learning something far shallower than intended. A concrete protein-domain example: if masked residues were always chosen uniformly at random and the corpus contains many near-duplicate sequences (a risk UniRef's clustering at 50% identity is specifically designed to reduce, per Lesson 2's corpus-curation stage), a model could partly solve masked-residue prediction by recognizing which near-duplicate family a sequence belongs to and copying the typical residue at that position, rather than reasoning from local chemical or structural context at all. The pretext task's reported loss looks fine; the representation it produces transfers poorly to genuinely novel sequences. Shortcut learning is why corpus curation (deduplication, controlled diversity) and pretext-task design have to be considered together, not separately — a well-designed objective on a poorly curated corpus can still fail.</p>
+    <h3>Judging representation quality without a downstream task</h3>
+    <p>Because the whole point of self-supervised pretraining is to produce a representation before you know every downstream task it will be asked to serve, you need ways to judge representation quality that don't depend on any one specific labeled task. Two standard tools do this. A <span class="term">linear probe</span> — the same technique as Lesson 2's feature-extraction adaptation, repurposed here as a diagnostic — trains a single linear layer on top of frozen embeddings for some small proxy labeled set (say, a few hundred structures) and reports accuracy; because the probe itself has almost no capacity to learn anything, high accuracy means the useful information was already linearly present in the frozen embedding, not constructed by the probe. A <span class="term">k-NN probe</span> skips training entirely: embed a labeled reference set, embed a query sequence, and check whether the query's nearest neighbors by embedding distance share its label — if sequences with similar fold or function cluster near each other in the embedding space without ever being told to, that is direct evidence the space is organized the way you want, using nothing but distance. Both tools let you compare pretraining runs, corpora, and objectives against each other cheaply, well before committing to any expensive full adaptation.</p>
+    <pre><code>import random
+
+AMINO_ACIDS = "ACDEFGHIKLMNPQRSTVWY"  # 20 standard residue codes
+MASK_TOKEN = "<mask>"
+
+def mask_sequence(sequence: str, mask_prob: float = 0.15, seed=None):
+    """
+    Self-supervised pretext task: corrupt ~15% of residues, and return
+    the corrupted sequence alongside a label built from the ORIGINAL
+    sequence — the label costs nothing because we already had it.
+    """
+    rng = random.Random(seed)
+    corrupted = list(sequence)
+    targets = {}  # position -> true residue, only for masked positions
+
+    for i, residue in enumerate(sequence):
+        if rng.random() < mask_prob:
+            targets[i] = residue          # the free label: what was there
+            corrupted[i] = MASK_TOKEN     # the corruption: hide it
+
+    return "".join(corrupted), targets
+
+# Example
+seq = "MKTAYIAKQRQISFVKSHFSRQLEERLGLIEVQAPILSRVGDGTQDNLSGAEKAVQVKVKALPDAQ"
+corrupted_input, target = mask_sequence(seq, mask_prob=0.15, seed=7)
+print(corrupted_input[:20])   # e.g. "MKTAYIA<mask>QRQISFV"
+print(target)                 # e.g. {7: 'K', ...}  — positions & true residues
+</code></pre>
+    <p class="caption">The label (<code>targets</code>) is read directly off the input before corruption — no human ever annotated this sequence. The model's job during pretraining is to predict each masked residue from the unmasked context around it.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li>UniRef50's <strong>~250M sequences vs. the PDB's ~200k solved structures</strong> is the concrete ratio that makes supervised learning infeasible and self-supervision necessary.</li>
+        <li>A <strong>pretext task</strong> manufactures its own label from the input by a fixed corruption rule — no human annotation, applicable to every sequence in the corpus for free.</li>
+        <li>A good pretext task must be <strong>hard enough to force real structure</strong> to be learned — too easy or too random teaches nothing transferable.</li>
+        <li><strong>Shortcut learning</strong> happens when a superficial regularity (like near-duplicate sequences) lets the model solve the pretext task without learning the intended structure — a reason corpus curation and objective design are linked, not separate concerns.</li>
+        <li><strong>Linear probes and k-NN probes</strong> judge representation quality using only a small proxy label set or none at all, letting you compare pretraining choices before committing to full downstream adaptation.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 1 quiz</h2>
+    <p class="quiz-intro">8 questions covering all three lessons — definitions, the pipeline stages, and tracing the masking function by hand.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Which of the following is the property that most specifically distinguishes a "foundation model" from merely "a large model trained on a lot of data"?</p>
+      <ol class="choices" type="A">
+        <li>It has more parameters than any prior model in its domain.</li>
+        <li>Its training run required more GPU-hours than any prior model.</li>
+        <li>Its internal representation is general enough to be useful for downstream tasks it never saw during training.</li>
+        <li>It was trained using a transformer architecture rather than an LSTM.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> Scale and self-supervision are common ingredients, but the property that actually earns the name "foundational" is that the representation transfers to tasks the model was never trained on — a large model optimized end-to-end for one narrow task fails this even at huge scale.</p>
+          <p>A and B describe scale alone, which Lesson 1 explicitly says is necessary but not sufficient — a large single-task model isn't foundational. D names an architecture choice (Course 2's topic), not a defining property; ELMo used an LSTM and is still considered part of this lineage.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">The term "foundation model" was coined by a 2021 Stanford (CRFM) report to describe a genuinely new training technique that did not exist before that publication.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> The report named a practice — large-scale pretraining followed by adaptation — that had already been standard since word2vec (2013), ELMo (2018), and BERT/GPT (2018–19). Critics specifically noted this, arguing the term was branding for an existing trend rather than a description of a new technique.</p>
+          <p>The tempting reading is that a named term implies a new invention; Lesson 1 states directly that this criticism is worth taking seriously rather than dismissed.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">Schaeffer et al. (2023) argued that many claimed "emergent abilities" of large models are actually artifacts of using a <span class="blank">&nbsp;</span> metric (like exact-match accuracy), and that switching to a continuous, per-step metric on the same models often reveals smooth improvement instead of a sharp jump.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: discontinuous (or nonlinear/thresholding) metric.</strong> A metric that requires every step of a multi-step task to be correct simultaneously will look like near-zero performance until per-step accuracy is high enough that the product of probabilities crosses a threshold — that's a property of the scoring rule, not necessarily of the underlying model's learning curve.</p>
+          <p>It is tempting to fill the blank with something like "a scale-based" or "a compute-based" metric — but the critique is specifically about the shape of the scoring function (discontinuous vs. continuous), not about what resource is being measured.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Which pair of numbers correctly illustrates why supervised learning alone is "dead on arrival" for protein structure modeling?</p>
+      <ol class="choices" type="A">
+        <li>~250M sequences in UniRef50 vs. ~200k solved structures in the PDB.</li>
+        <li>~20 amino acid types vs. ~250M sequences in UniRef50.</li>
+        <li>650M parameters in one ESM-2 checkpoint vs. 3B parameters in a larger one.</li>
+        <li>15% masking rate vs. 400 labelled examples used for a linear probe.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: A.</strong> This is the ratio from Lesson 3: under 0.1% of sequences carry a solved-structure label, so a purely supervised approach would discard over 99.9% of the corpus.</p>
+          <p>B, C, and D are all real numbers from the unit but answer different questions — B compares alphabet size to corpus size (unrelated to label scarcity), C compares two checkpoint sizes (an adaptation-cost trade-off, Lesson 2), and D describes the masking function's own parameters, not the supervised-label shortage that motivates self-supervision in the first place.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A lab freezes a pretrained ESM-2 encoder, embeds 400 labelled sequences once, caches the vectors, and trains only a logistic regression head on those vectors. Which adaptation strategy from Lesson 2's menu is this?</p>
+      <ol class="choices" type="A">
+        <li>Full fine-tuning</li>
+        <li>Prompting</li>
+        <li>Parameter-efficient fine-tuning (PEFT)</li>
+        <li>Linear probing / feature extraction</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: D.</strong> This is the defining pattern of linear probing: the encoder's weights are frozen and never receive a gradient; only a small classifier trained on top of cached, fixed embeddings updates.</p>
+          <p>Full fine-tuning (A) would update the encoder's own weights, not just a head. PEFT (C) would insert new trainable parameters into the frozen network rather than relying purely on a separate external head. Prompting (B) would not involve training any classifier at all.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">Complete the missing line so that <code>mask_sequence</code> correctly records the ORIGINAL residue as the label before overwriting it in the corrupted copy.</p>
+      <pre><code>for i, residue in enumerate(sequence):
+    if rng.random() &lt; mask_prob:
+        ____________________          # &lt;-- fill in this line
+        corrupted[i] = MASK_TOKEN</code></pre>
+      <ol class="choices" type="A">
+        <li><code>targets[i] = residue</code></li>
+        <li><code>targets[i] = MASK_TOKEN</code></li>
+        <li><code>corrupted[i] = residue</code></li>
+        <li><code>targets[residue] = i</code></li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: A.</strong> The label at each masked position must be the true residue that was there before corruption — that's the "free label" the pretext task manufactures. This line must run before the residue is overwritten in <code>corrupted</code>.</p>
+          <p>B stores the mask token as the target, which would make the task trivially unlearnable (predicting a constant). C corrupts nothing, defeating the pretext task entirely. D swaps key and value, which would collide across positions sharing the same residue and lose the position information entirely.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">A colleague adapts the frozen-encoder example from Lesson 2 but reports the logistic head barely trains. Here is their code — spot the bug.</p>
+      <pre><code>encoder = load_pretrained_checkpoint("esm2_t12_35M")
+encoder.train()                      # set to training mode
+# (requires_grad left at its default: True, for all parameters)
+
+def embed_sequence(seq):
+    tokens = tokenize(seq)
+    hidden = encoder(tokens)
+    return hidden.mean(dim=1).squeeze(0)
+
+cached_vectors = [embed_sequence(s) for s in labelled_seqs]
+head = LogisticRegression(in_dim=480)
+head.fit(cached_vectors, labels)</code></pre>
+      <ol class="choices" type="A">
+        <li>The bug is in <code>LogisticRegression</code>: it should use a linear activation, not logistic.</li>
+        <li>The bug is that <code>encoder.eval()</code> was never called and the encoder's parameters were never frozen with <code>requires_grad = False</code>, and the forward pass isn't wrapped in a no-grad context — so this isn't a frozen-feature extraction at all.</li>
+        <li>The bug is that <code>mean(dim=1)</code> should be <code>sum(dim=1)</code> to pool residue embeddings correctly.</li>
+        <li>The bug is that 400 examples is too few to ever train any model, regardless of setup.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Lesson 2's version explicitly calls <code>encoder.eval()</code>, sets every parameter's <code>requires_grad = False</code>, and wraps the forward pass in a no-grad context. Without those three things, this is not linear probing at all — it's an (accidental, incomplete) attempt at full fine-tuning, with the encoder left in training mode and gradient tracking on, which changes memory cost and behavior (e.g. dropout stays active) even though the head still nominally "trains."</p>
+          <p>A and C are red herrings about naming and pooling choice that don't change whether the encoder is actually frozen. D is false in general — Lesson 2's entire point is that 400 examples is enough precisely because only a small head, not the encoder, is being fit.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Which scenario best describes "shortcut learning" during protein pretraining, as distinct from a pretext task simply being too easy?</p>
+      <ol class="choices" type="A">
+        <li>The model achieves low masked-residue prediction loss by recognizing near-duplicate sequence families in an under-deduplicated corpus and copying typical residues, rather than reasoning from structural context.</li>
+        <li>The model achieves high loss on the pretext task because the masking rate was set too high for the sequence length.</li>
+        <li>The model is evaluated with a k-NN probe and scores poorly because the reference set is too small.</li>
+        <li>The model's pretraining run runs out of compute budget before convergence.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: A.</strong> This is the exact shortcut-learning example from Lesson 3: a superficial regularity (near-duplicate families) lets the model report good pretext-task loss while learning something shallower than the intended structural reasoning — the reported metric looks fine, which is precisely what makes shortcut learning dangerous.</p>
+          <p>B describes a task made too hard by a hyperparameter choice, not a shortcut. C is a probing-methodology limitation, not a pretraining failure mode. D is a compute/resource problem unrelated to what the model actually learns from the objective it was given.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Foundational Model Development · Unit 1 of 8 — Unit 2 opens the transformer itself: attention, positional encoding, and why this architecture became the near-universal backbone for the pretrain-then-adapt pipeline you just learned.</p>
+</footer>
+</body>
+</html>

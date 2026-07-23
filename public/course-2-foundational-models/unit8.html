@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 8 · Evaluation, alignment, and deployment — Foundational Model Development</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Foundational Model Development · Unit 8 of 8</p>
+  <h1>Evaluation, alignment, and deployment</h1>
+  <p class="lede">The capstone unit: how to tell whether a model is actually good enough to hand a claimant a legally consequential answer, how it got aligned to give that kind of answer in the first place, and what it costs — in latency, dollars, and operational discipline — to run it in production.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. Evaluation that isn't theater</a></li>
+      <li><a href="#lesson-2">2. Alignment: RLHF, RLAIF, and the direct alternatives</a></li>
+      <li><a href="#lesson-3">3. Deployment: latency, cost, and guardrails</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>Evaluation that isn't theater</h2>
+    <p class="opening">Your evaluation dashboard says the model scores 78% on a public benchmark, comfortably ahead of last quarter's release. Then a caseworker on the disability-premium desk flags a transcript: a claimant asked whether her son's carer's allowance counts against the savings-disregard threshold, and the assistant answered with total confidence and the wrong number. Both facts are true at once, and they are almost unrelated. A benchmark score is not evidence that a system is safe to hand to someone who cannot afford to be told the wrong thing. This lesson is about closing that gap — what makes an evaluation program defensible instead of decorative.</p>
+
+    <h3>Why the number lied</h3>
+    <p>Public benchmarks get scraped into pretraining corpora, sometimes verbatim, sometimes paraphrased across a hundred blog posts and forum answers that summarize them. A model can then score well by recognizing the specific test item rather than by possessing the underlying skill — <span class="term">benchmark contamination</span>. You test for it a few ways: search the pretraining corpus (or a representative sample of it) for near-exact n-gram overlap with benchmark questions and answers; check whether a model's score on a benchmark correlates suspiciously with how much of that benchmark's content predates the model's training cutoff; and, most practically, run a <span class="term">perturbation test</span> — reword the question with identical meaning, shuffle which letter the correct answer sits behind, change surface details that shouldn't matter. Genuine capability survives paraphrase. Memorization collapses under it, often by ten or twenty points on the same underlying questions.</p>
+
+    <h3>The multiple-choice mirage</h3>
+    <p>Even an uncontaminated multiple-choice score correlates weakly with performance on the actual job, for structural reasons. A four-option question has a 25% guessing floor and rewards elimination strategies that have nothing to do with domain knowledge. It never tests the format the assistant is actually deployed in — a free-form explanation that cites the correct regulation, hedges appropriately when the case is genuinely ambiguous, and asks a clarifying question about household composition before answering at all, since eligibility for a given premium often depends on facts the claimant hasn't yet stated. A model can top a public leaderboard and still fail the one behavior a benefits agency actually needs: a compliant, cited, correctly-hedged answer to a real, messy case.</p>
+
+    <h3>Building your own eval set</h3>
+    <p>A task-specific held-out set draws from real (redacted) query patterns across the categories that matter: threshold arithmetic, definitional questions, the appeals process, cases where two benefits interact, and adversarial or distressed phrasing. Each example needs a gold answer or rubric graded by a domain expert — a caseworker, not the model's own author. Sample size is not a formality: to reliably detect a real few-point accuracy difference between two model releases, back-of-envelope power calculations put you in the hundreds of graded examples, not dozens. If baseline accuracy sits around 85% and you want reasonable confidence of catching a 5-point regression, you typically need on the order of 300–500 held-out items; a 20-item smoke test can only reliably catch a swing of 15–20 points. Agencies that eyeball fifteen examples and declare a new release "the same" are usually not measuring anything at that sample size.</p>
+
+    <h3>LLM-as-judge, honestly</h3>
+    <p>Grading model output with another LLM is cheaper and faster than always using human raters, and it comes with well-documented failure modes. <span class="term">Position bias</span>: the judge favors whichever answer happens to be shown first (or second), independent of content. <span class="term">Verbosity bias</span>: a longer answer scores higher even when the extra length is padding rather than added correctness. <span class="term">Self-preference bias</span>: a judge tends to rate outputs from its own model family more favorably. None of these are exotic edge cases — they show up reliably enough that a judge score without mitigation is closer to noise than signal. Mitigate by running every comparison twice with candidate order swapped and discarding verdicts that flip; scoring against a structured rubric (factual accuracy, citation present, appropriate hedge, tone) instead of one holistic number; using a judge from a different model family than the candidate; and calibrating the judge against a human-labeled gold subset before trusting it at scale.</p>
+
+    <h3>Pairwise comparison and Elo</h3>
+    <p>Rather than force a judge to assign an absolute score — something judges are notoriously inconsistent at — run head-to-head comparisons between model versions on identical prompts and aggregate the results into an Elo-style rating, the same Bradley-Terry math that reappears as the reward model in Lesson 2. A pairwise ranking is stable under order-swapping and tells you which release is actually better, without pretending a single number like "7.2/10" means anything portable across prompts.</p>
+
+    <h3>When you still need a human</h3>
+    <p>Distressed claimants and legally consequential outputs push past what a judge model should certify alone. Any answer touching an actual dollar figure, an appeal deadline, or an eligibility determination needs a human-reviewed eval slice in addition to the LLM-judge slice — not instead of it, in addition, since human review doesn't scale to every release either. Human graders also catch a failure a judge model rarely penalizes hard enough: a coldly confident or falsely certain register delivered to someone describing an emergency, technically accurate and still the wrong thing to have produced.</p>
+
+    <h3>Regression suites</h3>
+    <p>The failure mode that benchmarks and even a good held-out set both miss is silent regression: a prompt tweak or model version bump quietly reopens a bug you fixed last quarter. The assistant used to correctly note that a one-off backdated lump-sum payment doesn't count against the weekly income test; a later update, chasing a different improvement, drops the caveat and nobody notices because the aggregate accuracy number went up. A <span class="term">regression suite</span> — a frozen set of past real failures, re-run unchanged on every release — is the only thing standing between "we improved the benchmark" and "we silently broke last month's fix."</p>
+
+    <pre><code>import random
+
+def judge_pair(prompt, response_a, response_b, judge_model, rubric):
+    """Ask the judge twice, in both orders, and discard verdicts
+    that flip with candidate order (non-transitive / position-biased)."""
+    verdict_1 = judge_model.compare(prompt, response_a, response_b, rubric)  # sees A, B
+    verdict_2 = judge_model.compare(prompt, response_b, response_a, rubric)  # sees B, A
+
+    # Normalize verdict_2 back to the A/B frame so it can be compared directly
+    flip = {"first": "second", "second": "first", "tie": "tie"}
+    verdict_2_in_ab_frame = flip[verdict_2]
+
+    if verdict_1 != verdict_2_in_ab_frame:
+        return None  # judge disagreed with itself once order was swapped: discard
+
+    return {"first": "A", "second": "B", "tie": "tie"}[verdict_1]
+
+def run_pairwise_eval(cases, outputs_a, outputs_b, judge_model, rubric):
+    kept, discarded = [], 0
+    for case, a, b in zip(cases, outputs_a, outputs_b):
+        result = judge_pair(case["prompt"], a, b, judge_model, rubric)
+        (discarded := discarded + 1) if result is None else kept.append(result)
+    n = len(kept)
+    return {
+        "win_rate_a": kept.count("A") / n if n else float("nan"),
+        "n_kept": n,
+        "n_discarded": discarded,
+    }</code></pre>
+    <p class="caption">The order swap is the entire mitigation for position bias: a verdict that only holds in one seating order never counts toward the win rate.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>A public benchmark score is evidence about the benchmark</strong>, not about your task — contamination and format mismatch both inflate it independent of real capability.</li>
+        <li><strong>A held-out eval needs hundreds of graded examples</strong>, not dozens, before a few-point difference between releases means anything statistically.</li>
+        <li><strong>LLM judges have specific, documented biases</strong> — position, verbosity, self-preference — mitigated by order-swapping, rubric scoring, and cross-family judges, never trusted as a raw single number.</li>
+        <li><strong>A frozen regression suite of past failures</strong>, re-run every release, is the only defense against silently reopening a bug you already fixed.</li>
+        <li><strong>Legally consequential outputs need a human-reviewed eval slice</strong> in addition to automated judging, not as a replacement for it.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Alignment: RLHF, RLAIF, and the direct alternatives</h2>
+    <p class="opening">In 2017, Christiano, Leike, and colleagues showed you could train an Atari-playing agent from nothing but pairwise human preferences over short video clips — no hand-written reward function at all. A person watches two brief clips and picks the better one; a small reward model learns to predict that preference; reinforcement learning optimizes against the learned reward instead of the game's built-in score. The recipe moved to text summarization in 2020 (Stiennon et al.), then became the standard way to align a language model with InstructGPT in 2022 — the paper behind the first modern ChatGPT-style assistants. Anthropic's Constitutional AI, later that year, asked whether a written set of principles could substitute for some of the human labeling. In 2023, Direct Preference Optimization (DPO) showed the entire reinforcement-learning apparatus could be replaced with a single supervised loss. This lesson walks that path forward, because a benefits-eligibility assistant is exactly the kind of system where alignment isn't cosmetic — it's the difference between calibrated and manipulative under a distressed user.</p>
+
+    <h3>Three stages, one goal</h3>
+    <p>Stage one is <span class="term">supervised fine-tuning</span> (SFT) — the model you built in Unit 5 — trained on curated (prompt, ideal answer) pairs that teach format and baseline competence: cite the regulation, ask about household size before answering, use plain language over legal jargon. Stage two trains a <span class="term">reward model</span> on human preference pairs: given two candidate answers to the same claimant question, a rater picks the better one, where "better" means accurate, appropriately hedged, and not paternalistic. Stage three, <span class="term">policy optimization</span> — usually Proximal Policy Optimization (PPO) — uses the reward model's score as a training signal to push the SFT model further, this time optimizing directly for what raters preferred rather than for what happened to be in the SFT dataset.</p>
+
+    <h3>Bradley-Terry: turning a preference into a number</h3>
+    <p>The reward model needs a way to convert "raters preferred answer A over answer B" into a scalar function <code>r(x, y)</code>. The Bradley-Terry model does this by treating the preference probability as a sigmoid of the reward difference:</p>
+    <p class="math">p(y_w &gt; y_l | x) = σ( r(x, y_w) − r(x, y_l) )</p>
+    <p>Training the reward model means maximizing the likelihood of the observed preferences under this equation — pushing the reward of the chosen response <code>y_w</code> up relative to the rejected response <code>y_l</code>, not toward any absolute scale. Nothing in this objective says a good answer should score "8 out of 10"; it only has to score higher than the answer a rater rejected.</p>
+
+    <h3>PPO and the leash</h3>
+    <p>PPO's job is to maximize expected reward from the reward model — but a reward model is a proxy, and an unconstrained optimizer finds the shortest path to a high proxy score, not necessarily to a good answer. The fix is a <span class="term">KL penalty</span> against a frozen reference policy (typically the SFT model): the training objective becomes <code>E[r(x,y)] − β · KL(π_θ || π_ref)</code>. The coefficient <code>β</code> controls how far the policy is allowed to drift from the reference — playing much the same regularizing role as the weight decay and dropout from Course 1's <em>Regularization techniques</em> unit: a term whose entire job is to stop the optimizer from succeeding too well by its own narrow metric. Remove the KL term, and PPO training against a benefits-eligibility reward model can degenerate within a few hundred steps: reward models tend to favor specific surface patterns — certain reassuring phrases, a particular structure, a tendency to suggest the claimant "may qualify" — and without the leash, the policy converges on producing that pattern regardless of the actual facts of the case. Fluent, on-brand, and wrong.</p>
+
+    <h3>Reward hacking, concretely</h3>
+    <p>Reward hacking is not hypothetical for this domain. A reward model whose training data happened to rate longer, more thorough-looking answers slightly higher on average teaches the policy to pad every response with boilerplate caveats, burying the one number the claimant actually needed. A reward model that associates confident, unhedged phrasing with "helpful" teaches the policy to stop saying "this depends on your specific circumstances — contact a caseworker," even on the genuinely ambiguous cases where that is the responsibly correct answer, producing instead a confident, invented number. A reward model trained mostly on able-bodied claimant phrasing can rate responses to disability-related questions inconsistently, so the policy quietly underperforms for exactly the population most affected. All three look identical on a training dashboard: reward went up.</p>
+
+    <h3>RLAIF and Constitutional AI</h3>
+    <p>Human preference labels are the slow, expensive part of the pipeline. <span class="term">RLAIF</span> (reinforcement learning from AI feedback) has another model generate the preference labels instead, guided by a written constitution. For this domain, that constitution might state principles like "prefer citing the specific regulation over asserting a bare conclusion," "flag ambiguity rather than guessing," and "never state a dollar figure the source document doesn't support." The AI labeler critiques and revises its own candidate outputs against these principles, and the resulting preferences train the reward model in place of — or blended with — costly human labeling of every single pair, while a smaller human-reviewed slice audits the AI labeler's judgment.</p>
+
+    <h3>DPO — one loss, no reward model</h3>
+    <p>Direct Preference Optimization skips training a separate reward model and running RL entirely. The insight: the Bradley-Terry preference probability can be rewritten directly in terms of the policy's own log-probabilities relative to the reference policy's log-probabilities, turning the whole problem into a single supervised maximum-likelihood loss over preference pairs:</p>
+    <p class="math">L_DPO = −log σ( β · [ (log π_θ(y_w|x) − log π_ref(y_w|x)) − (log π_θ(y_l|x) − log π_ref(y_l|x)) ] )</p>
+    <p>Each log-probability term is the same per-token quantity summed for the cross-entropy loss back in Unit 3's pretraining objective — just applied to a full candidate response instead of a single next token, and compared between the policy and a frozen reference copy of it.</p>
+
+    <h3>Where DPO and PPO actually differ</h3>
+    <p>DPO is simpler to implement and considerably more stable to train — no reward model, no on-policy rollouts, no PPO hyperparameter fragility — which is why most teams default to it now. But it has real limits. It only ever compares against the fixed preference pairs collected offline, so it can't explore beyond what raters happened to rank; a trained reward model, by contrast, generalizes to score outputs nobody ranked yet and can drive iterative best-of-n resampling or continued online RL. PPO's online exploration also handles multi-dimensional reward shaping — weighting accuracy, citation presence, and tone together — more naturally than DPO's single pairwise signal. In practice: reach for DPO to get solid alignment quickly and cheaply off a fixed preference dataset; reach for PPO, or DPO iterated across fresh rounds of preference collection, when the objective needs continued improvement past what the original raters covered.</p>
+
+    <pre><code>import torch
+import torch.nn.functional as F
+
+def dpo_loss(policy_logps_chosen, policy_logps_rejected,
+             ref_logps_chosen, ref_logps_rejected, beta=0.1):
+    """
+    Each *_logps_* is the SUM of per-token log-probabilities the model
+    assigns to a full response given the prompt -- the same quantity
+    summed for cross-entropy loss in Unit 3, just for a whole candidate
+    response instead of a single next token.
+    """
+    policy_logratio = policy_logps_chosen - policy_logps_rejected
+    ref_logratio = ref_logps_chosen - ref_logps_rejected
+
+    # The reference term is what stops DPO from simply maximizing
+    # log P(chosen) in isolation -- it only rewards moving chosen and
+    # rejected apart RELATIVE TO where the frozen reference model
+    # already had them. This plays the role PPO's KL penalty played.
+    logits = beta * (policy_logratio - ref_logratio)
+
+    return -F.logsigmoid(logits).mean()</code></pre>
+    <p class="caption">No reward model appears anywhere in this function — the frozen <code>ref_logps_*</code> terms, computed once and never updated, do the job the KL penalty did in PPO.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>The three-stage recipe</strong> — SFT, then a Bradley-Terry reward model on preference pairs, then RL policy optimization — traces to Christiano et al. 2017 and was standardized by InstructGPT in 2022.</li>
+        <li><strong>The KL penalty against the frozen reference policy</strong> is what keeps PPO from reward hacking; removing it can produce confidently wrong, fluent, on-brand answers within a few hundred training steps.</li>
+        <li><strong>Reward hacking is a predictable consequence</strong> of optimizing hard against any proxy metric, not a rare accident — it shows up as answers that score well on the reward model while getting the eligibility facts wrong.</li>
+        <li><strong>DPO replaces the reward model and RL loop</strong> with a single supervised loss over the same log-probability ratios used in pretraining, at the cost of being limited to the coverage of its offline preference data.</li>
+        <li><strong>RLAIF and Constitutional AI</strong> substitute a written set of principles for some human labeling, but a human-reviewed audit slice is still required for legally consequential answers.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Deployment: latency, cost, and guardrails</h2>
+    <p class="opening">Latency is how long a claimant waits for an answer to start, and to finish. Cost is what the agency pays per conversation to produce it. Neither is a footnote to model quality — for a benefits-eligibility assistant serving call-center chat volume, a four-second time-to-first-token feels broken regardless of how correct the eventual answer is, and a cost of forty cents per conversation, multiplied across a few million contacts a year, is a budget line an agency has to justify to a legislature. This lesson covers the serving-side techniques that make a correct, aligned model actually deployable at a volume and price a public agency can sustain, plus the operational layer that keeps it honest once it's live.</p>
+
+    <h3>Quantization: fewer bits, same weights</h3>
+    <p>Post-training quantization methods like GPTQ and AWQ compress weights from 16-bit to 8-bit or 4-bit representations by choosing per-group scale factors that minimize reconstruction error, rather than naively rounding every value. What degrades first is not average-case fluency — a 4-bit model still writes grammatical, confident sentences — but tail behavior: precise numeric thresholds (an income cutoff at exactly £16,000 rendered as a rounding-adjacent £15,800), rare facts seen only once or twice in training (an obscure regulation clause), and multi-step arithmetic or reasoning chains. For a benefits assistant that is exactly the failure mode that matters most: fluency survives int4 quantization comfortably; the specific threshold a claimant's whole case turns on is the first thing to go soft. Validate any quantized release against the task-specific eval set from Lesson 1 — not perplexity, which barely moves even when the numbers a claimant needs start drifting.</p>
+
+    <h3>The KV cache is the real memory bottleneck</h3>
+    <p>Recall from Unit 2: at each generation step, self-attention needs the key and value vectors for every previous token, so they're cached in GPU memory rather than recomputed from scratch. Cache size scales with batch size times sequence length times layer count times head count times head dimension, times two (key and value) times bytes per element — for a long eligibility conversation where a claimant explains a complicated household history across twenty turns, that cache can outgrow the model's weights themselves. Naive serving reserves a maximum-length contiguous memory block per request even for conversations that end early, wasting most of it. <span class="term">PagedAttention</span> (used in vLLM) fixes this the way an operating system handles virtual memory: the KV cache is stored in fixed-size, non-contiguous blocks referenced by a page table, claimed only as a sequence actually grows, and shareable across requests with an identical prefix — such as the same system prompt describing eligibility rules, reused for every claimant.</p>
+
+    <h3>Continuous batching and speculative decoding</h3>
+    <p><span class="term">Continuous batching</span> slots a new request into a running batch the instant any sequence in it finishes, instead of waiting for the whole static batch to complete before starting the next — a large real-world throughput gain over static batching, since claimant conversations rarely finish at the same length. <span class="term">Speculative decoding</span> has a small, fast draft model propose several tokens ahead; the large model then verifies all of them in a single forward pass and accepts the matching prefix, discarding the rest for a correction. This cuts wall-clock latency without changing what the large model would have generated on its own, because decoding at small batch sizes is memory-bandwidth-bound rather than compute-bound — verifying several tokens at once costs little more than generating just one.</p>
+
+    <h3>Distillation</h3>
+    <p>Training a smaller student model to imitate a large aligned model's outputs on task-representative data lets a narrowly scoped assistant like this one run on far less hardware. A distilled 7–8B student can often match a much larger teacher's accuracy on the specific eligibility-rules distribution it was distilled for, cutting cost and latency substantially — at the price of narrower generalization outside that distribution. That trade is fine for a bounded government use case with a fixed scope, and risky the moment that scope quietly expands to questions the student never saw.</p>
+
+    <h3>Two latency numbers, one feeling</h3>
+    <p><span class="term">Time-to-first-token</span> (TTFT) and <span class="term">time-per-output-token</span> (TPOT) are different metrics with different user-facing meanings. TTFT is the wait from request sent to the first token appearing, and it governs perceived responsiveness — especially for a short factual answer. TPOT is the pace of every subsequent token, governing how a long, multi-paragraph explanation feels once it has started streaming. Most of this assistant's answers are short — one number, one citation, one caveat — so TTFT dominates the felt experience for the typical claimant. The minority of questions that need a longer walkthrough of how two benefits interact put TPOT on trial instead. The batching techniques above raise total throughput but also raise per-request TTFT and TPOT variance under load — a trade to make deliberately, not one to discover in production.</p>
+
+    <h3>Throughput vs. latency, and cost per million tokens</h3>
+    <p>Larger batches raise GPU utilization and total tokens processed per second, but each individual request queues longer and its latency variance rises — a genuine Pareto frontier, not a free win. Providers quote cost per million input tokens and per million output tokens separately, and output tokens are consistently more expensive because generation happens serially, one token at a time, while an entire input prompt is processed in a single parallel forward pass. A full eligibility rulebook resent as system-prompt context on every turn is a real, recurring per-conversation cost, one that KV-cache prefix sharing can partially — not fully — rescue.</p>
+
+    <h3>The operational layer</h3>
+    <p>Monitoring tracks TTFT, TPOT, and cost distributions alongside eval-set accuracy sampled from live traffic, not just server uptime — catching in production the same kind of silent regression Lesson 1's regression suite catches offline. <span class="term">Drift detection</span> covers two distinct threats that both make a stale eval set dangerous: the eligibility rules themselves change when new legislation passes, and claimant phrasing shifts seasonally around open-enrollment periods. Logging for auditability means retaining the exact model version, prompt template version, and full transcript behind any determination that might later be appealed — a legal requirement in this domain, not an engineering nicety. Guardrails work on both ends: input-side, screening for prompt injection and attempts to extract another claimant's case data or coerce the assistant into a definitive legal ruling it isn't authorized to give; output-side, filtering for dollar figures or dates that don't trace back to a cited source document, and routing genuinely ambiguous cases to a human caseworker rather than letting a fluent guess ship.</p>
+
+    <pre><code>def estimate_serving_cost(
+    model_params_b,        # model size in billions of parameters
+    quant_bits,            # 16, 8, or 4
+    batch_size,
+    monthly_conversations,
+    avg_input_tokens=600,  # eligibility rulebook context + claimant question
+    avg_output_tokens=150,
+    gpu_cost_per_hour=2.50,
+    gpu_tokens_per_sec_at_fp16_bs1=40,  # baseline decode speed, batch=1, fp16
+):
+    # Quantization speeds up memory-bound decode roughly in proportion to
+    # bytes moved per token; batching gives sub-linear throughput gains
+    # that saturate well before batch_size scales linearly.
+    quant_speedup = {16: 1.0, 8: 1.7, 4: 2.6}[quant_bits]
+    batch_speedup = min(batch_size, 32) ** 0.6  # diminishing returns past ~32
+
+    tokens_per_sec = gpu_tokens_per_sec_at_fp16_bs1 * quant_speedup * batch_speedup
+    tpot_ms = 1000 / tokens_per_sec
+    ttft_ms = 80 + (model_params_b / 7) * 40 / quant_speedup  # prefill scales with size
+
+    total_output_tokens = monthly_conversations * avg_output_tokens
+    gpu_seconds = total_output_tokens / tokens_per_sec
+    monthly_gpu_cost = (gpu_seconds / 3600) * gpu_cost_per_hour
+
+    return {
+        "ttft_ms": round(ttft_ms, 1),
+        "tpot_ms": round(tpot_ms, 2),
+        "monthly_gpu_cost_usd": round(monthly_gpu_cost, 2),
+    }</code></pre>
+    <p class="caption">The constants are illustrative, not calibrated to real hardware — the point is that quantization and batch size trade off non-linearly, and TTFT/TPOT need separate lines because they respond to different levers: model size and prefill for one, decode throughput for the other.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Quantization degrades tail behavior first</strong> — precise thresholds, rare facts, multi-step reasoning — while average fluency survives; validate against a task eval set, not perplexity.</li>
+        <li><strong>The KV cache, not the weights, is usually the binding memory constraint</strong> at serving time for long conversations; paged attention manages it the way virtual memory manages RAM.</li>
+        <li><strong>TTFT and TPOT are separate user experiences</strong> driven by different levers — batching and speculative decoding trade one kind of latency and throughput against another, never all three for free.</li>
+        <li><strong>Output tokens cost more than input tokens</strong> because generation is serial; cost per million tokens is a real budget line that scales with model size and every re-sent system prompt.</li>
+        <li><strong>Auditability and drift detection are not optional</strong> on a legally consequential assistant — they are the deployment-time analog of the regression suite from Lesson 1.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 8 quiz</h2>
+    <p class="quiz-intro">Eight questions across evaluation, alignment, and deployment — the last two are multi-step, and one requires combining scaling laws from Unit 4 with the mixed-precision training material from Unit 7.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A model scores unusually well on a public multiple-choice benchmark, and you suspect its pretraining data included the benchmark itself. Which of the following is the strongest single piece of evidence for contamination?</p>
+      <ol class="choices" type="A">
+        <li>The model also does well on your task-specific held-out eval set.</li>
+        <li>Rewording the benchmark questions with identical meaning causes accuracy to drop sharply.</li>
+        <li>The model's stated confidence is high across all answer choices.</li>
+        <li>The benchmark has more questions than your held-out eval set.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Genuine capability should survive a meaning-preserving paraphrase; a sharp accuracy drop under rewording means the model had memorized the surface form of the specific questions rather than the underlying skill.</p>
+          <p>A is tempting but tells you nothing about contamination on the other benchmark — doing well on your own held-out set is good news about your task, not evidence either way about the public benchmark. C and D aren't evidence of contamination at all; they're unrelated properties of confidence calibration and dataset size.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">True or false: because LLM judges are cheaper and faster than human raters, a single LLM-as-judge verdict — one call, one candidate order, one prompt — is generally sufficient to certify a model update for a legally consequential production use case like benefits eligibility.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> Position bias, verbosity bias, and self-preference bias all mean a single unswapped verdict is unreliable on its own. At minimum you need order-swapped comparisons discarding non-transitive verdicts, and for legally consequential outputs a human-reviewed audit slice in addition.</p>
+          <p>The tempting reasoning — "cheaper and faster, so good enough" — mistakes cost efficiency for validity; the two are independent properties of an eval method.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">When an LLM judge comparing two candidate answers consistently favors whichever one happens to be presented first (or second), regardless of actual content, that failure mode is called <span class="blank">&nbsp;</span> bias, and the standard mitigation is to run the comparison twice with the candidates' order swapped and discard verdicts that flip.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: position</strong> (position bias). It is distinct from verbosity bias (favoring longer answers) and self-preference bias (favoring a judge's own model family) — all three are documented LLM-judge failure modes, but only position bias is fixed specifically by swapping presentation order.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A reward model is trained on pairs of claimant-question answers where a human rater picked the better response. Under the Bradley-Terry framework, what does the reward model actually learn?</p>
+      <ol class="choices" type="A">
+        <li>An absolute quality score on a fixed scale, such as 1 to 10, for any single answer in isolation.</li>
+        <li>A scalar function such that the sigmoid of the difference between two answers' scores approximates the probability the first was preferred.</li>
+        <li>A binary classification of each answer as "correct" or "incorrect" against ground truth.</li>
+        <li>The exact dollar amount that should appear in a correct eligibility answer.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Bradley-Terry models the preference probability as σ(r(x,y_w) − r(x,y_l)) — the reward model only ever has to rank two answers relative to each other, never assign an absolute score.</p>
+          <p>A is wrong because nothing in the Bradley-Terry loss anchors the reward to a fixed scale — only relative differences are trained. C and D confuse a preference-ranking reward model with a fact-checker or an answer key, which it is not; it has no access to ground truth, only human preferences.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">This PPO training step accepts <code>ref_logps</code> as an argument but never uses it in the returned loss:</p>
+      <pre><code>def ppo_objective(rewards, policy_logps, ref_logps, values, clip_eps=0.2):
+    advantages = rewards - values
+    ratio = torch.exp(policy_logps - policy_logps.detach())
+    unclipped = ratio * advantages
+    clipped = torch.clamp(ratio, 1 - clip_eps, 1 + clip_eps) * advantages
+    policy_loss = -torch.min(unclipped, clipped).mean()
+    return policy_loss</code></pre>
+      <p class="q-stem">What is missing, and what failure mode does the omission risk specifically for a benefits-eligibility assistant?</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer:</strong> The KL penalty against the reference policy is missing entirely — nothing in the returned loss subtracts <code>β · KL(π_θ || π_ref)</code> (or its common per-token log-ratio approximation using <code>policy_logps - ref_logps</code>). <code>ref_logps</code> is computed and passed in but silently discarded.</p>
+          <p>Without it, nothing constrains how far the policy can drift from the SFT reference while chasing the reward model's score — the classic setup for reward hacking, such as the policy learning to always assert "you likely qualify" or pad answers with reassurance because the reward model happens to favor that pattern, regardless of whether it matches the claimant's actual facts.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Most of this assistant's answers are short: one number, one regulation citation, one caveat, delivered in a couple of sentences. Which latency metric matters most for how responsive the assistant feels to these claimants?</p>
+      <ol class="choices" type="A">
+        <li>Time-to-first-token</li>
+        <li>Time-per-output-token</li>
+        <li>Total GPU throughput</li>
+        <li>Cost per million output tokens</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: A.</strong> For a short answer, the whole stream finishes almost as soon as it starts, so the wait before the first token dominates the felt experience.</p>
+          <p>B (time-per-output-token) matters more for the minority of long, multi-paragraph explanations of interacting benefits, where the reader is watching text stream in over several seconds. C and D are real capacity and cost concerns for the operator, but neither is what a single claimant experiences as responsiveness.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A junior engineer argues: "Unit 7 showed mixed-precision (fp16/bf16) training reaches the same loss as fp32 with proper loss scaling, so int4 post-training quantization at serving time should be just as lossless." Combining Unit 4's scaling-law relationship — where a model's capacity ends up concentrated as it's trained — with this unit's material on quantization, what is the strongest objection?</p>
+      <ol class="choices" type="A">
+        <li>Quantization and mixed-precision training use different numbers of bits, so the comparison is meaningless on its face.</li>
+        <li>Mixed-precision training keeps a full-precision master copy of weights and gradients throughout training, actively correcting rounding error at every step; post-training quantization is a one-time, irreversible compression applied after training, to a model whose scaling-law-predicted capacity is concentrated in comparatively few parameters carrying rare, precise facts — exactly what a one-shot rounding pass degrades first.</li>
+        <li>Mixed-precision training is always more accurate than any form of quantization, in any context.</li>
+        <li>int4 quantization only affects intermediate activations, not the learned weights, so it cannot touch stored facts at all.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> This is the real mechanism: mixed-precision training corrects for rounding continuously via a full-precision master copy, while post-training quantization rounds once and never corrects, striking hardest exactly where scaling laws say capacity is thinnest — the rare facts and precise thresholds a small share of parameters carry.</p>
+          <p>A gestures at a real difference (bit count) but doesn't explain why it matters, so it's not the strongest objection. C is an overclaim — quantization-aware training and careful calibration can close much of the gap, so "always more accurate... in any context" isn't true. D is factually wrong: weight quantization directly rounds the parameters storing those facts, not just activations.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">True / false</span></p>
+      <p class="q-stem">True or false: retaining the exact model version and prompt template used for a given claimant conversation is good engineering hygiene but not a strict requirement, since the conversation transcript alone is sufficient if a determination is later appealed.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> A transcript alone doesn't explain why a specific answer was produced once the model or prompt template has since been updated — reproducing or defending a months-old determination on appeal requires the exact version pinning, not just the exchanged text.</p>
+          <p>Treating this as "nice hygiene" mistakes an audit requirement for a debugging convenience; in a legally consequential setting, the version record is what makes the transcript legible after the system has moved on.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Foundational Model Development · Unit 8 of 8 — Course complete. Course 3, Text Processing (NLP), picks up from here: tokenization choices, classical and neural text representations, and the sequence-labeling and classification tasks that sit beneath everything this course built on top of.</p>
+</footer>
+</body>
+</html>

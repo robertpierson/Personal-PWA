@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 6 · Fine-tuning and transfer learning — Foundational Model Development</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Foundational Model Development · Unit 6 of 8</p>
+  <h1>Fine-tuning and transfer learning</h1>
+  <p class="lede">You have 12,000 labelled chest CT and X-ray report impressions and a language model that has barely seen the word "pneumothorax." This unit is about the mechanics of closing that gap — what a pretrained model already knows, what a fine-tune can and cannot fix, and how to run the adaptation so it holds up on a patient it has never seen.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. What transfers, and what doesn't</a></li>
+      <li><a href="#lesson-2">2. Running a fine-tune that actually works</a></li>
+      <li><a href="#lesson-3">3. Domain-adaptive pretraining and data efficiency</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>What transfers, and what doesn't</h2>
+    <p class="opening">Twelve thousand labelled report impressions is, by pretraining standards, a rounding error — the base model saw billions of tokens of web text and perhaps a few hundred occurrences of "pneumothorax" scattered across medical-adjacent pages. Worse, the label you need is not just "this is about a lung" but "does this specific sentence assert the finding or deny it." A radiologist writes "no definite evidence of pneumothorax" and "small apical pneumothorax is again noted" in the same report, and a model that only picked up surface word co-occurrence from the web will happily flag both as positive. The two problems are different in kind: the model doesn't know the <span class="term">vocabulary</span> of chest imaging, and separately, it doesn't know the <span class="term">task</span> of turning hedged clinical prose into one of four labels — pneumothorax, effusion, nodule, normal. Fine-tuning is supposed to fix both at once, on a training set two orders of magnitude smaller than what built the model. Understanding what actually moves during that process — and what doesn't — is the difference between a fine-tune that works and one that quietly memorizes 12,000 reports.</p>
+
+    <h3>The layer-wise picture</h3>
+    <p>The load-bearing empirical claim behind transfer learning is that a deep network learns a <span class="term">hierarchy</span> of representations: lower layers encode generic structure — subword composition, local syntax, common collocations — while upper layers encode increasingly abstract, task- and domain-specific structure. This was established for vision by Yosinski et al. (2014), who showed that lower convolutional filters in an ImageNet-trained CNN look like edge and color detectors regardless of which classes the network was trained on, while the last few layers are highly specific to the exact output classes. Transformer language models show the same pattern, and it has been measured directly with <span class="term">probing classifiers</span>: freeze the pretrained encoder, take the hidden state at each layer, and train a small linear classifier on top of just that layer's frozen output. If accuracy is flat and low through the early layers, jumps in the middle, and plateaus or dips near the top, you have empirical evidence of where the reusable representation actually lives — and it tells you how much of the network you need to touch.</p>
+    <p>For the report-classification problem this matters directly. A 12-layer encoder pretrained on general web text will show something like: layers 1–3 encode subword and local n-gram statistics that transfer almost for free (punctuation, sentence boundaries, common function words); layers 4–8 build compositional syntax and some semantics that transfer partially, degraded by the fact that "pneumothorax," "effusion," and "nodule" are rare or out-of-vocabulary tokens the tokenizer had to split into sub-word fragments it never saw combined this way; and layers 9–12, which in the pretrained model encode task-specific structure for whatever the pretraining objective was (next-token prediction or masked-token prediction), are the least useful as-is and need the most adaptation. This is exactly why full fine-tuning tends to touch upper layers hardest and why, as you'll see in Lesson 2, discriminative learning rates that scale up toward the top of the network follow the same logic the probing curve reveals.</p>
+
+    <h3>Feature extraction versus full fine-tuning</h3>
+    <p>There are two ends of a spectrum for using a pretrained model on a new task. <span class="term">Feature extraction</span> (also called the linear-probe or frozen-backbone approach) freezes every pretrained weight and trains only a new head — here, a 4-way softmax classifier — on top of the frozen final-layer (or pooled) representation. <span class="term">Full fine-tuning</span> updates every weight in the network, backbone included, using the labelled data. Feature extraction is cheap, fast, and close to impossible to overfit with 12,000 examples because the number of trainable parameters is tiny (a 768-to-4 linear layer is 3,076 parameters, versus 100M+ for the full encoder). But it is also capped: if the frozen representation doesn't already separate "pneumothorax present" from "pneumothorax excluded," a linear head cannot learn to make that distinction no matter how much labelled data you throw at it, because the information the head needs was never extracted from the input in the first place.</p>
+    <p>The practical rule of thumb is a data-size threshold, not a fixed answer: below roughly a few thousand labelled examples, full fine-tuning of a large encoder tends to overfit or destabilize, and feature extraction (or fine-tuning only the top 2–3 layers) is safer. Above that — and 12,000 reports comfortably clears it for an encoder in the 100M-parameter range — full fine-tuning with a conservative learning rate schedule (Lesson 2) usually outperforms feature extraction, because the domain shift here is large enough that even the "general" lower-layer features benefit from some adjustment to radiology's clipped, abbreviation-heavy sentence style. The honest test is empirical: run the layer-wise probe first, see where accuracy saturates, and let that tell you whether the frozen representation is already close (favor feature extraction or partial unfreezing) or clearly missing the finding-level distinction (favor full fine-tuning).</p>
+
+    <h3>Domain shift versus task shift</h3>
+    <p>It helps to separate two distinct gaps that fine-tuning is asked to close simultaneously. <span class="term">Domain shift</span> is the gap between the pretraining corpus's distribution (general web text) and the target corpus's distribution (radiology report impressions: clipped syntax, heavy abbreviation, a narrow and specific vocabulary, dense negation). <span class="term">Task shift</span> is the gap between the pretraining objective (predict a masked or next token) and the target task (map a passage to one of four clinical labels). You can have either without the other: fine-tuning a general-English model on movie review sentiment is mostly task shift with mild domain shift; fine-tuning that same model to do masked-token prediction on radiology text with no labels at all (Lesson 3's DAPT) is pure domain adaptation with no task shift yet. The report-classification problem stacks both, which is why it's harder than either alone — and why it's worth diagnosing which one is dominating your errors. If the model consistently mislabels rare abbreviations or unusual phrasing but gets clear-cut cases right, that's domain shift. If it gets the vocabulary right but still can't handle "cannot exclude a small nodule" versus "no nodule identified," that's task shift specific to hedging and negation — a modeling problem no amount of extra radiology text alone will fix, because it's about logical scope, not vocabulary.</p>
+
+    <h3>Catastrophic forgetting and negative transfer</h3>
+    <p><span class="term">Catastrophic forgetting</span> is what happens when gradient updates for the new task overwrite the general-purpose representations the pretrained model relied on, degrading capabilities you didn't mean to touch. With a learning rate too high or too many epochs on a small fine-tuning set, the network can forget general English syntax faster than it learns radiology-specific distinctions, producing a model that is worse at everything — a classic sign is validation loss on the fine-tuning task falling while performance on a held-out sanity check (say, general reading comprehension) collapses. <span class="term">Negative transfer</span> is the related but distinct failure where the source knowledge actively hurts the target task rather than merely fading: a model pretrained heavily on casual web text might have learned "definitely," "clearly," and negation patterns tuned for opinionated writing, and those priors can mislead the model on clinical hedging conventions where "no definite evidence of" is a formal near-negative, not an uncertain maybe. Both failures are reasons to keep the adaptation conservative and staged rather than aggressive and one-shot — the discipline built out in the next lesson.</p>
+
+    <pre><code>import torch, torch.nn as nn
+from sklearn.linear_model import LogisticRegression
+
+# encoder: pretrained 12-layer transformer, frozen
+# reports: list[str] impression text; labels: 0=normal,1=effusion,2=nodule,3=pneumothorax
+NUM_LAYERS = 12
+
+def collect_hidden_states(encoder, tokenizer, reports, device):
+    """Return hidden[layer] -> (N, hidden_dim) mean-pooled features, no grad."""
+    hidden_by_layer = [[] for _ in range(NUM_LAYERS)]
+    encoder.eval()
+    with torch.no_grad():
+        for text in reports:
+            batch = tokenizer(text, return_tensors="pt", truncation=True,
+                               max_length=256).to(device)
+            out = encoder(**batch, output_hidden_states=True)
+            # out.hidden_states[0] is the embedding layer; skip it
+            for layer_idx in range(NUM_LAYERS):
+                h = out.hidden_states[layer_idx + 1]        # (1, seq_len, 768)
+                pooled = h.mean(dim=1).squeeze(0).cpu().numpy()  # (768,)
+                hidden_by_layer[layer_idx].append(pooled)
+    return hidden_by_layer
+
+def probe_every_layer(hidden_by_layer, y_train, y_val, train_idx, val_idx):
+    """Fit one linear probe per layer, report held-out accuracy."""
+    accuracies = []
+    for layer_idx, feats in enumerate(hidden_by_layer):
+        X_train = [feats[i] for i in train_idx]
+        X_val   = [feats[i] for i in val_idx]
+        probe = LogisticRegression(max_iter=1000, multi_class="multinomial")
+        probe.fit(X_train, y_train)
+        acc = probe.score(X_val, y_val)
+        accuracies.append(acc)
+        print(f"layer {layer_idx + 1:2d}/12  probe acc = {acc:.3f}")
+    return accuracies
+
+# Typical shape of the result on report impressions:
+# layers 1-3  ~0.31-0.38  (barely above the 0.25 four-class baseline)
+# layers 4-8  ~0.45-0.61  (climbing — composition starts to help)
+# layers 9-11 ~0.66-0.70  (best frozen representation)
+# layer 12    ~0.63       (slightly worse — pretraining-objective-specific)
+</code></pre>
+    <p class="caption">Freezing the encoder and sweeping a cheap linear probe over each layer's pooled output localizes where useful representation already exists before you spend any compute on fine-tuning — here, layers 9–11, not the very top or bottom.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Layer-wise specialization is measurable, not folklore</strong> — a per-layer linear probe on frozen hidden states shows accuracy rising through the middle layers and often dipping at the very top, because the top layers are tuned to the pretraining objective, not to your task.</li>
+        <li><strong>Feature extraction versus full fine-tuning is a data-size decision</strong>: below a few thousand labelled examples, freeze the backbone and train only a head; above it — 12,000 reports qualifies — full fine-tuning usually wins, provided the learning rate is kept conservative (Lesson 2).</li>
+        <li><strong>Domain shift and task shift are separate diagnoses</strong> — vocabulary and phrasing errors point to domain shift; consistent failures on negation and hedging ("cannot exclude," "no definite evidence of") point to task shift that more raw radiology text alone will not resolve.</li>
+        <li><strong>Catastrophic forgetting and negative transfer are distinct failure modes</strong> — the first erases useful general-purpose structure, the second lets wrong priors from the source domain actively mislead the target task.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Running a fine-tune that actually works</h2>
+    <p class="opening"><span class="term">Fine-tuning</span> is continued gradient-based training of a pretrained model's weights on a smaller, labelled, task-specific dataset, starting from the pretrained weights rather than a random initialization. That one-sentence definition hides most of the difficulty: every hyperparameter that mattered during pretraining — learning rate, schedule, batch size, initialization — needs to be revisited, because the starting point and the data budget have both changed by orders of magnitude. Get it wrong on 12,000 radiology reports and you don't get a slightly worse model; you get one that has forgotten general English, memorized 12,000 specific sentences, or learned to predict "normal" for everything because normal reports outnumber pneumothorax reports ten to one. This lesson is the operating discipline that keeps a fine-tune from failing in each of those specific ways.</p>
+
+    <h3>The learning rate, 10–100x smaller</h3>
+    <p>Recall from Course 1 Unit 4 that Adam's update scales each parameter by a running estimate of gradient magnitude, and that the learning rate sets the ceiling on how far a single step can move a weight. During pretraining that ceiling is tuned for a randomly initialized network taking huge numbers of steps across a huge corpus — typical values sit in the 1e-4 to 5e-4 range for transformer pretraining. A fine-tune starts from weights that already encode a useful, delicately-balanced representation, and it takes far fewer steps (a few epochs over 12,000 reports, not days over billions of tokens) to reach convergence. Using the pretraining learning rate here overshoots badly: large early-step updates on a well-conditioned loss surface can knock the representation out of the basin it was pretrained into, which is precisely the mechanism behind catastrophic forgetting described in Lesson 1. The standard fix is a fine-tuning learning rate 10 to 100x smaller than pretraining — typically 1e-5 to 5e-5 for the backbone — small enough that the network adapts to "pneumothorax" and "effusion" without unlearning general sentence structure it needs to parse the rest of the report.</p>
+
+    <h3>Discriminative learning rates and short schedules</h3>
+    <p><span class="term">Discriminative (layer-wise) learning rates</span> assign a smaller rate to lower layers and a larger rate to upper layers, directly following the probing evidence from Lesson 1: lower layers are already close to what you need and should barely move, while upper layers — closest to the pretraining objective and furthest from your 4-class target — need to move more. A common schedule multiplies the base rate by roughly 0.9 per layer going downward from the top, or simply splits the network into two or three bands (embeddings, lower half, upper half) with rates like 1e-5 / 2e-5 / 5e-5. Pair this with a <span class="term">short schedule with warmup</span>: a linear or cosine warmup over the first 5–10% of steps before decaying, which prevents the large, poorly-calibrated gradients typical of the very first few batches (where the new classification head is still near-random) from taking a badly-aimed first step in the backbone. On 12,000 examples at a batch size of 16, that's roughly 750 steps per epoch; 3–4 epochs total is often enough, and training much longer than that on a dataset this size is itself a risk factor for overfitting, not a safety margin.</p>
+
+    <h3>Batch size, head initialization, and class imbalance</h3>
+    <p>In the small-data regime, batch size interacts with learning rate and stability more than it does at pretraining scale: batches of 8–32 are typical for a 12,000-example fine-tune, since larger batches give smoother gradient estimates but fewer total update steps to work with when the dataset itself is small. The new classification head — a linear layer mapping the pooled 768-dimensional representation to 4 logits — is randomly initialized and must be trained from scratch even though the backbone is pretrained; a small initialization scale (matching the backbone's existing weight magnitudes, roughly N(0, 0.02²)) keeps early gradients from that head from being disproportionately large relative to the backbone's near-converged ones. Class imbalance is a real problem here, not a hypothetical one: if normal reports outnumber pneumothorax reports 10 to 1 in your 12,000, a model minimizing average cross-entropy can reach reasonable-looking loss by defaulting to "normal" on ambiguous cases. Weighted cross-entropy (inverse class frequency, or the focal loss variant that down-weights easy examples) and stratified batch sampling that guarantees each batch contains some minority-class examples are the standard countermeasures; plain accuracy is a misleading metric on this label distribution, and per-class F1 (or a fixed threshold on the pneumothorax and effusion logits specifically, since those are the flagged findings clinicians act on) should be what you actually optimize against on the validation set.</p>
+
+    <h3>Gradual unfreezing and the eval discipline that keeps you honest</h3>
+    <p><span class="term">Gradual unfreezing</span> trains the new head first with the entire backbone frozen for a short warm-up phase, then unfreezes the top few backbone layers, then progressively more, rather than updating every layer from step one. This gives the random head time to settle into something reasonable before its noisy early gradients propagate into the pretrained backbone — a cheap insurance policy against the head's initialization noise causing needless forgetting in layers that were otherwise fine. But none of learning rate, scheduling, or unfreezing strategy matters if your evaluation is silently leaking information. The classic failure specific to clinical report data: splitting by <em>report</em> rather than by <em>patient</em>. A patient with a known nodule under surveillance may have six CT reports in your 12,000, all describing the same lesion in nearly identical language across visits. If those six reports land on both sides of a train/validation split, the model doesn't have to generalize to unseen findings — it just has to recognize that it has seen this near-duplicate phrasing before, and validation accuracy will look excellent right up until it meets a genuinely new patient in production. The fix is a <span class="term">patient-level split</span>: partition unique patient identifiers first, then assign every report from a given patient entirely to train, validation, or test — never split across them. This is the single most common source of an optimistic-looking fine-tune that fails on deployment, and it is worth checking before touching any other hyperparameter in this lesson.</p>
+
+    <pre><code>import torch
+from torch.optim import AdamW
+from sklearn.model_selection import GroupShuffleSplit
+
+# reports_df has columns: patient_id, impression_text, label
+# GROUP split on patient_id prevents a patient's reports from
+# spanning both train and validation (the classic leakage bug)
+splitter = GroupShuffleSplit(n_splits=1, test_size=0.15, random_state=0)
+train_idx, val_idx = next(
+    splitter.split(reports_df, groups=reports_df["patient_id"])
+)
+train_df = reports_df.iloc[train_idx]
+val_df   = reports_df.iloc[val_idx]
+assert set(train_df.patient_id) & set(val_df.patient_id) == set()
+
+# Discriminative learning rates: lower layers barely move,
+# the new head moves the most.
+def build_param_groups(model, base_lr=2e-5):
+    embeddings = list(model.encoder.embeddings.parameters())
+    lower_layers = list(model.encoder.layer[:6].parameters())   # layers 1-6
+    upper_layers = list(model.encoder.layer[6:].parameters())   # layers 7-12
+    head = list(model.classifier.parameters())                  # new, random init
+    return [
+        {"params": embeddings,   "lr": base_lr * 0.1},   # 2e-6
+        {"params": lower_layers, "lr": base_lr * 0.5},   # 1e-5
+        {"params": upper_layers, "lr": base_lr},          # 2e-5
+        {"params": head,         "lr": base_lr * 25},    # 5e-4, trained from scratch
+    ]
+
+optimizer = AdamW(build_param_groups(model), weight_decay=0.01)
+
+# Class-weighted loss for the 10:1 normal-vs-pneumothorax imbalance
+class_counts = train_df["label"].value_counts().sort_index().values
+class_weights = torch.tensor(1.0 / class_counts, dtype=torch.float32)
+class_weights = class_weights / class_weights.sum() * len(class_counts)
+loss_fn = torch.nn.CrossEntropyLoss(weight=class_weights)
+</code></pre>
+    <p class="caption">The patient-level <code>GroupShuffleSplit</code> is the part most fine-tunes skip; the parameter groups show the backbone's embeddings barely moving while the new head trains at 25x the base rate.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Fine-tuning learning rates run 10–100x smaller than pretraining</strong> (roughly 1e-5 to 5e-5 versus 1e-4 to 5e-4) because a pretrained network needs small nudges, not the large exploratory steps a randomly initialized one requires.</li>
+        <li><strong>Discriminative learning rates follow the layer-wise picture directly</strong> — lower layers move least, upper layers and the new head move most — and short schedules with warmup prevent the random head's early noisy gradients from destabilizing the backbone.</li>
+        <li><strong>Class imbalance needs an explicit fix</strong>, not just more data: weighted loss and stratified sampling, evaluated with per-class F1 rather than accuracy, since a 10:1 normal-to-pneumothorax ratio makes accuracy trivially gameable.</li>
+        <li><strong>A patient-level train/validation/test split is not optional</strong> — splitting by report instead of by patient leaks near-duplicate phrasing across the split boundary and produces validation numbers that collapse the moment the model sees an actually new patient.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Domain-adaptive pretraining and data efficiency</h2>
+    <p class="opening">Think of it the way a general internist prepares before rotating onto a radiology service: they don't start reading chest films by studying labelled cases of pneumothorax versus effusion. They first spend weeks simply reading — textbooks, prior reports, case logs — absorbing the vocabulary, abbreviations, and phrasing conventions of the specialty with no quiz at the end, before ever being asked to make a call on a specific case. That unsupervised immersion phase is exactly what <span class="term">domain-adaptive pretraining</span> does for a language model, and it's a cheap lever precisely because it needs no labels at all — only more text from the target domain, which is almost always easier to obtain than expert-labelled examples.</p>
+
+    <h3>DAPT and TAPT</h3>
+    <p>Gururangan et al. (2020) formalized two variants of this idea. <span class="term">DAPT</span> (domain-adaptive pretraining) continues the original pretraining objective — masked language modeling, in an encoder like the one used here — on a large pool of <em>unlabelled</em> text from the target domain before any task-specific fine-tuning happens. For the radiology problem, that means taking the 200,000 unlabelled report impressions your hospital system has on file (far more than the 12,000 that were ever hand-labelled with findings), and continuing to train the pretrained encoder on masked-token prediction over that pool: mask out 15% of tokens in "there is a small right ___ effusion" and have the model predict the missing word, exactly as in original pretraining, just on text that actually contains "effusion," "pneumothorax," and the clipped grammatical style of radiology dictation. <span class="term">TAPT</span> (task-adaptive pretraining) does the same continued-MLM step but on the much smaller, unlabelled version of the task's own data — the 12,000 reports stripped of their labels — rather than a broad in-domain pool. TAPT is cheaper and more targeted (it directly matches the fine-tuning distribution), but DAPT's broader coverage tends to help more when the fine-tuning set is narrow or skewed, since 12,000 labelled examples may not include the full range of phrasing that 200,000 unlabelled ones do. Gururangan et al. found the two are complementary — DAPT followed by TAPT followed by supervised fine-tuning generally beat either alone.</p>
+    <p>The mechanism is simply a better initialization for the supervised fine-tune from Lesson 2: after continued MLM pretraining, the model's subword embeddings and mid-layer representations have already adjusted to radiology's vocabulary and syntax before a single labelled example is seen, so the supervised phase only has to solve the task-shift half of the problem (mapping representation to label), not the domain-shift half (building the representation in the first place) simultaneously. This matters most exactly when labelled data is scarce, which is the whole premise of this unit: with 12,000 labels, some of that budget is otherwise "spent" teaching the model what "effusion" even looks like in context, a job that continued pretraining can do for free on unlabelled text instead.</p>
+
+    <h3>How much unlabelled text, and the learning-curve question</h3>
+    <p>There's no universal number, but the practical guidance from DAPT-style studies is that gains are visible from as little as a few million tokens of in-domain text and continue improving well into the hundreds of millions, with diminishing returns setting in once the continued-pretraining corpus starts to approach the scale of a small dedicated domain model. Two hundred thousand report impressions, averaging perhaps 40–60 tokens each, is on the order of 10 million tokens — comfortably in the range where DAPT reliably helps, though not so large that you'd expect it to fully substitute for a purpose-built radiology-text model trained from scratch on a much bigger corpus.</p>
+    <p>The more actionable question in practice is the <span class="term">learning curve</span>: how does labelled-set performance move as you go from 100 to 1,000 to 10,000 to 12,000 reports, with and without DAPT applied first? A typical shape looks like this — without DAPT, accuracy at 100 labels might sit barely above the majority-class baseline (the model hasn't seen enough labelled examples to learn the vocabulary and the task together); by 1,000 labels it climbs substantially as the model starts to pick up both; by 10,000 it's approaching a plateau, with 12,000 buying only a small additional gain over 10,000. With DAPT applied first, the entire curve shifts left and up: 100 labels already perform close to what 1,000 achieved without domain adaptation, because the vocabulary problem was already solved during the unsupervised phase and the labelled examples only have to teach the task-specific decision boundary. The gap between the two curves is largest at the low end of the labelled-data axis and shrinks as labelled data grows — which is exactly the signal that DAPT's main value is data efficiency, not a permanent ceiling increase.</p>
+
+    <h3>When few-shot prompting beats fine-tuning</h3>
+    <p>Fine-tuning — full or DAPT-preceded — is not always the right call. If your labelled set is genuinely tiny (a few dozen to a couple hundred examples) and you have access to a large pretrained model that can be steered with a prompt and a handful of in-context examples, few-shot prompting often matches or beats fine-tuning at that scale, because fine-tuning that few examples risks catastrophic forgetting and overfitting regardless of how carefully you tune the learning rate. The crossover typically sits somewhere in the low thousands of labelled examples: below it, the fixed cost of careful fine-tuning (infrastructure, hyperparameter search, patient-level split discipline) isn't repaid by data you don't have, and a well-crafted prompt with 8–16 example reports covering each of the four findings can be competitive. Above a few thousand labelled examples — where the 12,000-report radiology set sits — fine-tuning consistently pulls ahead, both because there's enough signal to actually move the weights productively and because a fine-tuned model's decision boundary is fixed and auditable in a way a prompt's isn't, which matters when the output feeds a clinical workflow. The practical takeaway is not "always fine-tune" or "always prompt" but to treat the crossover as a function of labelled-data volume, and to know which side of it your project sits on before committing engineering time to either path.</p>
+
+    <pre><code># Stage 1: continued MLM pretraining (DAPT) on unlabelled reports
+# Stage 2: supervised fine-tuning (Lesson 2's recipe) on labelled reports
+
+from transformers import AutoModelForMaskedLM, AutoModelForSequenceClassification
+
+def stage1_domain_adaptive_pretraining(unlabelled_reports, base_checkpoint,
+                                        epochs=1, mlm_prob=0.15):
+    """Continue the MLM objective on ~200k unlabelled report impressions."""
+    mlm_model = AutoModelForMaskedLM.from_pretrained(base_checkpoint)
+    # same masking scheme as original pretraining, just on in-domain text
+    for epoch in range(epochs):
+        for batch in make_mlm_batches(unlabelled_reports, mask_prob=mlm_prob):
+            loss = mlm_model(**batch).loss
+            loss.backward()
+            optimizer.step(); optimizer.zero_grad()
+    mlm_model.save_pretrained("radiology-dapt-checkpoint")
+    return "radiology-dapt-checkpoint"
+
+def stage2_supervised_finetune(labelled_reports, dapt_checkpoint):
+    """Load the domain-adapted backbone, attach a fresh 4-way head,
+    then run the discriminative-LR / patient-split fine-tune from Lesson 2."""
+    clf_model = AutoModelForSequenceClassification.from_pretrained(
+        dapt_checkpoint, num_labels=4  # normal, effusion, nodule, pneumothorax
+    )
+    train_df, val_df = patient_level_split(labelled_reports)   # Lesson 2
+    optimizer = AdamW(build_param_groups(clf_model, base_lr=2e-5))  # Lesson 2
+    run_finetune_loop(clf_model, train_df, val_df, optimizer,
+                       loss_fn=weighted_cross_entropy, epochs=4)
+    return clf_model
+
+dapt_ckpt = stage1_domain_adaptive_pretraining(unlabelled_200k, base_checkpoint="base-encoder")
+final_model = stage2_supervised_finetune(labelled_12k, dapt_ckpt)
+</code></pre>
+    <p class="caption">Stage 1 never touches a label — it only needs the 200k unlabelled reports; Stage 2 reuses the discriminative learning rates and patient-level split built out in Lesson 2, now starting from a domain-adapted checkpoint instead of the general-web one.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>DAPT continues the original pretraining objective on unlabelled in-domain text</strong> before any labelled fine-tuning; TAPT does the same but on the unlabelled version of the task's own (smaller) dataset — the two are complementary, not competing.</li>
+        <li><strong>DAPT's payoff is largest exactly when labelled data is scarce</strong> — it shifts the labels-versus-accuracy learning curve left, so 100 labelled examples after DAPT can rival 1,000 without it, because the vocabulary problem was already solved unsupervised.</li>
+        <li><strong>Tens of millions of in-domain tokens is a reasonable target</strong> for continued pretraining to show clear gains; 200,000 report impressions (roughly 10 million tokens) sits comfortably in that useful range.</li>
+        <li><strong>Few-shot prompting can beat fine-tuning below roughly a few thousand labelled examples</strong>; above that crossover — where the 12,000-report radiology set sits — full fine-tuning (optionally DAPT-preceded) reliably wins and gives you an auditable, fixed decision boundary that prompting doesn't.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 6 quiz</h2>
+    <p class="quiz-intro">Seven questions covering layer-wise transfer, fine-tuning mechanics, patient-level evaluation, and domain-adaptive pretraining — including one where you diagnose a broken run from its training curves.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A model fine-tuned on your 12,000 reports gets clean, unambiguous cases right ("large left pleural effusion" → effusion) but consistently mislabels "cannot exclude a small nodule" and "no definite evidence of pneumothorax" as positive findings. What is this evidence of?</p>
+      <ol class="choices" type="A">
+        <li>Domain shift — the model hasn't seen enough radiology vocabulary.</li>
+        <li>Task shift specific to hedging and negation — the model hasn't learned the logical scope of clinical qualifiers.</li>
+        <li>Catastrophic forgetting of general English syntax.</li>
+        <li>An overly large batch size during fine-tuning.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> The model clearly has the vocabulary — it gets unambiguous cases right — so this isn't a missing-word problem. The failure is specifically on negation and hedging scope, which is a task-shift issue: correctly mapping a passage's logical assertion (or denial) to a label. More in-domain vocabulary exposure won't fix a model that hasn't learned what "cannot exclude" or "no definite evidence of" do to the sentence's meaning.</p>
+          <p>Domain shift (A) is the tempting distractor because the domain is radiology and the errors involve radiology phrases, but domain shift would show up as errors on rare vocabulary or unusual phrasing generally, not this specific, consistent pattern around negation.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Because the pretrained encoder already contains useful general-language representations, fine-tuning on a new task should always use the same learning rate that was used during pretraining, to avoid wasting the pretrained model's capacity.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> Fine-tuning should use a learning rate roughly 10–100x smaller than pretraining. The pretrained weights already encode a useful, delicately balanced representation; large pretraining-scale updates on top of that starting point risk catastrophic forgetting rather than "using its capacity" — they overwrite the very representation you're trying to build on.</p>
+          <p>The intuitive-sounding logic in the prompt gets the direction backwards: matching the pretraining learning rate doesn't preserve the pretrained representation, it's the fastest way to destroy it during the first few fine-tuning steps.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">Training an encoder's masked-language-modeling objective further on 200,000 unlabelled radiology reports before any labelled fine-tuning is called <span class="blank">&nbsp;</span>, while doing the same continued-pretraining step on only the unlabelled version of the 12,000-report task-specific set is called <span class="blank">&nbsp;</span>.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: domain-adaptive pretraining (DAPT); task-adaptive pretraining (TAPT).</strong> DAPT uses a broad pool of in-domain text (here, 200k unlabelled reports); TAPT uses the narrower, task-specific unlabelled pool (the 12k reports stripped of labels). Gururangan et al. (2020) showed the two combine well, applied in sequence before supervised fine-tuning.</p>
+          <p>A common mix-up is reversing the two terms because both start with "continued MLM pretraining" — the distinguishing detail is the source of the unlabelled text: broad domain corpus versus the task's own data.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">Fill in the blank so that reports from the same patient never appear in both the train and validation sets.</p>
+      <pre><code>from sklearn.model_selection import GroupShuffleSplit
+
+splitter = GroupShuffleSplit(n_splits=1, test_size=0.15, random_state=0)
+train_idx, val_idx = next(
+    splitter.split(reports_df, groups=____________)
+)</code></pre>
+      <ol class="choices" type="A">
+        <li><code>reports_df["label"]</code></li>
+        <li><code>reports_df.index</code></li>
+        <li><code>reports_df["patient_id"]</code></li>
+        <li><code>reports_df["report_date"]</code></li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> <code>groups=reports_df["patient_id"]</code> tells the splitter to keep every row sharing a patient ID entirely on one side of the split, which is exactly what a patient-level split requires.</p>
+          <p><code>reports_df.index</code> (B) would make every row its own group, which degenerates to a plain report-level split — the leakage bug the exercise is meant to fix. <code>label</code> (A) groups by finding type instead of patient, which doesn't prevent the same patient's reports from spanning the split at all.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">This fine-tuning setup for the 4-class report classifier trains without errors, but validation F1 on the minority classes (pneumothorax, effusion) never rises above near-zero even after several epochs. What's the bug?</p>
+      <pre><code>class_counts = train_df["label"].value_counts().sort_index().values
+# class_counts = [8400, 1900, 1100, 600]  (normal, effusion, nodule, pneumothorax)
+class_weights = torch.tensor(class_counts, dtype=torch.float32)
+loss_fn = torch.nn.CrossEntropyLoss(weight=class_weights)</code></pre>
+      <ol class="choices" type="A">
+        <li>The weights should be the raw class counts, not their inverse — this code already does that correctly, so the bug must be elsewhere.</li>
+        <li><code>class_weights</code> uses raw counts directly instead of their inverse, so the loss over-weights the already-dominant "normal" class instead of the rare findings.</li>
+        <li><code>CrossEntropyLoss</code> does not accept a <code>weight</code> argument at all.</li>
+        <li>The bug is that <code>sort_index()</code> shuffles the labels randomly.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Passing raw counts as weights (8400 for "normal") makes the loss penalize errors on the majority class <em>more</em>, not less — the opposite of what's needed to counter imbalance. The fix is to weight inversely to frequency, e.g. <code>class_weights = 1.0 / torch.tensor(class_counts, dtype=torch.float32)</code> (typically renormalized), so the loss compensates for pneumothorax and effusion being rare instead of amplifying the imbalance.</p>
+          <p><code>sort_index()</code> (D) sorts by the categorical label value, not randomly, so it correctly aligns counts with class indices 0–3; that line isn't the bug. And <code>CrossEntropyLoss</code> (C) does accept a <code>weight</code> tensor — that's the standard mechanism for class-weighted loss, used correctly in terms of API, just with the wrong values.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A team fine-tunes the full 12-layer encoder on the 12,000 reports at the pretraining learning rate (3e-4), for 15 epochs, with no warmup. Training and validation loss by epoch:</p>
+      <table class="tbl">
+        <tr><th>Epoch</th><th>Train loss</th><th>Val loss</th><th>Val macro-F1</th></tr>
+        <tr><td>1</td><td>1.02</td><td>0.94</td><td>0.51</td></tr>
+        <tr><td>3</td><td>0.41</td><td>0.58</td><td>0.68</td></tr>
+        <tr><td>5</td><td>0.19</td><td>0.71</td><td>0.60</td></tr>
+        <tr><td>8</td><td>0.06</td><td>1.15</td><td>0.44</td></tr>
+        <tr><td>12</td><td>0.01</td><td>1.63</td><td>0.37</td></tr>
+      </table>
+      <p class="q-stem">Train loss falls smoothly to near zero while validation loss bottoms out around epoch 3 and then climbs steadily, dragging macro-F1 down with it. What most likely went wrong, and what's the single highest-leverage fix?</p>
+      <ol class="choices" type="A">
+        <li>The model architecture is too small for the task; add more transformer layers.</li>
+        <li>The learning rate is at pretraining scale with too many epochs and no early stopping, driving overfitting/forgetting on a small fine-tuning set — lower the learning rate 10-100x and stop around the epoch-3 val-loss minimum.</li>
+        <li>Validation loss rising while train loss falls is expected and requires no changes — just train longer.</li>
+        <li>The class weights are miscalibrated, causing the rise in validation loss.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> The signature — training loss cruising to near zero while validation loss and macro-F1 peak early (epoch 3) and then steadily worsen — is the classic overfitting/forgetting curve from a learning rate that's too large for the small fine-tuning set, made worse by running far past the point where validation performance peaked. The fix is exactly Lesson 2's recipe: drop to a fine-tuning-scale rate (1e-5 to 5e-5, with warmup) and use early stopping or checkpoint selection at the validation-loss minimum, not a fixed 15-epoch schedule.</p>
+          <p>More layers (A) would only add capacity to a model that's already overfitting with the capacity it has — that makes the problem worse, not better. Class weights (D) affect which classes the loss penalizes, not the shape of train-vs-validation divergence over epochs; a miscalibration there would show up as F1 imbalance across classes, not this train/val loss gap pattern.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A hospital pilot has only 80 labelled report impressions so far, spread thin across all four finding categories, with 12,000 more to be labelled over the coming months. Which approach is most appropriate right now, and why?</p>
+      <ol class="choices" type="A">
+        <li>Full fine-tuning of all 12 layers with discriminative learning rates — the same recipe as the final 12,000-report model.</li>
+        <li>Domain-adaptive pretraining alone, with no supervised step, since 80 labels is too few to bother with.</li>
+        <li>Few-shot prompting with a handful of example reports per class, since 80 labelled examples sits well below the labelled-data crossover where fine-tuning reliably wins.</li>
+        <li>Feature extraction with a linear head trained on all 12 layers concatenated together, to maximize the information available to only 80 examples.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> At 80 labelled examples, both full fine-tuning and feature-extraction training risk instability or trivial memorization, and the crossover point where fine-tuning reliably outperforms prompting sits in the low thousands of labelled examples — well above 80. Few-shot prompting with a well-chosen handful of examples per class is the more appropriate tool at this data volume, with fine-tuning revisited once the labelled set grows past the crossover.</p>
+          <p>Full fine-tuning (A) is the setup this unit builds toward for 12,000 labels, but applying that same recipe to 80 examples is exactly the small-data regime where full fine-tuning overfits or destabilizes (Lesson 1). DAPT alone (B) never produces a classifier — it only improves the starting representation, so it can't stand in for a labelled task at all, however small.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Foundational Model Development · Unit 6 of 8 — Unit 7 turns to lighter-weight adaptation: LoRA, adapters, and instruction tuning as alternatives to updating every weight.</p>
+</footer>
+</body>
+</html>
