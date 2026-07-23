@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 5 · Regularization techniques — Deep Learning Foundations</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Deep Learning Foundations · Unit 5 of 8</p>
+  <h1>Regularization techniques</h1>
+  <p class="lede">Your credit-default model is memorizing the training vintage, not learning delinquency risk. This unit covers the tools that keep capacity in check — weight penalties, dropout, augmentation, label smoothing, normalization, and early stopping — all worked through on the same 90-day-delinquency model.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. Diagnosing overfitting, and controlling capacity with weight penalties</a></li>
+      <li><a href="#lesson-2">2. Dropout, augmentation, and label smoothing</a></li>
+      <li><a href="#lesson-3">3. Normalization layers and early stopping</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>Diagnosing overfitting, and controlling capacity with weight penalties</h2>
+
+    <p class="opening">Your team is training a delinquency model: application fields plus bureau attributes going in, a 90-day-past-due label coming out, roughly 2% of the training vintage positive. Every epoch you log training loss and validation AUC. Epoch 1 through 6, both improve — training loss falls from 0.14 to 0.06, validation AUC climbs from 0.71 to 0.781. Then something changes. Training loss keeps sliding, 0.05, 0.03, eventually under 0.01 by epoch 40. Validation AUC does not follow it down; it turns around, drifting from 0.781 to 0.769 to 0.760. Nothing crashed, no NaNs, no exploding gradients — the model is optimizing exactly as intended. It is just optimizing the wrong thing, in the sense that "the wrong thing" is idiosyncratic structure in this particular training vintage that will not recur when the model scores next quarter's applications.</p>
+
+    <p>The classical name for this is the <span class="term">bias-variance tradeoff</span>: a model with too little capacity underfits (high bias, it can't represent the true decision boundary), a model with too much capacity overfits (high variance, it represents the training sample's noise as if it were signal). The framing is useful as vocabulary but it is worth being honest about where it breaks down for deep nets. A modern deep learning result — the "double descent" phenomenon documented by Belkin et al. and by Nakkiran et al. — shows that test error can decrease, then increase near the interpolation threshold, then decrease again as capacity grows further, which does not fit the classical U-shaped curve at all. For this unit's purposes, though, you do not need the full modern theory. You need the practical signal: the gap between training and validation performance, tracked epoch over epoch, tells you whether you are in a variance regime right now, on this model, with this data — regardless of which theoretical curve explains it.</p>
+
+    <h3>Reading the gap</h3>
+    <p>The pattern in the opening scenario — train loss monotonically falling, validation metric peaking and then reversing — is the signature of the network fitting sampling noise in the training vintage: specific co-occurrences of bureau attributes, specific applicants whose outcomes were influenced by factors the model cannot see (a job loss, a medical bill), specific quirks of how that vintage's underwriting policy shaped who even appears in the data. None of that generalizes to the scoring vintage, and because of the very real vintage-to-vintage <span class="term">distribution shift</span> this business already has to contend with (bureau data providers change fields, macro conditions shift utilization patterns, marketing channels change who applies), an overfit model is doubly exposed: it has learned patterns that were already noise even in-vintage, and those patterns are the least likely of all to survive a shift to a new vintage. Watching the train/validation gap widen after the AUC peak is your primary diagnostic. A gap that stays narrow and both curves plateauing together is consistent with a capacity or optimization ceiling, not overfitting — a different problem with a different fix.</p>
+
+    <p>It also matters what you mean by "capacity" here. Parameter count is a poor proxy. A three-hidden-layer MLP (128 → 64 → 32 units) over ~240 engineered application-and-bureau features has on the order of 50,000 parameters — modest by deep learning standards — yet with a few hundred thousand training rows and only ~2% positives, the <span class="term">effective capacity</span> relative to the *positive-class* sample size is large. You have perhaps 4,000–8,000 positive examples to characterize the minority class, and a network with 50,000 free parameters has more than enough room to memorize idiosyncrasies of those few thousand examples rather than the general shape of default risk. Effective capacity is a function of parameter count, optimizer dynamics, training duration, and the regularization applied — not raw parameter count alone.</p>
+
+    <h3>The weight-decay derivation</h3>
+    <p>The standard first lever is an <span class="term">L2 penalty</span> on the weights, commonly called <span class="term">weight decay</span>. Added to the loss, it looks like:</p>
+    <p class="math">L_reg(w) = L(w) + (λ/2) · ||w||²</p>
+    <p>Differentiate that penalty term with respect to a single weight <code>w</code> and you get <code>λ·w</code> — a term proportional to the weight's current magnitude, pointing back toward zero. Plug that into a plain SGD update:</p>
+    <p class="math">w ← w − η·(∇L(w) + λ·w) = (1 − η·λ)·w − η·∇L(w)</p>
+    <p>Every step, the weight is multiplied by a factor slightly less than 1 <em>before</em> the data gradient is applied — hence "decay." This is why L2-in-the-loss and "weight decay" were treated as synonyms for decades: under plain SGD, they are exactly the same operation. They stop being the same operation once the optimizer is adaptive, which is the subject of this lesson's code example.</p>
+
+    <p><span class="term">L1 regularization</span> (<code>λ·||w||₁</code>) is the other classic penalty. Its subgradient has constant magnitude <code>λ</code> regardless of how large the weight is, rather than being proportional to the weight — the effect is that L1 pushes small weights all the way to exactly zero rather than merely shrinking them, producing genuine sparsity. That property is attractive for pruning engineered bureau features that turn out to be uninformative once the rest of the network has learned around them. In practice L1 is used less inside deep nets than L2/weight decay, partly because the non-smooth penalty needs a subgradient or proximal step to handle correctly, and partly because the sparsity structure it induces at the individual-weight level does not map cleanly onto "drop this whole input feature" the way you'd want for feature selection — you'd want group sparsity (an L2 penalty per feature's incoming weight vector) for that, which is a natural extension but outside this unit's scope.</p>
+
+    <h3>What decay should not touch</h3>
+    <p>Standard practice excludes <span class="term">biases</span> and the scale/shift parameters of normalization layers (covered in Lesson 3) from weight decay. Biases set the operating point of a unit; decaying a bias toward zero is not "reducing capacity" in the same sense as decaying a weight — it is actively distorting the model's calibration, nudging every prediction toward whatever "zero bias" implies for that unit's output, layer by layer, until the final logit is pulled toward zero as well. For a delinquency model whose predicted probabilities feed pricing, approval cutoffs, and — because this is a regulated lending context — audits that check whether stated probabilities match observed default rates, an uncontrolled shift in the output's baseline is a calibration problem, not a generalization improvement. Framework defaults (PyTorch's <code>weight_decay</code> on an optimizer, or a manually constructed AdamW parameter group) typically split parameters into a "decay" group (weight matrices) and a "no-decay" group (biases, layer-norm/batch-norm gamma and beta) for exactly this reason.</p>
+
+    <h3>Choosing lambda</h3>
+    <p>Lambda is found empirically, essentially always by a log-scale sweep — 1e-6, 1e-5, 1e-4, 1e-3, 1e-2 — reading validation AUC (and, given the calibration stakes here, a calibration metric like expected calibration error) at each value, ideally on a held-out slice that mimics the scoring vintage rather than a random in-time split. Too small and you have not moved the train/val gap at all; too large and both train and validation loss rise together and validation AUC comes in visibly below what a well-fit model should achieve — that is underfitting, the other side of the same knob. There is no formula that hands you the right value directly from the data size or feature count; treat lambda as a hyperparameter with its own validation curve, just like learning rate.</p>
+
+    <h3>Weight decay under Adam is not L2-in-the-loss</h3>
+    <p>The Unit 4 Adam update maintains running estimates of the first and second moments of the gradient (<code>m</code> and <code>v</code>) and divides the step by <code>√v̂ + ε</code> — an adaptive, per-parameter learning rate. If you fold an L2 penalty into the loss and let Adam differentiate through it, the resulting <code>λ·w</code> gradient contribution gets divided by that same per-parameter <code>√v̂</code> denominator as the data gradient. A weight that receives large, frequent gradients from the data term (say, one tied to a dominant bureau feature like utilization ratio) has a large <code>v̂</code>, so its L2 term is shrunk far more than intended; a weight that is updated rarely has a small <code>v̂</code>, so the same nominal <code>λ</code> decays it much harder. The decay strength ends up correlated with gradient activity in a way that was never the intent of adding an L2 penalty. Loshchilov and Hutter's AdamW (2019) fixes this by decoupling: apply the Adam step as usual, then apply the decay <code>w ← w − η·λ·w</code> directly to the weight, outside the adaptive denominator, so every weight decays at the same proportional rate regardless of its gradient history.</p>
+
+    <pre><code>&#35; Naive approach: fold an L2 penalty into the loss, let Adam differentiate through it.
+&#35; This is what "weight_decay" meant before AdamW, and it is NOT the same thing
+&#35; once the optimizer is adaptive.
+def loss_with_l2(logits, y, weights, lam=1e-4):
+    bce = binary_cross_entropy(logits, y)
+    l2 = lam * sum((w ** 2).sum() for w in weights)
+    return bce + l2
+
+&#35; Plain Adam step (Unit 4). v_hat tracks a per-parameter E[grad^2] estimate.
+def adam_step(w, grad, m, v, t, lr=1e-3, b1=0.9, b2=0.999, eps=1e-8):
+    m = b1 * m + (1 - b1) * grad
+    v = b2 * v + (1 - b2) * grad ** 2
+    m_hat = m / (1 - b1 ** t)
+    v_hat = v / (1 - b2 ** t)
+    w = w - lr * m_hat / (v_hat ** 0.5 + eps)
+    return w, m, v
+&#35; If `grad` above already includes the lam*w term from loss_with_l2, that
+&#35; decay contribution gets divided by (v_hat**0.5 + eps) same as the data
+&#35; gradient — a high-activity weight's decay is damped, a rarely-updated
+&#35; weight's decay is barely damped at all. Decay strength ends up
+&#35; correlated with gradient history, which was never the intent.
+
+&#35; AdamW: run the Adam step on the DATA gradient only, then decay
+&#35; the weight directly, outside the adaptive denominator.
+def adamw_step(w, grad, m, v, t, lr=1e-3, wd=1e-4, b1=0.9, b2=0.999, eps=1e-8):
+    m = b1 * m + (1 - b1) * grad
+    v = b2 * v + (1 - b2) * grad ** 2
+    m_hat = m / (1 - b1 ** t)
+    v_hat = v / (1 - b2 ** t)
+    w = w - lr * m_hat / (v_hat ** 0.5 + eps)   &#35; data-driven step only
+    w = w - lr * wd * w                          &#35; decoupled shrinkage, uniform rate
+    return w, m, v</code></pre>
+    <p class="caption">Same nominal decay rate, two different outcomes: the loss-based version's decay is rescaled per parameter by Adam's second-moment estimate; AdamW's decay is applied at the same proportional rate to every weight, which is what "weight decay" was originally meant to do.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>A widening train/val gap after the validation peak</strong> is the practical signature of overfitting — more useful for day-to-day diagnosis than the classical bias-variance curve, which doesn't cleanly describe over-parameterized deep nets.</li>
+        <li><strong>L2-in-the-loss and weight decay are the same thing only under plain SGD.</strong> Under Adam, differentiating an L2 penalty gets it rescaled by the same per-parameter second-moment estimate as the data gradient — AdamW's decoupled decay avoids that by applying shrinkage outside the adaptive step.</li>
+        <li><strong>Exclude biases and norm scale/shift parameters from weight decay</strong> — decaying them distorts the model's operating point and predicted-probability calibration, which matters directly when a regulator checks whether stated default probabilities match observed outcomes.</li>
+        <li><strong>L1 induces exact sparsity</strong> (useful for pruning uninformative bureau features) but its non-smooth gradient makes it less common inside deep nets than L2/AdamW-style decay.</li>
+        <li><strong>Lambda has no closed-form choice</strong> — sweep it on a log scale against a validation slice that resembles the scoring vintage, and watch for underfitting (both curves plateauing high) at the top of the range.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Dropout, augmentation, and label smoothing</h2>
+
+    <p class="opening">Picture a loan committee that reviews the same file every week, but with a twist: on any given review, a random subset of the underwriters is absent. One week the utilization-ratio specialist is out; the next week it's the person who always keys on recent inquiries; the week after that, two of the five are missing at once. Over time, no single underwriter can let the committee's decision quietly ride on their own pet signal, because that signal might not be in the room next time. Each remaining underwriter has to make sure the file's risk is legible even without their favorite colleague's read on it. The committee, considered across all these different partial line-ups, behaves like an ensemble of many smaller committees that happen to share the same people. That is close to the literal mechanism of <span class="term">dropout</span>.</p>
+
+    <p>Dropout, introduced by Srivastava, Hinton, and colleagues in 2014, randomly zeroes a fraction <code>p</code> of a layer's output units on every training forward pass. Because the zeroed-out subset changes every batch, training effectively samples from an exponential number of "thinned" subnetworks, all sharing one set of weights. At inference you want the prediction of the full ensemble, not any one thinned sample, so the network is used in full (no units dropped) — but the training-time and inference-time computations have to agree in expected scale, which is where the mechanics get specific.</p>
+
+    <h3>Inverted dropout: where the rescale happens</h3>
+    <p>If you zero out a fraction <code>p</code> of units during training and change nothing else, the expected magnitude of a layer's summed output during training is <code>(1 − p)</code> times what it would be with all units present. The original 2014 formulation handled this by rescaling at <em>test</em> time — multiplying every activation by <code>(1 − p)</code> after training, so the full network's output magnitude matched what the thinned training-time network had produced. <span class="term">Inverted dropout</span>, the version essentially every modern framework implements, moves the correction to train time instead: divide the surviving activations by <code>(1 − p)</code> during training, so their expected magnitude already matches the no-dropout case, and inference needs no rescaling at all — the eval-time path is simply the identity function. This matters practically because it means a model's forward pass at serving time is completely uncomplicated by dropout: no conditional rescale to remember, no risk of a training-only constant leaking into a deployed scoring pipeline.</p>
+
+    <p>Dropout is applied to the <em>output</em> of a layer — after the linear transform and its nonlinearity — rather than to the raw input of that layer. Zeroing post-activation values corrupts a learned intermediate representation, which is the thing you want the rest of the network to become robust to; zeroing pre-activation inputs (before the layer has even processed them) is closer to deleting raw information before it's used, which is a different operation, more like feature-level noise (the subject of the augmentation section below) than a regularizer on the representation the network is building. A light dropout directly on raw input features is sometimes used and is legitimate, but it is a distinct choice made explicitly, not the default placement of a dropout layer.</p>
+
+    <h3>Typical rates, and dropout's fall from default status</h3>
+    <p>The original paper's headline number, <code>p = 0.5</code>, applied to large fully connected layers trained from scratch with no other regularization to speak of. For a tabular MLP like this credit model, rates of 0.1–0.3 on hidden layers are more typical starting points — 0.5 tends to slow convergence noticeably and, on a network already this modest in size (three hidden layers, tens of thousands of parameters), can under-utilize capacity you actually need for the 2% positive class. More broadly, dropout has fallen out of favor as the default regularizer in many modern architectures. Convolutional and transformer architectures with batch or layer normalization already introduce a form of stochastic regularization through batch statistics (Lesson 3), and heavy data augmentation in vision and language domains does much of what dropout used to do. There is also a documented interaction problem: Li et al. ("Understanding the Disharmony between Dropout and Batch Normalization," 2019) showed that applying dropout before batch norm at inference introduces a variance mismatch between train and eval statistics, which is one concrete reason many modern blocks either drop dropout, move it after normalization, or replace it with augmentation entirely. For a tabular credit model without conv/transformer structure, dropout is still a reasonable, cheap regularizer — just don't assume the 2014 defaults are still the right defaults.</p>
+
+    <h3>Augmentation on tabular credit data, honestly</h3>
+    <p>Image and text augmentation (crop, flip, back-translation) have no direct analogue on a row of application and bureau fields, and the tabular-specific techniques come with sharper caveats than they're often given credit for.</p>
+    <p><span class="term">SMOTE</span> (Synthetic Minority Oversampling Technique) generates synthetic minority-class (default) rows by interpolating between a real minority example and its nearest minority neighbors in feature space. On this data, that means manufacturing a synthetic applicant whose bureau attributes are a blend of two real defaulters' attributes. The failure modes are concrete, not theoretical: interpolating between two applicants with different credit histories can produce a feature combination — a utilization ratio, trade count, and delinquency history triple — that does not correspond to anything a real bureau file would ever contain, and a downstream model audit will rightly ask what population that synthetic point represents. SMOTE also amplifies noise if the minority examples it's interpolating between are themselves borderline or mislabeled, since it manufactures more points near them. And critically for this domain, SMOTE only resamples structure that already exists in the training vintage — it does nothing to address the shift between the training vintage and the scoring vintage, and can actively overfit the synthetic interpolation pattern of the training vintage's specific minority examples.</p>
+    <p>Additive <span class="term">feature noise</span> — small Gaussian jitter on continuous bureau fields, scaled to each feature's own variance — is a milder, more defensible tabular augmentation: it doesn't fabricate new applicants, it perturbs real ones slightly, which is a more honest description of "the same applicant measured with slightly different timing or reporting noise." It needs care with bounded or count-valued features (a trade count, a number of inquiries) where noise must be applied post-transform or clipped to a valid range, otherwise you manufacture nonsensical negative counts.</p>
+    <p><span class="term">Mixup</span> (Zhang et al., 2017) interpolates both features and labels: <code>x = λ·x_i + (1−λ)·x_j</code>, <code>y = λ·y_i + (1−λ)·y_j</code> for a random pair of examples and a random <code>λ</code>. On tabular credit data this is arguably more defensible than SMOTE, because it never pretends the interpolated row is a real applicant — it produces a soft target used purely to regularize the decision boundary between the pair. The same honesty requirement applies to which features you mix, though: linearly blending two continuous bureau fields is sensible, but linearly blending a 0/1 bankruptcy flag or a categorical delinquency-status code produces a fractional value with no real-world referent. In practice, mixup on tabular credit models is restricted to continuous fields (and to learned embeddings of categorical ones), leaving hard categorical flags untouched or handled by choosing whichever example's flag "wins" the interpolation.</p>
+    <p>It's also worth naming, without dwelling on it, that class weighting or a focal loss are common alternatives to any of the above for a 2% positive rate — they change how much each example's loss counts rather than manufacturing new examples, and they come with their own honesty requirement: they change the model's calibration, so a re-weighted model's raw output needs recalibration before its probabilities can be trusted as probabilities.</p>
+
+    <h3>Label smoothing for overconfident scores</h3>
+    <p>A model trained on hard 0/1 targets with cross-entropy has an incentive to push its logits toward positive and negative infinity for confidently correct examples, since cross-entropy loss keeps decreasing the more confident a correct prediction becomes. In a credit model whose output feeds pricing and approval decisions, that tendency shows up as predicted probabilities clustering near 0.0 and 1.0 far more than the true label distribution warrants — a symptom regulators and model-risk reviewers specifically look for, because a poorly calibrated "0.001 probability of default" is a much stronger claim than the data can actually support. <span class="term">Label smoothing</span> softens the targets before computing the loss: <code>y_smooth = y·(1 − ε) + ε/2</code> for a binary target, so a true label of 1 becomes, say, 0.95 rather than 1.0, and a true label of 0 becomes 0.05 rather than 0.0. The network is never rewarded for driving its output past that softened target, which caps overconfidence directly. The catch, sharpened by this domain's 2% base rate, is that <code>ε</code> has to be small — with 98% of rows labeled 0, smoothing them to even 0.15 (an <code>ε</code> of 0.3) means the majority class's target is now 7.5x the true base rate, and the model will visibly over-predict default probability across the whole portfolio as a direct consequence. Values of <code>ε</code> around 0.01–0.02 are far more appropriate here than the 0.1 sometimes seen in balanced classification tasks.</p>
+
+    <pre><code>class Dropout:
+    def __init__(self, p=0.3):
+        self.p = p  &#35; probability of zeroing a unit
+
+    def forward(self, x, training):
+        if not training:
+            return x                        &#35; eval: identity, no mask, no rescale
+        mask = (np.random.rand(*x.shape) &gt; self.p).astype(x.dtype)
+        return x * mask / (1.0 - self.p)    &#35; inverted dropout: rescale at TRAIN time
+
+&#35; Wiring dropout into a hidden block of the credit-risk MLP.
+def hidden_block(x, W, b, dropout, training):
+    z = x @ W + b
+    a = np.maximum(z, 0)                     &#35; ReLU
+    return dropout.forward(a, training)      &#35; dropout AFTER the activation, not before
+
+&#35; The classic bug: a Dropout that never receives a `training` flag at all.
+class BrokenDropout:
+    def __init__(self, p=0.3):
+        self.p = p
+
+    def forward(self, x):
+        mask = (np.random.rand(*x.shape) &gt; self.p).astype(x.dtype)
+        return x * mask / (1.0 - self.p)     &#35; ALWAYS masks -- even when scoring in production</code></pre>
+    <p class="caption"><code>BrokenDropout</code> has no <code>training</code> argument threaded through, so a batch-scoring job in production still applies a random mask on every call — the identical applicant, scored twice in the same minute, gets two different predicted default probabilities. This doesn't crash or throw a warning; it silently makes production scores nondeterministic, which is a serious finding in any model-risk review.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Dropout trains an implicit ensemble</strong> of weight-sharing thinned subnetworks; inverted dropout rescales survivors by <code>1/(1−p)</code> at train time specifically so eval requires no correction at all.</li>
+        <li><strong>Forgetting to gate dropout on a <code>training</code> flag is a silent bug</strong>, not a crash — it makes a deployed model's predictions nondeterministic for the same input, which is exactly the kind of defect a regulated scoring pipeline cannot tolerate.</li>
+        <li><strong>SMOTE manufactures synthetic minority rows by interpolating real defaulters' features</strong>, which can create bureau-attribute combinations no real applicant would have, and does nothing to address training-vs-scoring vintage shift.</li>
+        <li><strong>Mixup and feature-noise jitter are more defensible on tabular credit data than SMOTE</strong>, but should be restricted to continuous fields — linearly interpolating a 0/1 bankruptcy flag produces a value with no real meaning.</li>
+        <li><strong>Label smoothing curbs overconfident probabilities</strong>, but at a 2% base rate the smoothing amount <code>ε</code> must be small (roughly 0.01–0.02) or the softened majority-class target will visibly bias the portfolio's average predicted default rate upward.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Normalization layers and early stopping</h2>
+
+    <p class="opening"><span class="term">Batch normalization</span> (Ioffe and Szegedy, 2015) is defined, for a given activation and a minibatch of examples, as: subtract the batch mean, divide by the batch standard deviation (plus a small epsilon for numerical stability), then apply a learned per-channel scale <code>γ</code> and shift <code>β</code>. That definition already contains the detail that makes batch norm behave differently from almost every other layer in the network: its normalizing statistics — the mean and variance — are computed <em>across the batch dimension</em>, which means, during training, an example's normalized value depends on which other examples happen to share its minibatch. At evaluation time, batch statistics from a single applicant (or a small scoring batch) would be unstable or undefined, so batch norm switches to a <em>running</em> mean and variance — an exponential moving average accumulated over all the batches seen during training — producing a fixed, deterministic per-example transform. Training-mode batch norm and eval-mode batch norm are, quite literally, two different functions.</p>
+
+    <h3>Batch-size dependence, and why it bites here specifically</h3>
+    <p>Because training-time normalization uses the current batch's own mean and variance, small batches produce noisy statistics — a batch of 8 has a much less reliable estimate of "the" mean and variance of an activation than a batch of 512. This is a generic property of batch norm, but it interacts badly with two things already true of this credit model: a 2% positive rate means a batch of even 128 rows might contain only two or three delinquent examples, so the batch statistics for units that respond strongly to default-indicating patterns are estimated from a handful of examples and swing batch to batch; and any batch-level resampling or reweighting scheme used to address that same class imbalance (Lesson 2) further distorts what "the batch's mean and variance" represent relative to the true population. Both effects push toward batch norm's running statistics being a worse summary of the true population than they'd be for a balanced problem with large batches.</p>
+
+    <h3>The internal-covariate-shift story, and what replaced it</h3>
+    <p>The original 2015 paper explained batch norm's effectiveness through <span class="term">internal covariate shift</span>: the claim that each layer's input distribution keeps drifting during training as earlier layers' weights update, forcing later layers to continually re-adapt, and that normalizing each layer's inputs stabilizes that drift. It is a plausible story, and for years it was the standard explanation. Santurkar, Tsipras, Ilyas, and Madry (2018) tested it directly and found it does not hold up: they measured internal covariate shift with and without batch norm and found batch norm doesn't reduce it by much, and — more tellingly — they showed you can artificially inject substantial covariate-shift-like instability into a batch-normalized network's activations and training proceeds essentially unaffected, which is hard to square with "batch norm works by preventing covariate shift." Their proposed alternative explanation, since broadly supported, is that batch norm smooths the optimization landscape: it makes the loss function and its gradients more Lipschitz — meaning the gradient changes more predictably as you move through parameter space — which lets gradient descent use larger learning rates and take more effective, less erratic steps. The empirical benefit is real; the originally claimed mechanism for it was not.</p>
+
+    <h3>Layer norm and group norm as alternatives</h3>
+    <p><span class="term">Layer normalization</span> (Ba, Kiros, and Hinton, 2016) normalizes across the <em>feature</em> dimension for a single example, rather than across the batch dimension for a single feature. Because the statistics are computed per example, layer norm has no batch-size dependence at all, and — this is the detail worth underlining — behaves identically in training and evaluation, since there is no separate "running statistic" to maintain; the normalization for one applicant's row never depends on which other rows are in the batch. That makes layer norm a safer default than batch norm for exactly the situation this model is in: small or resampled minibatches driven by severe class imbalance, and a need for scoring behavior that is fully deterministic and independent of batch composition, which matters for both reproducibility and regulatory explainability. <span class="term">Group normalization</span> (Wu and He, 2018) splits channels into groups and normalizes within each group per example — it was developed for, and is primarily useful in, convolutional architectures with a channel dimension; it is mentioned here for completeness but is not the natural fit for the flat feature vector of a tabular credit MLP, where layer norm is the more directly applicable choice.</p>
+
+    <h3>Why batch norm is only incidentally a regularizer</h3>
+    <p>Batch norm is sometimes described as a regularizer, and there is truth to it: because each example's normalized value depends on the random composition of its minibatch, batch norm injects a form of noise into training that has an effect similar to a mild augmentation, and practitioners have found they can sometimes reduce dropout when batch norm is present. But this effect is a side consequence of using noisy, batch-composition-dependent statistics — it disappears as batch size grows large (statistics become stable) and it is entirely absent at eval time (running statistics are deterministic). Relying on it as your regularization strategy means your regularization strength is an accident of your batch size and sampling scheme, not something you set deliberately — a poor property for an auditable model, where you generally want to be able to state which knob controls generalization and why. Treat batch or layer norm as an optimization tool, and weight decay, dropout, augmentation, and early stopping as your deliberate regularization toolkit.</p>
+
+    <h3>Early stopping</h3>
+    <p><span class="term">Early stopping</span> monitors a validation metric — here, validation AUC — after every epoch, and halts training once it has failed to improve by more than <code>min_delta</code> for <code>patience</code> consecutive epochs, at which point training restores the weights from whichever epoch produced the best validation score, rather than keeping whatever the final epoch happened to produce. Returning to this unit's opening scenario: if validation AUC peaked at 0.781 on epoch 6 and drifted down to 0.760 by epoch 30, an early-stopping tracker with, say, <code>patience=5</code> would have kept training past epoch 6 (to confirm the peak wasn't a one-epoch fluke), then stopped around epoch 11–12 once five epochs had passed with no improvement over <code>min_delta</code>, and loaded the epoch-6 checkpoint back into the model rather than shipping epoch 12's already-degrading weights.</p>
+    <p>One rule is non-negotiable: the stopping epoch itself is a hyperparameter, chosen by looking at a validation metric, and it must be chosen on a split the final reported performance number does not also come from. If you tune <code>patience</code> and <code>min_delta</code> by repeatedly checking performance on the out-of-time test set reserved for the regulatory sign-off, you have turned that test set into a validation set — the same leakage as tuning learning rate or lambda on it — and the final reported AUC will be an optimistic estimate of what the model actually does once deployed. Keep a separate validation split for the stopping decision, and hold the out-of-time slice untouched for a single, final read. Because this model is specifically exposed to vintage shift, an in-time random validation split and an out-of-time validation split can disagree about when to stop; where possible, an out-of-time-flavored validation slice gives a more honest signal about drift-sensitivity than an in-time split drawn from the same vintage as training.</p>
+
+    <pre><code>class EarlyStopper:
+    def __init__(self, patience=5, min_delta=1e-4, mode="max"):
+        self.patience = patience
+        self.min_delta = min_delta
+        self.mode = mode
+        self.best_score = -float("inf") if mode == "max" else float("inf")
+        self.best_state = None
+        self.bad_epochs = 0
+
+    def is_improvement(self, score):
+        if self.mode == "max":
+            return score &gt; self.best_score + self.min_delta
+        return score &lt; self.best_score - self.min_delta
+
+    def step(self, score, model_state):
+        if self.is_improvement(score):
+            self.best_score = score
+            self.best_state = copy.deepcopy(model_state)
+            self.bad_epochs = 0
+        else:
+            self.bad_epochs += 1
+        return self.bad_epochs &gt; self.patience   &#35; True -&gt; stop now
+
+stopper = EarlyStopper(patience=5, min_delta=1e-4, mode="max")
+for epoch in range(1, max_epochs + 1):
+    train_one_epoch(model, train_loader)
+    val_auc = evaluate_auc(model, val_loader)   &#35; a held-out slice, NOT the OOT test set
+    if stopper.step(val_auc, model.state_dict()):
+        print(f"stopping at epoch {epoch}, best val AUC {stopper.best_score:.4f}")
+        break
+
+model.load_state_dict(stopper.best_state)       &#35; restore the BEST checkpoint, not the last one</code></pre>
+    <p class="caption"><code>best_state</code> is only overwritten when validation AUC actually improves, so the loop can keep running for up to <code>patience</code> more epochs past the true peak — confirming it wasn't noise — while still restoring the epoch-6-quality weights at the end instead of whatever the final, already-overfitting epoch produced.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Batch norm's train/eval asymmetry</strong> — live batch statistics during training, a fixed running-average estimate at eval — means its effective behavior on a given applicant's row can differ from what was seen during training if running statistics are stale or batches are unrepresentative.</li>
+        <li><strong>The internal-covariate-shift explanation for batch norm was empirically undercut</strong> by Santurkar et al. (2018); the smoother, more predictable loss landscape it produces is the better-supported explanation for why it helps.</li>
+        <li><strong>Layer norm normalizes per example, not per batch</strong>, giving it no batch-size dependence and identical train/eval behavior — a safer default when minibatches are small or skewed by class-imbalance resampling.</li>
+        <li><strong>Batch norm's regularizing effect is incidental</strong> (noise from batch composition), disappears at eval time and at large batch sizes, and should not be your primary or only defense against overfitting in an auditable model.</li>
+        <li><strong>Early stopping needs its own validation signal</strong>, separate from the final out-of-time test read, and should restore the best-epoch checkpoint rather than simply halting at whatever epoch training reached.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 5 quiz</h2>
+    <p class="quiz-intro">Eight scenario-driven questions covering weight decay, dropout, augmentation, label smoothing, normalization, and early stopping — all on the credit-default model from the lessons.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Your delinquency model's training loss falls steadily through epoch 40, but validation AUC peaks at 0.781 on epoch 6 and drifts down to 0.760 by epoch 30. The train/val gap widens steadily after epoch 6. Which is the most appropriate first thing to try?</p>
+      <ol class="choices" type="A">
+        <li>Increase the learning rate so the network reaches its best epoch sooner.</li>
+        <li>Add or increase weight decay (and/or introduce early stopping) to control capacity.</li>
+        <li>Remove batch normalization, since the drift must be caused by internal covariate shift.</li>
+        <li>Switch the loss function from cross-entropy to mean squared error.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Falling train loss with a validation metric that peaks and then reverses is the textbook signature of overfitting/variance — the fix is to constrain effective capacity, via a weight penalty, dropout, or stopping training at the good epoch.</p>
+          <p>Option C is a tempting distractor because "internal covariate shift" sounds like the right vocabulary, but the term describes a (largely disproven) explanation for why batch norm helps optimization — it has nothing to do with this train/val gap, and removing normalization would not address overfitting and could destabilize optimization for an unrelated reason.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Because adding an L2 term to the loss and applying "weight decay" both produce a gradient contribution of <code>λ·w</code>, they are mathematically equivalent regularizers regardless of which optimizer is used — including Adam.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> They are equivalent under plain SGD, but under Adam the L2-in-the-loss version has its <code>λ·w</code> gradient divided by the same per-parameter <code>√v̂ + ε</code> denominator as the data gradient, so its effective decay strength varies per weight depending on that weight's gradient history. AdamW's decoupled decay applies <code>w ← w − η·λ·w</code> outside that denominator, giving a uniform proportional decay instead.</p>
+          <p>The statement's reasoning — "same gradient formula, so same effect" — ignores that the optimizer transforms the raw gradient before applying it; equivalence at the loss-gradient level does not survive that transformation once the optimizer is adaptive.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">Under inverted dropout, during training the surviving (unmasked) activations are rescaled by <span class="blank">&nbsp;</span> so that no rescaling is needed at evaluation time.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: 1 / (1 − p)</strong>, where <code>p</code> is the drop probability. This keeps the expected activation magnitude at train time matching the full (no-dropout) network, so eval mode can simply be the identity function.</p>
+          <p>The original (non-inverted) formulation instead multiplied activations by <code>(1 − p)</code> at test time and applied no rescale during training — the opposite placement, which is why "inverted" dropout is named for moving the correction from eval to train.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">This dropout layer is deployed in the production scoring service for the credit model. Underwriters report that resubmitting the exact same applicant file twice in a row sometimes produces two different predicted default probabilities. Find the bug and explain the production consequence.</p>
+      <pre><code>class ScoringDropout:
+    def __init__(self, p=0.3):
+        self.p = p
+
+    def forward(self, x):
+        mask = (np.random.rand(*x.shape) &gt; self.p).astype(x.dtype)
+        return x * mask / (1.0 - self.p)</code></pre>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer:</strong> The layer has no <code>training</code> flag at all — it always samples a random mask and always applies the inverted-dropout rescale, so it behaves as if the model were perpetually in training mode, including at serving time. The fix is to thread a <code>training</code> boolean through the forward pass and short-circuit to the identity function (<code>return x</code>) whenever it's false, matching the correct implementation in Lesson 2.</p>
+          <p>This isn't a crash or an exception a test suite would easily catch — the layer runs fine and returns a plausible-looking score every time. The consequence is nondeterministic production scores for an identical input, which is exactly the finding a model-risk review would flag as unacceptable for a regulated credit decision.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A team addresses their 2% positive rate by applying SMOTE to oversample synthetic delinquent applicants before training. During model review, an auditor objects. Which objection is most directly supported by how SMOTE works?</p>
+      <ol class="choices" type="A">
+        <li>SMOTE can produce synthetic applicants whose interpolated bureau-attribute combinations don't correspond to any real applicant, and does nothing to correct for shift between the training and scoring vintages.</li>
+        <li>SMOTE always reduces the model's validation AUC, so it should never be used with imbalanced data.</li>
+        <li>SMOTE requires the labels to be smoothed before oversampling, which this team skipped.</li>
+        <li>SMOTE can only be applied to categorical features, so it doesn't work on bureau data at all.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: A.</strong> SMOTE interpolates between real minority-class neighbors in feature space to create synthetic rows; those interpolated feature combinations may not represent any realizable applicant, and since SMOTE only resamples structure already present in the training vintage, it provides no protection against — and can even reinforce sensitivity to — the training/scoring vintage shift.</p>
+          <p>Option B overstates the case (SMOTE can help or hurt depending on the data; it doesn't "always" reduce AUC) and option D is simply false — SMOTE operates on continuous feature space and struggles most with, rather than being limited to, categorical features.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A team applies label smoothing with ε = 0.3 to their credit model, whose true positive rate is 2%. What is the most likely effect on the portfolio's average predicted probability of default?</p>
+      <ol class="choices" type="A">
+        <li>No effect — label smoothing only changes gradients early in training, not final predictions.</li>
+        <li>The average predicted probability will be systematically inflated well above the true 2% base rate, because the softened negative-class target (0.15) is far above 0.</li>
+        <li>The average predicted probability will be systematically deflated below 2%.</li>
+        <li>Predictions become perfectly calibrated, since label smoothing is specifically designed to fix calibration.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> With ε = 0.3, a true-negative target of 0 becomes 0.15. Since 98% of rows are true negatives, the model is trained to output roughly 0.15 for the vast majority of applicants — over 7x the true 2% base rate — which will visibly inflate the portfolio's average predicted probability of default.</p>
+          <p>Option D is the tempting distractor: label smoothing does curb overconfidence, but "curbing overconfidence" and "being well calibrated" are not the same thing — too large an ε overcorrects and introduces a new, opposite miscalibration, especially at an extreme base rate like this one.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Santurkar et al. (2018) found that batch normalization works primarily by reducing internal covariate shift, confirming the mechanism proposed in the original 2015 batch norm paper.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> Santurkar et al. found the opposite: batch norm doesn't meaningfully reduce internal covariate shift, and networks with batch norm train just as well even when covariate-shift-like instability is deliberately injected into their activations. Their evidence instead supports batch norm working by smoothing the loss landscape (making gradients more predictable), which allows larger, more stable learning rates.</p>
+          <p>The internal-covariate-shift story is intuitive and was the standard explanation for years, which is exactly why it's worth stating precisely which claim the 2018 paper overturned rather than assuming "reduces internal covariate shift" is still the accepted mechanism.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A model-risk analyst wants to select early-stopping's <code>patience</code> and <code>min_delta</code> by trying a few values and picking whichever gives the highest AUC on the out-of-time test set reserved for the final regulatory sign-off. What is wrong with this plan?</p>
+      <ol class="choices" type="A">
+        <li>Nothing — early stopping doesn't count as a hyperparameter, so it's fine to tune against the test set.</li>
+        <li>It leaks the test set into model selection, the same way tuning learning rate or lambda on it would; the final reported AUC becomes an optimistic estimate of deployed performance, not a valid holdout read.</li>
+        <li>Patience and min_delta have no effect on AUC, so the exercise is pointless but harmless.</li>
+        <li>Early stopping should always use patience=1, so no tuning is needed either way.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> The stopping epoch is chosen by watching a validation metric — exactly the same kind of decision as choosing a learning rate or a weight-decay value. Making that choice by repeatedly checking the out-of-time test set turns that set into a de facto validation set, and whatever AUC it reports afterward is no longer an unbiased estimate of how the model will perform once deployed.</p>
+          <p>Option A is the tempting distractor because early stopping doesn't look like a conventional hyperparameter (no grid, no learning curve you'd normally sweep) — but it is chosen by observing performance on data, which is the defining property that makes a decision "tunable" and therefore something that must not be fit to the set reserved for the final, single read.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Deep Learning Foundations · Unit 5 of 8 — Next: Unit 6 moves from controlling capacity to squeezing more signal out of what you have, picking up where regularized training leaves off.</p>
+</footer>
+</body>
+</html>

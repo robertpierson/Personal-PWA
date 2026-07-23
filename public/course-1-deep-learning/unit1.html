@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 1 · Neural network foundations — Deep Learning Foundations</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Deep Learning Foundations · Unit 1 of 8</p>
+  <h1>Neural network foundations</h1>
+  <p class="lede">Before you can train anything, you need to know what a network actually computes. This unit builds that vocabulary from the single perceptron up through a multi-layer network, using clinical screening data — cell-nucleus measurements and lab panels — as the running example throughout.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. The perceptron and the linear decision boundary</a></li>
+      <li><a href="#lesson-2">2. Activation functions and why nonlinearity is the whole point</a></li>
+      <li><a href="#lesson-3">3. Layers, width, and depth: stacking into a network</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>The perceptron and the linear decision boundary</h2>
+    <p class="opening">In the summer of 1958, a Cornell psychologist named Frank Rosenblatt stood a room-sized machine called the Mark I Perceptron in front of the press and described it as the embryo of a device that would one day walk, talk, and be conscious of its own existence. Strip away the theater and the Mark I was a 20-by-20 grid of cadmium-sulfide photocells wired through 512 motor-driven potentiometers — physical dials, each one a connection strength that could be turned up or down. Show it an image, and the photocells drove voltages forward through those adjustable dials to a bank of output units that fired or didn't. Turn the dials, and the same photocells produced a different verdict. That machine was solving, in hardware, exactly the problem this lesson solves in a dozen lines of NumPy: given a set of measurements, find a straight cut through the space that separates one category from another.</p>
+    <p>Rosenblatt's real contribution wasn't the wiring, it was the learning rule: the dials adjusted themselves from labeled examples, with no engineer hand-tuning them. That felt like magic in 1958. It did not survive the decade. In 1969, Marvin Minsky and Seymour Papert published <em>Perceptrons</em>, a precise mathematical account of what a single perceptron can and cannot separate. Their signature result was almost insultingly simple: a perceptron cannot learn the XOR function — "output 1 when exactly one of two binary inputs is on." The book was read, not entirely fairly, as a death sentence for the whole approach, and funding for neural-network research collapsed through most of the 1970s, a period now called the first AI winter. The fix — stacking perceptrons into layers — was known in outline before the winter started; what was missing was a practical way to train a multi-layer network, which had to wait until backpropagation was popularized in 1986. We open with this history because it isn't decoration: everything a single perceptron computes is a straight cut through feature space, and everything it cannot compute follows directly from that one fact.</p>
+    <h3>Inputs, weights, bias, and the dot product</h3>
+    <p>Say a clinic runs a breast-cancer screening panel and measures, from a digitized image of a cell nucleus, two numbers per sample: <code>mean_radius</code> and <code>mean_texture</code>. Each patient sample is a vector <code>x = [x1, x2]</code>. A perceptron holds one weight per input feature, <code>w = [w1, w2]</code>, plus a single scalar <span class="term">bias</span>, <code>b</code>. It computes a weighted sum of the inputs — the <span class="term">dot product</span> — and adds the bias:</p>
+    <p class="math">z = w·x + b = w1·x1 + w2·x2 + b</p>
+    <p>The weights say how much each feature should count toward the verdict, and the sign matters: a positive <code>w1</code> means larger <code>mean_radius</code> pushes toward one class, a negative weight pushes toward the other. The bias shifts the whole decision independent of the inputs — without it, every decision boundary would be forced to pass through the origin, which is rarely where real data sits. In our screening example, malignant nuclei tend to run larger and more irregular, so a trained perceptron typically ends up with positive weights on both radius and texture.</p>
+    <h3>The step rule and the geometry of the boundary</h3>
+    <p>The raw sum <code>z</code> is an unbounded real number. The perceptron turns it into a decision with the <span class="term">step function</span>: predict class 1 if <code>z ≥ 0</code>, else predict class 0. That threshold at zero is not arbitrary — it is exactly the condition <code>w·x + b = 0</code>, which is the equation of a line in two dimensions (a <span class="term">hyperplane</span> in general, for however many features you have). Every point on one side of that line gets pushed positive and classified malignant; every point on the other side gets pushed negative and classified benign. Changing <code>w</code> rotates the line; changing <code>b</code> slides it without rotating it. This is the single most important geometric fact in this unit: <strong>a perceptron is a linear classifier, full stop</strong>. It can only ever separate two classes with a straight line, plane, or hyperplane — never a curve. If your two tumor classes happen to be separable by a straight cut through radius-and-texture space, a perceptron will find it. If they are not — if malignant and benign samples interleave in a way no straight line can cleanly divide — no amount of retraining will fix that; the model class itself is too weak.</p>
+    <h3>The perceptron learning rule</h3>
+    <p>Training adjusts <code>w</code> and <code>b</code> using only the samples the model currently gets wrong. For each training example <code>(x, y)</code> with true label <code>y ∈ {0, 1}</code>, compute the current prediction <code>ŷ</code>, then update:</p>
+    <p class="math">w ← w + η·(y − ŷ)·x
+b ← b + η·(y − ŷ)</p>
+    <p>Here <code>η</code> (eta) is the learning rate, a small positive constant controlling step size. Notice what happens when the prediction is already correct: <code>y − ŷ = 0</code>, and nothing changes. When the model wrongly predicts benign for a malignant sample, <code>y − ŷ = 1</code>, and the update nudges <code>w</code> in the direction of <code>x</code>, tilting the boundary toward correctly capturing that point next time. Run this over the training set repeatedly (an <span class="term">epoch</span> is one full pass) and, for data that is truly linearly separable, the <span class="term">perceptron convergence theorem</span> guarantees this process finds a separating line in a finite number of updates. That guarantee is also the rule's whole weakness: it says nothing about what happens when the data is not linearly separable, which is most real clinical data with more than a couple of features.</p>
+    <h3>Exactly what XOR breaks</h3>
+    <p>Minsky and Papert's XOR argument generalizes directly to screening data. Imagine a (contrived but illustrative) rule: flag a sample as high-risk only when a lab value is <em>either</em> high glucose <em>or</em> high blood pressure, but not both — perhaps because "both elevated" gets routed to a different, already-flagged pathway. Plot the four corners of that truth table and you'll find no single straight line separates the two flagged corners from the two unflagged ones; the positive class sits on two diagonally opposite corners. Any straight cut you draw either merges both positives with a negative or leaves one positive stranded on the wrong side. This isn't a training failure to be fixed with more epochs or a smaller learning rate — it is a hard limit on what one linear boundary can express. The way out, previewed here and built in the next two lessons, is to stack more than one such unit and pass the result through a nonlinearity, which is exactly what turns a collection of lines into a boundary that can bend.</p>
+    <pre><code>import numpy as np
+
+# Two-feature screening split: mean_radius, mean_texture (standardized)
+# y = 1 -> malignant, y = 0 -> benign
+X = np.array([
+    [1.8, 1.2], [2.1, 0.9], [1.5, 1.6], [2.4, 1.1],   # malignant
+    [-1.2, -0.8], [-0.9, -1.4], [-1.6, -0.5], [-0.7, -1.1],  # benign
+])
+y = np.array([1, 1, 1, 1, 0, 0, 0, 0])
+
+w = np.zeros(2)
+b = 0.0
+eta = 0.1
+
+def step(z):
+    return 1 if z >= 0 else 0
+
+for epoch in range(20):
+    mistakes = 0
+    for xi, yi in zip(X, y):
+        z = np.dot(w, xi) + b
+        y_hat = step(z)
+        error = yi - y_hat
+        if error != 0:
+            w += eta * error * xi
+            b += eta * error
+            mistakes += 1
+    if mistakes == 0:
+        print(f"converged after {epoch} epochs, w={w}, b={b:.2f}")
+        break</code></pre>
+    <p class="caption">Only misclassified samples move the weights (<code>error != 0</code>); once every sample is on the correct side of the line, <code>mistakes</code> hits zero and the loop stops — the convergence theorem in eight lines.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>A perceptron computes <code>w·x + b</code> and thresholds it at zero</strong> — the weights encode feature importance and direction, the bias shifts the boundary off the origin.</li>
+        <li><strong>The decision boundary is always a hyperplane</strong> — a straight line in 2D, a flat plane in 3D, and so on — regardless of how the weights are tuned.</li>
+        <li><strong>The learning rule only updates on mistakes</strong>: <code>w ← w + η(y − ŷ)x</code>, which is why training halts automatically once every point is correctly classified.</li>
+        <li><strong>For linearly separable data, convergence is guaranteed</strong>; for anything else — like an XOR-shaped "elevated on exactly one lab value" rule — no amount of training fixes it, because the model class itself cannot bend.</li>
+        <li>The historical lesson matters as much as the math: an entire research program stalled for a decade over a limitation that stacking units and adding nonlinearity resolves.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Activation functions and why nonlinearity is the whole point</h2>
+    <p class="opening">An <span class="term">activation function</span> is a fixed, elementwise nonlinear function applied to the output of a linear layer before that output is passed to the next layer. That definition sounds almost too small to matter — one extra function call sandwiched between two matrix multiplications — but it is the single design choice that separates a neural network from a slightly disguised linear regression. Everything else in this lesson is an explanation of why that one clause, "nonlinear," is load-bearing.</p>
+    <h3>The collapse proof: why stacked linear layers are still linear</h3>
+    <p>Take two layers with no activation between them. The first computes <code>h = W1·x + b1</code>. The second feeds that straight into another affine map: <code>o = W2·h + b2</code>. Substitute:</p>
+    <p class="math">o = W2·(W1·x + b1) + b2 = (W2·W1)·x + (W2·b1 + b2)</p>
+    <p>Define <code>W' = W2·W1</code> and <code>b' = W2·b1 + b2</code>, and you get <code>o = W'·x + b'</code> — a single affine map, indistinguishable in form from one perceptron layer. This holds no matter how many linear layers you stack: ten linear layers collapse, by the same substitution repeated, into one linear layer with different weights. A ten-layer network with no activations has exactly the representational power of Lesson 1's single perceptron — it can only ever cut feature space with one hyperplane, no matter how many "layers" of parameters you throw at diabetes risk prediction from fasting glucose, HbA1c, BMI, and blood pressure. Depth without nonlinearity buys you nothing but wasted computation. This is the proof that motivates everything else in deep learning: an activation function has to be inserted after every linear layer (except usually the last) or the network never escapes being a linear model in an expensive disguise.</p>
+    <h3>The standard hidden activations</h3>
+    <p>The <span class="term">sigmoid</span> function, <code>σ(z) = 1 / (1 + e^-z)</code>, squashes any real input into <code>(0, 1)</code> and was the default choice through the 1980s and 1990s because its output reads like a probability and its derivative has a clean closed form, <code>σ(z)·(1 − σ(z))</code>. Its problem is <span class="term">saturation</span>: for <code>|z| > ~4</code>, the curve is nearly flat, so the derivative shrinks toward zero. In a network with several hidden layers, chaining several near-zero derivatives together during backpropagation makes earlier layers receive a vanishingly small learning signal — the <span class="term">vanishing gradient</span> problem. <span class="term">Tanh</span>, <code>(e^z − e^-z)/(e^z + e^-z)</code>, is sigmoid's zero-centered cousin, squashing to <code>(-1, 1)</code>; zero-centered outputs help optimization slightly but tanh saturates in exactly the same way at its extremes.</p>
+    <p><span class="term">ReLU</span> (rectified linear unit), <code>f(z) = max(0, z)</code>, became the default for hidden layers in the early 2010s because it doesn't saturate for positive inputs — its derivative is a constant 1 wherever <code>z > 0</code> — and it's essentially free to compute, one comparison per unit. Its failure mode is the mirror image: for any input where <code>z < 0</code>, both the output and the gradient are exactly zero. If a unit's weights drift so that it outputs a negative pre-activation for every sample in your training set — plausible on an imbalanced diabetes cohort where one lab-value combination rarely occurs — that unit's gradient is permanently zero and it stops learning entirely, a <span class="term">dead ReLU</span>. <span class="term">Leaky ReLU</span> patches this with a small nonzero slope for negative inputs, typically <code>f(z) = z if z > 0 else 0.01·z</code>, so a unit that drifts negative still receives a small gradient and has a chance to recover. <span class="term">GELU</span> (Gaussian Error Linear Unit), used in transformer architectures like BERT and GPT, is a smooth curve that weights inputs by their value under the standard normal CDF — roughly ReLU with the sharp corner at zero rounded off — and tends to train slightly better in very deep networks, at the cost of being more expensive to compute exactly.</p>
+    <table class="tbl">
+      <tr><th>Activation</th><th>Range</th><th>Saturates?</th><th>Typical use</th></tr>
+      <tr><td>Sigmoid</td><td>(0, 1)</td><td>Both tails</td><td>Output layer, binary probability</td></tr>
+      <tr><td>Tanh</td><td>(-1, 1)</td><td>Both tails</td><td>Older RNN hidden layers</td></tr>
+      <tr><td>ReLU</td><td>[0, ∞)</td><td>Negative side only (hard zero)</td><td>Default hidden layer, CNNs/MLPs</td></tr>
+      <tr><td>Leaky ReLU</td><td>(-∞, ∞)</td><td>Never fully</td><td>Hidden layers prone to dead units</td></tr>
+      <tr><td>GELU</td><td>≈(-0.17, ∞)</td><td>Negative side, softly</td><td>Transformer hidden layers</td></tr>
+    </table>
+    <h3>Output-layer activation is a different decision</h3>
+    <p>Hidden-layer activations exist to add nonlinearity between layers; output-layer activations exist to shape the network's final number into the form the task needs, and the right choice depends entirely on what you're predicting. For a single yes/no clinical call — malignant or benign — the output layer is one unit with a <span class="term">sigmoid</span>, producing a single probability in <code>(0, 1)</code>. For a multi-class call — say, classifying a lab panel into "normal," "prediabetic," or "diabetic" — the output layer needs <span class="term">softmax</span> across three units, which exponentiates each unit's score and normalizes so the three outputs sum to exactly 1, giving a proper probability distribution over mutually exclusive classes (sigmoid applied independently to three units would not sum to 1 and would treat the classes as non-exclusive). For a regression target — predicting an actual continuous HbA1c value rather than a risk category — the output layer uses <span class="term">no activation at all</span> (a "linear" output), because squashing to <code>(0, 1)</code> would make it impossible for the network to ever predict a value outside that range. Mixing these up is a common and costly bug: a sigmoid output on a three-class problem, or a softmax on a regression target, will train "successfully" in the sense that loss goes down, while producing outputs that are structurally wrong for the task.</p>
+    <pre><code>import numpy as np
+
+def sigmoid(z):    return 1 / (1 + np.exp(-z))
+def sigmoid_d(z):  s = sigmoid(z); return s * (1 - s)
+
+def tanh(z):        return np.tanh(z)
+def tanh_d(z):       return 1 - np.tanh(z) ** 2
+
+def relu(z):         return np.maximum(0, z)
+def relu_d(z):       return (z > 0).astype(float)
+
+def leaky_relu(z, a=0.01):   return np.where(z > 0, z, a * z)
+def leaky_relu_d(z, a=0.01): return np.where(z > 0, 1.0, a)
+
+# Sweep a range wide enough to show saturation on both tails
+z = np.linspace(-6, 6, 13)
+
+for name, f, d in [("sigmoid", sigmoid, sigmoid_d),
+                    ("tanh", tanh, tanh_d),
+                    ("relu", relu, relu_d),
+                    ("leaky_relu", leaky_relu, leaky_relu_d)]:
+    grads = d(z)
+    vanish_at = z[np.abs(grads) < 0.01]
+    print(f"{name:11s} min grad={grads.min():.4f}  "
+          f"near-zero at z={vanish_at}")</code></pre>
+    <p class="caption">Sigmoid and tanh print near-zero gradients at both <code>z ≈ -6</code> and <code>z ≈ 6</code>; ReLU prints near-zero only for every negative <code>z</code>, exactly the "dead" half; leaky ReLU never drops below <code>a = 0.01</code> anywhere on the sweep.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Stacked linear layers collapse to one linear layer</strong> — <code>W2(W1x+b1)+b2</code> always simplifies to a single <code>W'x+b'</code>, so nonlinearity is what makes depth meaningful, not optional decoration.</li>
+        <li><strong>Sigmoid and tanh saturate on both tails</strong>, driving gradients toward zero and slowing or stalling learning in deeper stacks; <strong>ReLU saturates only on the negative side</strong>, and can go fully dead there.</li>
+        <li><strong>Leaky ReLU and GELU exist specifically to patch ReLU's dead-unit failure mode</strong>, at the cost of a hyperparameter or extra compute respectively.</li>
+        <li><strong>Output-layer activation depends on the prediction task, not on convention</strong>: sigmoid for one binary probability, softmax for mutually exclusive multi-class probabilities, no activation for unbounded regression.</li>
+        <li>A model can appear to train fine with the wrong output activation — loss decreases — while producing predictions that are structurally invalid for the task.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Layers, width, and depth: stacking into a network</h2>
+    <p class="opening">Think of a single layer the way you'd think of one stage in a lab's sample-processing pipeline. A phlebotomist draws blood and hands over a vial of raw material — the input features. The first workstation doesn't diagnose anything; it just recombines the raw numbers into a new panel of derived readings, the way a chemistry analyzer turns raw absorbance values into glucose and cholesterol figures. Those derived readings go to the next workstation, which recombines them again into something more specific — maybe an index that blends three lab values into one metabolic-risk score. Only at the very last station does someone actually stamp a verdict: high risk or not. Each workstation only ever does two things — recombine what it received, then apply a fixed rule to decide what to pass forward — and it's that repeated recombine-then-decide pattern, chained station after station, that a neural network's layers are named after.</p>
+    <h3>A layer as an affine map plus an activation</h3>
+    <p>Formally, one layer takes an input vector, applies a linear (affine) transformation, and then applies an activation function elementwise:</p>
+    <p class="math">h = f(W·x + b)</p>
+    <p>Here <code>x</code> is the input vector, <code>W</code> is a weight matrix, <code>b</code> is a bias vector, and <code>f</code> is the activation from Lesson 2 (ReLU, sigmoid, and so on). The output <code>h</code> is called a <span class="term">hidden layer</span> when it feeds into further layers rather than being the network's final answer. Stack several of these — <code>h1 = f(W1·x + b1)</code>, then <code>h2 = f(W2·h1 + b2)</code>, then a final output layer — and you have a <span class="term">multi-layer perceptron</span> (MLP), the plain "fully connected" network that everything more elaborate in this course builds on.</p>
+    <h3>Shape bookkeeping: batch and features</h3>
+    <p>In practice you never push one patient through the network at a time; you push a <span class="term">batch</span> of samples together as a matrix, because matrix multiplication over a batch is dramatically faster than a Python loop over individual rows. Suppose you're screening on a diabetes-risk panel with 8 lab features (fasting glucose, HbA1c, BMI, systolic BP, diastolic BP, triglycerides, HDL, age) and you process 32 patients at once. Your input is a matrix of shape <code>(32, 8)</code> — batch dimension first, feature dimension second, by near-universal convention. A layer that maps 8 features down to 16 hidden units has a weight matrix <code>W</code> of shape <code>(8, 16)</code> and a bias vector of shape <code>(16,)</code>. The matrix multiply <code>x @ W</code> takes <code>(32, 8) @ (8, 16) → (32, 16)</code> — the batch dimension rides along unchanged while the feature dimension transforms. Get a single dimension wrong in this bookkeeping — transpose <code>W</code>, or confuse which axis is batch — and the failure is usually a shape-mismatch crash, which is in fact the friendly outcome; the unfriendly outcome is a shape that happens to be compatible via broadcasting but silently computes the wrong thing.</p>
+    <h3>Counting parameters</h3>
+    <p>Every weight matrix and bias vector is a set of learned numbers, and counting them tells you how much capacity — and how much data — a network needs. A layer mapping <code>n_in</code> features to <code>n_out</code> units has <code>n_in × n_out</code> weights plus <code>n_out</code> biases:</p>
+    <p class="math">params = n_in·n_out + n_out</p>
+    <p>For the 8-feature-to-16-unit layer above: <code>8×16 + 16 = 144</code> parameters. A second hidden layer from 16 units to 8 units adds <code>16×8 + 8 = 136</code>. A final output layer from 8 units to 1 (a single malignancy-probability logit) adds <code>8×1 + 1 = 9</code>. Total: 289 parameters for a small three-layer network — trivial by modern standards, but the arithmetic scales linearly, and it's worth internalizing early because it's the first thing to check when a network is overfitting a few hundred labeled patient records: a network with more parameters than training examples is memorizing, not learning.</p>
+    <h3>What hidden units learn, and width versus depth</h3>
+    <p>No one hand-assigns meaning to a hidden unit; each one's weight vector is just whatever the training process settled on. But empirically, in a network trained on tabular clinical features, individual hidden units often end up sensitive to combinations that a clinician would recognize — one unit might respond strongly to "high glucose and high BMI together," effectively synthesizing a metabolic-syndrome-like feature the raw inputs never explicitly encoded. <span class="term">Width</span> — more units per layer — gives a layer more of these learned feature-combinations to work with in parallel. <span class="term">Depth</span> — more layers — lets the network build combinations of combinations: a first layer might learn "glucose-and-BMI" and "BP-and-age" as two separate hidden features, and a second layer can then learn to combine those two derived features into a still higher-level risk indicator. Wide-shallow networks tend to be easier to train and reason about but often need disproportionately more units to represent something that depth would build in two cheap stages. Deep-narrow networks are more parameter-efficient for compositional patterns but harder to train (vanishing gradients from Lesson 2 get worse the deeper you go) and easier to misconfigure.</p>
+    <p>The theoretical backstop for all of this is the <span class="term">universal approximation theorem</span>: a feedforward network with a single hidden layer of sufficient width can approximate any continuous function on a bounded input domain to arbitrary precision. It is tempting to read that as "one hidden layer is all you ever need," and that reading is wrong in a way that matters. The theorem proves <em>existence</em> — that some set of weights achieves the approximation — it says nothing about whether ordinary gradient-based training can actually find those weights, and "sufficient width" can mean a number of units that is computationally absurd for anything but toy problems. Depth is not something the theorem rules out as unnecessary; in practice, depth is very often how you get a network that both fits well and is learnable with the training procedures Unit 2 and Unit 3 will cover. Existence is not the same thing as learnability, and confusing the two is one of the more common overclaims in introductions to this material.</p>
+    <pre><code>import numpy as np
+
+# Forward pass through a 2-hidden-layer MLP for diabetes-risk screening.
+# Features: glucose, HbA1c, BMI, systolic_bp, diastolic_bp, triglycerides, HDL, age
+batch_size, n_features = 32, 8
+h1_units, h2_units, n_out = 16, 8, 1
+
+rng = np.random.default_rng(0)
+X = rng.normal(size=(batch_size, n_features))          # (32, 8)
+
+W1 = rng.normal(scale=0.1, size=(n_features, h1_units)) # (8, 16)
+b1 = np.zeros(h1_units)                                  # (16,)
+W2 = rng.normal(scale=0.1, size=(h1_units, h2_units))    # (16, 8)
+b2 = np.zeros(h2_units)                                  # (8,)
+W3 = rng.normal(scale=0.1, size=(h2_units, n_out))       # (8, 1)
+b3 = np.zeros(n_out)                                     # (1,)
+
+def relu(z):
+    return np.maximum(0, z)
+
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+h1 = relu(X @ W1 + b1)      # (32, 8) @ (8, 16)  -> (32, 16)
+h2 = relu(h1 @ W2 + b2)     # (32, 16) @ (16, 8) -> (32, 8)
+out = sigmoid(h2 @ W3 + b3) # (32, 8) @ (8, 1)   -> (32, 1)  risk probability
+
+for name, W, b in [("layer1", W1, b1), ("layer2", W2, b2), ("layer3", W3, b3)]:
+    n = W.size + b.size
+    print(f"{name}: W{W.shape} + b{b.shape} = {n} parameters")
+print("output shape:", out.shape)</code></pre>
+    <p class="caption">Each print line shows a shape transition (<code>(8,16)</code> then <code>(16,8)</code> then <code>(8,1)</code>) and its parameter count; the final <code>out.shape</code> confirms the batch dimension, 32, survived unchanged while the feature dimension collapsed to a single risk score per patient.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>A layer is <code>f(W·x + b)</code></strong> — an affine transform followed by a fixed activation — and stacking these is the entire definition of a multi-layer perceptron.</li>
+        <li><strong>Shapes carry a batch dimension and a feature dimension</strong>; a layer's weight matrix shape is <code>(n_in, n_out)</code>, and getting an axis wrong produces either a crash or, worse, a silent broadcast that computes garbage.</li>
+        <li><strong>Parameter count per layer is <code>n_in·n_out + n_out</code></strong> — arithmetic worth doing before training, since more parameters than labeled patient records is a memorization risk, not a capacity win.</li>
+        <li><strong>Width adds parallel learned feature-combinations; depth composes combinations of combinations</strong> — neither is strictly better, and depth trades easier training for parameter efficiency.</li>
+        <li><strong>Universal approximation proves existence of a solution, not that training will find it</strong> — a single wide-enough hidden layer can approximate any continuous function in theory, but "sufficient width" can be computationally impractical, and gradient descent is not guaranteed to locate the right weights.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 1 quiz</h2>
+    <p class="quiz-intro">Seven questions covering the perceptron's geometry and learning rule, activation behavior and saturation, and layer shapes and parameter counting.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A perceptron is trained on <code>mean_radius</code> and <code>mean_texture</code> to separate malignant from benign nuclei. What shape can its decision boundary take?</p>
+      <ol class="choices" type="A">
+        <li>Any smooth curve that best fits the data</li>
+        <li>A straight line only</li>
+        <li>A step function with multiple thresholds</li>
+        <li>A circle centered on the class mean</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> The decision rule is <code>w·x + b ≥ 0</code>, and the boundary where that expression equals zero is, in two dimensions, exactly a straight line. In higher dimensions it generalizes to a flat hyperplane — never a curve.</p>
+          <p>A is wrong because "best fits the data" implies the model can bend to match the data's shape; a perceptron's boundary is fixed to be linear regardless of how well or poorly that fits the true class boundary. Training changes the line's position and angle, never its straightness.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">The perceptron learning rule updates the weight vector on every training example, whether or not the current prediction is correct.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> The update is <code>w ← w + η(y − ŷ)x</code>. When the prediction is already correct, <code>y − ŷ = 0</code>, and the update term vanishes — the weights are left unchanged. Updates only happen on misclassified examples.</p>
+          <p>It's tempting to think every layer of "training" must touch every example equally, since that's how some other model-fitting procedures work, but the perceptron rule is specifically mistake-driven: it is exactly this property that lets it halt automatically (zero mistakes in a full pass) once a separating line is found.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">Minsky and Papert's 1969 book showed that a single perceptron cannot learn the <span class="blank">&nbsp;</span> function, because its positive cases sit on diagonally opposite corners of the input space with no single straight line able to separate them from the negative cases.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: XOR</strong> (exclusive or). The classic example is two binary inputs where the output is 1 only when exactly one input is on — the two "1" outputs and two "0" outputs form an X-shaped pattern that no single hyperplane can cut cleanly in two.</p>
+          <p>A common wrong guess is "AND" or "OR" — both of those <em>are</em> linearly separable (their positive cases sit together on one side), which is exactly why they were not the example Minsky and Papert used to make their point.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Why does stacking three linear layers with no activation function between them fail to add any representational power over a single linear layer?</p>
+      <ol class="choices" type="A">
+        <li>Because linear layers cannot be trained with gradient descent</li>
+        <li>Because the composition of affine maps is itself always a single affine map</li>
+        <li>Because three layers always overfit a small clinical dataset</li>
+        <li>Because linear layers require an odd number of hidden units</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> <code>W2(W1x + b1) + b2</code> algebraically simplifies to <code>(W2W1)x + (W2b1 + b2)</code>, which has the same form as a single layer's <code>W'x + b'</code>. This holds for any number of stacked linear layers — the collapse is exact, not approximate.</p>
+          <p>A is wrong: linear layers train fine with gradient descent on their own (that's ordinary linear regression via gradient descent) — the issue here is representational power, not trainability. Overfitting (C) is a separate concern about parameter count versus data size, unrelated to whether activations are present.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">Complete the ReLU derivative function so that it correctly reports a zero gradient exactly where ReLU is flat.</p>
+      <pre><code>def relu_d(z):
+    return ______________</code></pre>
+      <ol class="choices" type="A">
+        <li><code>np.ones_like(z)</code></li>
+        <li><code>(z > 0).astype(float)</code></li>
+        <li><code>np.maximum(0, z)</code></li>
+        <li><code>1 / (1 + np.exp(-z))</code></li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> ReLU's derivative is 1 wherever the pre-activation <code>z</code> is positive and 0 wherever it's negative (undefined exactly at zero, conventionally taken as 0 or 1). <code>(z > 0).astype(float)</code> produces exactly that array of 1s and 0s.</p>
+          <p>C, <code>np.maximum(0, z)</code>, is ReLU itself, not its derivative — a common mix-up when writing both functions quickly. D is the sigmoid function, unrelated to ReLU's derivative and never zero for any finite <code>z</code>, which would incorrectly suggest ReLU never saturates.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">You're building the output layer for a model that classifies a lab panel into exactly one of three mutually exclusive categories: normal, prediabetic, diabetic. Which output-layer activation is appropriate?</p>
+      <ol class="choices" type="A">
+        <li>A single sigmoid unit</li>
+        <li>Softmax across three units</li>
+        <li>No activation (linear output)</li>
+        <li>ReLU across three units</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Softmax exponentiates each of the three units' scores and normalizes them to sum to 1, producing a valid probability distribution over mutually exclusive classes — exactly the structure "exactly one of three categories" requires.</p>
+          <p>A single sigmoid (A) only produces one probability and is the right choice for a binary yes/no call, not a three-way exclusive choice. ReLU (D) is never used on an output layer meant to represent probabilities, since its output is unbounded above and exactly zero for half its input range — neither behavior matches "probability of a class."</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">A diabetes-risk network takes a batch of 32 patients with 8 lab features each. The first hidden layer is supposed to produce 16 hidden units per patient. Find the bug in the shape setup.</p>
+      <pre><code>X = np.random.randn(32, 8)          # (batch=32, features=8)
+W1 = np.random.randn(16, 8) * 0.1   # intended: maps 8 features -> 16 units
+b1 = np.zeros(16)
+
+h1 = relu(X @ W1 + b1)              # crashes: shapes (32,8) and (16,8) not aligned</code></pre>
+      <ol class="choices" type="A">
+        <li><code>b1</code> should be shape <code>(32,)</code> instead of <code>(16,)</code></li>
+        <li><code>W1</code> should be shape <code>(8, 16)</code> instead of <code>(16, 8)</code></li>
+        <li><code>X</code> should be transposed to shape <code>(8, 32)</code></li>
+        <li>ReLU cannot be applied to a batch of inputs</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Matrix multiplication <code>X @ W1</code> requires <code>X</code>'s last dimension to match <code>W1</code>'s first dimension: <code>(32, 8) @ (8, 16) → (32, 16)</code>. With <code>W1</code> as <code>(16, 8)</code>, the inner dimensions (8 vs 16) don't line up and NumPy raises a shape-mismatch error. The weight matrix for an <code>n_in → n_out</code> layer must be shaped <code>(n_in, n_out)</code>.</p>
+          <p>C would technically make a different multiplication valid but destroys the batch convention (batch dimension must ride first through every layer) and would break every other layer downstream that expects a <code>(batch, features)</code> input. A is wrong because the bias only needs one value per output unit (16), broadcast across the batch — it should never scale with batch size.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Deep Learning Foundations · Unit 1 of 8 — Unit 2 picks up where this one stops: loss functions for classification and regression, and how a single prediction's error gets turned into a training signal.</p>
+</footer>
+</body>
+</html>

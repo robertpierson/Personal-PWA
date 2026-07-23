@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 7 · Recurrent networks and sequence modeling — Deep Learning Foundations</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Deep Learning Foundations · Unit 7 of 8</p>
+  <h1>Recurrent networks and sequence modeling</h1>
+  <p class="lede">The ICU vitals stream that opened this course as a static feature vector is really a sequence with a clock attached. This unit builds the machinery — recurrence, gates, masking — that respects the clock instead of pretending it isn't there.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. Recurrence and backpropagation through time</a></li>
+      <li><a href="#lesson-2">2. Gated cells: LSTM and GRU</a></li>
+      <li><a href="#lesson-3">3. Making sequence models work in practice</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>Recurrence and backpropagation through time</h2>
+
+    <p class="opening">Say you take the fixed-window MLP from Unit 2 — the one that eats a flat vector of features and outputs a probability — and you point it at ICU vitals. You pick a window, say the last 12 readings, concatenate heart rate, MAP, SpO2, respiratory rate, and the most recent lactate draw into one long vector, and feed it forward. It works, sort of, for the patient who has been in the unit for exactly long enough to fill that window with informative signal. But your ICU census does not cooperate with your window size. A patient admitted 40 minutes ago has 3 real readings and 9 slots of padding, and the network has no way to know which is which — it just sees zeros or repeated boundary values and treats them as data. A patient on day 9 of a stay has had thousands of readings, and your 12-slot window has truncated all of that history down to the last hour, discarding exactly the slow drift in lactate and the exact same discarding of the slow climb in respiratory rate that a clinician would call the actual sepsis warning sign. You can't win by resizing the window: make it bigger and short stays drown in padding noise, make it smaller and long stays lose the trend that matters most. The fixed window is fighting the shape of the data. What you actually need is an architecture that can look at a stream of arbitrary length and carry forward a summary of everything it has seen so far, updated one timestep at a time.</p>
+
+    <p>That's what a <span class="term">recurrent neural network</span> is: instead of one big function of a fixed-size input, it's the same small function applied over and over, once per timestep, carrying a running summary — the <span class="term">hidden state</span> — from one application to the next. At ICU timestep <code>t</code> you have a vitals vector <code>x_t</code> (heart rate, MAP, SpO2, respiratory rate, lactate-or-missing-flag) and a hidden state <code>h_{t-1}</code> inherited from every timestep before it. The cell computes a new hidden state from both:</p>
+
+    <p class="math">h_t = tanh( W_xh · x_t + W_hh · h_{t-1} + b_h )</p>
+
+    <p>Three things to notice in that one line. First, <code>h_t</code> is not "the reading at time t" — it's a compressed, fixed-size summary of the entire prefix <code>x_1 … x_t</code>, the same way a nurse's one-line handoff note compresses nine days of chart into "trending tachycardic since yesterday evening, lactate climbing." Second, <code>W_xh</code> and <code>W_hh</code> are <span class="term">shared</span> across every timestep — the same two matrices process hour 1 and hour 200 of the stay. That sharing is what lets the network handle a 40-minute admission and a 9-day stay with the identical parameter count: length becomes a loop bound, not an architectural choice. Third, the hidden state at time <code>t</code> only ever depends on <code>x_1 … x_t</code> — it has never seen <code>x_{t+1}</code> or anything later. That directionality isn't incidental for this task, it's the entire point: a model predicting sepsis six hours from now must never have access to vitals from the future, even during training. We'll come back to this in Lesson 3 when we rule out bidirectional architectures entirely.</p>
+
+    <h3>Unrolling and backpropagation through time</h3>
+    <p>To train the recurrence you conceptually <span class="term">unroll</span> it: draw a separate copy of the cell for each timestep, wire <code>h_1</code>'s output into <code>h_2</code>'s input and so on, and you get an ordinary (very deep) feedforward computation graph — one layer per hour of ICU stay. A 9-day stay sampled hourly unrolls to 216 layers. Ordinary backprop then runs backward through that unrolled graph, and because it's stepping through time, this specific application of backprop has its own name: <span class="term">backpropagation through time</span> (BPTT). The gradient of the loss at hour 216 with respect to the weights has to flow backward through all 216 copies of <code>W_hh</code>, picking up a factor of (roughly) <code>W_hh</code> at every step it passes through.</p>
+
+    <p>Two costs fall out of this immediately. The first is memory: to compute gradients correctly, you need every intermediate hidden state and every intermediate activation from the forward pass, for every timestep, still in memory when the backward pass starts. A 216-hour stay times a hidden size of 128 times a batch of patients adds up fast, and it's the reason production sepsis-prediction pipelines use <span class="term">truncated BPTT</span> — you chop the stay into chunks (say 24 hours), run forward and backward within a chunk, then carry the hidden state (but not the stored activations) forward into the next chunk. You still model the whole stay, but you only ever hold one chunk's worth of activations in memory at once, at the cost of gradients that can't reach further back than one chunk.</p>
+
+    <h3>Why gradients vanish or explode: the W_hh multiplication</h3>
+    <p>The second cost is the one that actually breaks training, and it's the reason Unit 3's vanishing-gradient discussion is required background here rather than a nice-to-have. Unroll the chain rule through <code>k</code> steps of the recurrence and the gradient flowing back picks up a product of <code>k</code> copies of (roughly) <code>W_hh</code> times the tanh derivative at each step. Whether that product shrinks toward zero or blows up toward infinity as <code>k</code> grows is governed by the <span class="term">spectral radius</span> of <code>W_hh</code> — its largest eigenvalue magnitude. If the spectral radius is comfortably below 1, repeated multiplication shrinks the signal geometrically: by hour 100 of the stay, the gradient contribution from hour 1 has been multiplied by something like 0.9^100 ≈ 0.00003, which is functionally zero. The network becomes structurally incapable of learning that a lactate reading from three days ago matters for right now — not because the information isn't in the data, but because no gradient signal can reach back far enough to teach the weights to use it. This is exactly Unit 3's vanishing-gradient problem, just relocated from network depth to sequence length. Push the spectral radius above 1 instead and you get the opposite failure: the product grows geometrically, gradients overflow to <code>NaN</code>, and training diverges within a few batches. In practice you see this as loss suddenly spiking to <code>inf</code> partway through an epoch on the longer ICU stays — the stays that unroll deepest are exactly the ones most exposed to both failure modes, which is a cruel coincidence given that long stays are also where the interesting slow-onset sepsis signal lives. <span class="term">Gradient clipping</span> — rescaling the gradient vector's global norm down to a fixed threshold whenever it exceeds it — is the standard first response to the explosion side; it won't fix vanishing, but it keeps training numerically alive while you reach for the architectural fix in Lesson 2.</p>
+
+    <pre><code>import numpy as np
+
+def rnn_cell_forward(x_t, h_prev, Wxh, Whh, bh):
+    """One vanilla RNN step.
+    x_t:    (batch, n_features)  -- HR, MAP, SpO2, RR, lactate-or-flag
+    h_prev: (batch, hidden_dim)
+    Wxh:    (n_features, hidden_dim)
+    Whh:    (hidden_dim, hidden_dim)
+    bh:     (hidden_dim,)
+    returns h_t: (batch, hidden_dim)
+    """
+    z = x_t @ Wxh + h_prev @ Whh + bh
+    h_t = np.tanh(z)
+    return h_t
+
+# --- unroll over a 24-hour vitals window, hourly sampling ---
+batch, n_features, hidden_dim, T = 32, 5, 128, 24
+
+rng = np.random.default_rng(0)
+Wxh = rng.normal(scale=0.05, size=(n_features, hidden_dim))
+Whh = rng.normal(scale=0.05, size=(hidden_dim, hidden_dim))
+bh  = np.zeros(hidden_dim)
+
+# spectral radius check -- keep it near/under 1 to avoid explosion
+eigvals = np.linalg.eigvals(Whh)
+print("spectral radius of Whh:", np.max(np.abs(eigvals)).round(3))
+
+vitals = rng.normal(size=(T, batch, n_features))  # (hour, patient, channel)
+h = np.zeros((batch, hidden_dim))                  # h_0: no history yet
+
+stored_h = [h]                                      # BPTT needs every h_t
+for t in range(T):
+    h = rnn_cell_forward(vitals[t], h, Wxh, Whh, bh)
+    stored_h.append(h)
+    if t in (0, 11, 23):
+        print(f"hour {t:2d}  h_t shape: {h.shape}  ||h_t||: {np.linalg.norm(h):.3f}")
+
+print("timesteps of activations retained for backward pass:", len(stored_h))
+</code></pre>
+    <p class="caption">Every <code>stored_h</code> entry must survive until the backward pass — that list is the memory cost from Lesson 1 made concrete. Watch the spectral radius print and the <code>||h_t||</code> norms: a spectral radius near 1 keeps the norm roughly stable across 24 hours; push <code>Whh</code>'s scale up and you'll see the norm climb hour over hour, a hands-on preview of the exploding-gradient direction.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>The hidden state is a lossy, fixed-size summary of an arbitrary-length past</strong> — it replaces the fixed-window MLP's forced choice between truncation and padding noise.</li>
+        <li><strong>Weight sharing across timesteps</strong> (<code>W_xh</code>, <code>W_hh</code> reused at every step) is what lets one architecture handle a 40-minute admission and a 9-day stay without changing parameter count.</li>
+        <li><strong>BPTT stores every timestep's activations</strong>; truncated BPTT trades gradient reach for a fixed memory budget by chunking the stay and carrying only the hidden state (not stored activations) across chunk boundaries.</li>
+        <li><strong>The spectral radius of <code>W_hh</code> determines vanishing vs. exploding gradients</strong> — the same failure mode from Unit 3, now driven by sequence length instead of network depth.</li>
+        <li><strong>Gradient clipping treats the symptom of explosion, not the cause</strong>; it keeps training numerically stable but does nothing for vanishing, which needs an architectural fix.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Gated cells: LSTM and GRU</h2>
+
+    <p class="opening">A <span class="term">Long Short-Term Memory</span> cell (LSTM) is, at its core, a vanilla RNN cell plus a second pipe running alongside the hidden state — the <span class="term">cell state</span>, <code>c_t</code> — and four small neural networks, called <span class="term">gates</span>, that decide what flows into and out of that pipe. Each gate is a sigmoid-activated linear layer over the current input and the previous hidden state, producing a vector of values between 0 and 1 that acts as a per-dimension "how much" — 0 means block that dimension entirely, 1 means let it through unchanged. Walk through the four gates in the order they act, using an ICU stay as the running example.</p>
+
+    <p class="math">f_t = σ( W_f · [h_{t-1}, x_t] + b_f )   — forget gate</p>
+    <p>The <span class="term">forget gate</span> looks at the previous hidden state and the current vitals and decides, per dimension of the cell state, how much of the running memory to keep. If the patient's heart rate has been climbing steadily and MAP falling for six hours, the forget gate can learn to hold that trend open (values near 1 for those dimensions) rather than let a single reassuring reading reset it. If a channel goes stale — say lactate hasn't been redrawn in three hours — the forget gate is also the mechanism that can learn to keep last-known-lactate information alive across the gap rather than discarding it just because no new reading arrived.</p>
+
+    <p class="math">i_t = σ( W_i · [h_{t-1}, x_t] + b_i )   — input gate
+c̃_t = tanh( W_c · [h_{t-1}, x_t] + b_c )   — candidate values</p>
+    <p>The <span class="term">input gate</span> and the <span class="term">candidate</span> work as a pair: the candidate proposes new content to write into the cell state (a tanh, so it can propose positive or negative updates), and the input gate decides how much of that proposal actually gets written, per dimension. A sudden respiratory-rate spike combined with falling SpO2 is exactly the kind of event the input gate can learn to open wide for — write it strongly into the cell state — while a single noisy heart-rate blip from sensor jitter gets an input gate near zero and is effectively ignored.</p>
+
+    <p class="math">c_t = f_t ⊙ c_{t-1} + i_t ⊙ c̃_t   — cell state update</p>
+    <p>This is the line that matters most in the whole lesson. The new cell state is the old cell state scaled elementwise by the forget gate, plus the new candidate scaled elementwise by the input gate — <span class="term">⊙</span> is elementwise multiplication. Notice what's missing compared to the vanilla RNN: there is no matrix multiply by a shared weight matrix sitting between <code>c_{t-1}</code> and <code>c_t</code>. It's addition, gated by values that are themselves bounded in [0,1] rather than repeated multiplication by an unconstrained matrix. That's the entire trick. Follow the gradient of the loss backward through this line across many timesteps and, when the forget gate is near 1, the gradient passes through nearly unchanged instead of being multiplied by <code>W_hh</code> at every step. The additive path doesn't guarantee gradients survive — a forget gate stuck near 0 will still kill them — but it removes the geometric-decay-by-default that plagues the vanilla RNN, and gives the network a learnable choice about how long to remember, rather than a structural inability to remember at all.</p>
+
+    <p class="math">o_t = σ( W_o · [h_{t-1}, x_t] + b_o )   — output gate
+h_t = o_t ⊙ tanh(c_t)   — hidden state</p>
+    <p>Finally the <span class="term">output gate</span> decides how much of the (squashed) cell state to expose as the hidden state that gets passed to the next layer and used for prediction at this timestep. The cell state can hold onto information — "lactate has been silently trending up for two days" — without necessarily surfacing it in every single hour's output; the output gate lets the network keep a fact in long-term storage while choosing when it's relevant to report.</p>
+
+    <h3>The forget-gate bias trick</h3>
+    <p>One practical detail worth knowing cold: at initialization, <code>b_f</code> is normally set not to zero but to a small positive constant, often 1 or 2, so that <code>σ(b_f)</code> starts close to 1 rather than 0.5. Left at the default zero-mean initialization used for the other gates, the forget gate starts by forgetting roughly half of the cell state at every single timestep from the very first training step — which reintroduces almost the same vanishing-gradient problem the whole architecture exists to avoid, just delayed until the forget gate learns better values (if it ever does, since a gradient that's already vanishing makes that learning slow). Biasing the forget gate to start open means the network begins training with long memory as the default and has to learn when to close the gate, rather than starting with no memory and having to learn when to open it. For 9-day ICU stays where the relevant signal (a slow lactate climb) can span hundreds of timesteps, this initialization choice is not cosmetic — it materially affects whether the model can discover long-range dependencies at all within a reasonable training budget.</p>
+
+    <h3>GRU: two gates instead of four</h3>
+    <p>The <span class="term">Gated Recurrent Unit</span> (GRU) is the cheaper cousin: it collapses the forget/input split into a single <span class="term">update gate</span> and adds a <span class="term">reset gate</span> that controls how much past hidden state feeds into the new candidate, and — critically — it drops the separate cell state entirely, folding everything into the hidden state. That's roughly 25% fewer parameters per cell for the same hidden size, which matters when you're running inference at the bedside on modest hardware, or training on a modest number of ICU admissions where a smaller model generalizes better. The honest empirical verdict, repeated across enough sequence-modeling papers to be a fair summary rather than a hot take: on most tasks LSTM and GRU perform within noise of each other, and the choice comes down to compute budget and how long the dependencies really are. GRUs tend to edge ahead on shorter sequences and constrained compute; LSTMs retain a slight edge when dependencies are very long and the extra cell-state capacity earns its keep — which, for 9-day ICU stays with slow-onset trends, is a real argument for LSTM over GRU, though not a decisive one absent your own validation numbers.</p>
+
+    <pre><code>import numpy as np
+
+def sigmoid(z):
+    return 1.0 / (1.0 + np.exp(-z))
+
+def lstm_cell_forward(x_t, h_prev, c_prev, params):
+    """One LSTM step over ICU vitals.
+    x_t, h_prev: (batch, n_features), (batch, hidden_dim)
+    c_prev:      (batch, hidden_dim)
+    params: dict of Wf,bf, Wi,bi, Wc,bc, Wo,bo -- each W maps
+            concat([h_prev, x_t]) -> hidden_dim
+    """
+    concat = np.concatenate([h_prev, x_t], axis=1)   # (batch, hidden+features)
+
+    f_t = sigmoid(concat @ params["Wf"] + params["bf"])   # forget gate
+    i_t = sigmoid(concat @ params["Wi"] + params["bi"])   # input gate
+    c_tilde = np.tanh(concat @ params["Wc"] + params["bc"])  # candidate
+    o_t = sigmoid(concat @ params["Wo"] + params["bo"])   # output gate
+
+    c_t = f_t * c_prev + i_t * c_tilde     # additive cell-state update
+    h_t = o_t * np.tanh(c_t)               # gated exposure of cell state
+
+    return h_t, c_t, {"f": f_t, "i": i_t, "o": o_t}
+
+batch, n_features, hidden_dim = 16, 5, 64
+rng = np.random.default_rng(1)
+in_dim = hidden_dim + n_features
+
+def init(scale=0.05):
+    return rng.normal(scale=scale, size=(in_dim, hidden_dim))
+
+params = {
+    "Wf": init(), "bf": np.full(hidden_dim, 1.5),   # forget-gate bias trick
+    "Wi": init(), "bi": np.zeros(hidden_dim),
+    "Wc": init(), "bc": np.zeros(hidden_dim),
+    "Wo": init(), "bo": np.zeros(hidden_dim),
+}
+
+h = np.zeros((batch, hidden_dim))
+c = np.zeros((batch, hidden_dim))
+x_t = rng.normal(size=(batch, n_features))
+
+h, c, gates = lstm_cell_forward(x_t, h, c, params)
+print("h_t:", h.shape, " c_t:", c.shape)
+print("mean forget-gate value at step 1:", gates["f"].mean().round(3))
+</code></pre>
+    <p class="caption">The forget gate's mean starts near <code>σ(1.5) ≈ 0.82</code> because of the bias trick — not near 0.5, which is what you'd get from a zero-initialized bias. Trace <code>c_t</code>'s formula by hand: it's the only line in the cell with no matrix multiply directly on the recurrent path, just elementwise scaling and addition.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Four gates, one job split four ways</strong>: forget (what to erase), input (what to write), candidate (what to propose), output (what to expose) — all sigmoid or tanh layers over <code>[h_{t-1}, x_t]</code>.</li>
+        <li><strong>The additive cell-state update</strong> <code>c_t = f_t⊙c_{t-1} + i_t⊙c̃_t</code> replaces repeated matrix multiplication with elementwise gating, which is the actual mechanism that lets gradients survive across long ICU stays.</li>
+        <li><strong>A high forget gate does not guarantee gradient survival</strong> — it makes it possible; a forget gate stuck near 0 still kills long-range signal, it just isn't the default failure mode anymore.</li>
+        <li><strong>Initializing the forget-gate bias positive</strong> (often 1–2) starts training in "remember by default" mode, which matters directly for catching slow multi-day trends like a lactate climb.</li>
+        <li><strong>GRU trades the separate cell state and two of the four gates for ~25% fewer parameters</strong>; empirically it ties LSTM on most tasks and only meaningfully trails on the longest-range dependencies.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Making sequence models work in practice</h2>
+
+    <p class="opening">Think of a batch of ICU patients the way you'd think of a group of hikers who all started a trail at different times and walk at different paces: to move them through a canyon together in lockstep, someone has to decide what the ones who already reached the end are doing while the stragglers are still walking, and if the answer is "give them meaningless extra steps and count those steps toward the group's performance," you've corrupted the measurement. That's the padding problem in one image. A batch of ICU stays ranging from 6 hours to 216 hours cannot be fed to an RNN as a raw tensor without first padding every stay out to the longest one in the batch, which means most of the batch is now mostly padding — and the gates and matrix multiplies inside your LSTM cell have no idea that hours 40 through 216 for the 6-hour patient are fabricated zeros, not real vitals.</p>
+
+    <h3>Masking, packing, and the silent bug</h3>
+    <p>The fix is a <span class="term">mask</span>: a same-length boolean (or 0/1) tensor marking which timesteps are real. The mask has to do two jobs, and it's extremely common to do only one of them and call it done. The obvious job is making sure the loss function ignores padded timesteps — sum or average the per-timestep loss only over positions where the mask is 1. The job people forget is that the hidden state itself needs to stop updating once a sequence ends: without care, the RNN keeps recurring through the padded zeros, producing a final hidden state for the 6-hour patient that reflects 210 hours of "the vitals are exactly zero," which is not a real physiological state and pollutes whatever seq-to-one prediction you make from that final hidden state — even if you got the loss masking right. <span class="term">Packed sequences</span> (as in PyTorch's <code>pack_padded_sequence</code>) sidestep the whole issue at the framework level: sequences are sorted by length and the recurrence physically skips computation for positions past each sequence's real end, so there's no padded hidden state to accidentally use, and no wasted compute on padding either. When packing isn't available, masking both the loss and the hidden-state carry-forward is the manual equivalent — and both halves are required, not just the first one.</p>
+
+    <h3>Why bidirectional is forbidden here</h3>
+    <p>A <span class="term">bidirectional RNN</span> runs one recurrence forward through the sequence and a second one backward, then concatenates both hidden states at each position — standard practice for tasks like named entity recognition, where the whole sentence is available at inference time and future words genuinely disambiguate earlier ones. For 6-hour-ahead sepsis prediction, the backward pass would need to have already seen vitals from after the prediction point in order to produce its half of the hidden state at hour <code>t</code> — which is precisely the future the model is being asked to predict. Using a bidirectional architecture here isn't a performance trade-off to weigh, it's a category error that leaks the answer into the input, exactly the kind of look-ahead the hard requirement in this unit's brief rules out. Any evaluation number produced by a bidirectional model on this task should be treated as invalid, not merely "optimistic."</p>
+
+    <h3>Three shapes of output</h3>
+    <p>Sequence tasks come in three output shapes and ICU monitoring can be framed as any of them depending on what you're deploying. <span class="term">Seq-to-one</span> takes the whole available history and produces a single prediction at the end — appropriate for a discharge-summary risk score computed once. <span class="term">Seq-to-seq</span> maps a whole input sequence to a whole output sequence, generally with the output sequence a different length (this is the shape used for tasks like translation, not typically for streaming vitals). <span class="term">Seq-to-label-per-step</span> produces one prediction at every timestep as new data arrives — this is the shape that actually matches "predict sepsis onset 6 hours ahead" as a running bedside monitor, since a clinician needs an updated risk estimate every hour, not one number at the end of a stay that has already happened.</p>
+
+    <h3>Irregular sampling and missingness</h3>
+    <p>ICU vitals are not sampled on a clean, regular grid: heart rate and SpO2 might come off continuous monitors every minute, MAP every 15 minutes from an arterial line, respiratory rate charted hourly by nursing staff, and lactate drawn only every 4–6 hours by lab order — and any channel can go missing entirely for stretches (a line gets pulled, a sensor disconnects). The tempting fix, zero-filling missing values, is actively harmful: zero is not a physiologically neutral value for lactate or MAP, and a model has no way to distinguish "lactate is truly zero" from "lactate wasn't drawn this hour," so it ends up learning spurious patterns tied to your imputation scheme instead of the underlying physiology. The standard, non-hacky fix is two-part: a missingness mask per channel per timestep (a bit saying whether this channel was actually observed) concatenated onto the input, plus a time-delta feature per channel recording how long it's been since that channel was last observed. The delta feature does real work here — "MAP last observed 3 hours ago" is itself informative (a stale MAP reading during a suspected sepsis workup is a signal, not a gap to be silently filled), and it's the mechanism that lets the network learn to trust a fresh reading more than a stale one without you hand-engineering that rule.</p>
+
+    <h3>Clipping, statefulness, and an honest comparison to attention</h3>
+    <p>Tying back to Lesson 1: <span class="term">gradient clipping by global norm</span> — computing the L2 norm of the entire gradient vector across all parameters and rescaling the whole vector down if that norm exceeds a threshold (commonly somewhere around 1 to 5) — is what keeps truncated BPTT numerically stable on the longest ICU stays in a batch, where the exploding-gradient risk from Lesson 1 is highest. Separately, when you truncate a long stay into chunks, you have a choice between <span class="term">stateful</span> truncation (carry the hidden state from the end of chunk <code>k</code> into the start of chunk <code>k+1</code> for the same patient, so the model's memory spans the whole stay) and <span class="term">stateless</span> truncation (reset the hidden state to zero at the start of every chunk, treating each chunk as independent). Stateful is what you want for this task — it's the only way a 9-day stay's slow lactate trend survives across chunk boundaries at all — but it requires careful batch construction so that chunk <code>k+1</code> of patient A is fed to the network in the same batch slot as chunk <code>k</code> of patient A, which complicates the data pipeline meaningfully compared to shuffling chunks freely.</p>
+
+    <p>Finally, an honest close, since Course 2 will spend an entire unit on the architecture that displaced RNNs for most sequence work: attention-based transformers now dominate benchmarks on offline sequence tasks with full context available, and general-purpose sequence modeling has largely moved there — that's a one-sentence forward reference and as far as this unit goes. But RNNs are not obsolete, and ICU monitoring is close to the textbook case for why. A transformer's self-attention is O(n²) in sequence length and, in the standard formulation, wants the whole sequence available at once; an RNN processes one new timestep in O(1) additional compute and O(1) additional memory beyond whatever hidden state it's already carrying, which is exactly the shape of a live bedside monitor that receives one new vitals reading per minute for potentially hundreds of hours and cannot re-run a quadratic-cost pass over the entire stay-so-far every time a single new heart-rate value arrives. RNNs also fit on far smaller hardware footprints, which matters for edge deployment on unit-level monitoring hardware that can't assume a GPU. The honest trade-off: transformers generally win on offline accuracy when full sequences are available and compute is cheap; RNNs win on streaming, constant-memory-per-step inference and small-device deployment — which is why LSTMs are still a defensible, sometimes preferred, choice for exactly the always-on, one-reading-at-a-time monitoring problem this unit has used throughout.</p>
+
+    <pre><code>import numpy as np
+
+def masked_bce_loss(y_true, y_pred, mask, eps=1e-7):
+    """Correct version: padded timesteps never touch the loss.
+    y_true, y_pred, mask: all (batch, T) -- mask is 1 for real steps, 0 for padding
+    """
+    y_pred = np.clip(y_pred, eps, 1 - eps)
+    per_step = -(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
+    per_step_masked = per_step * mask
+    # normalize by the NUMBER OF REAL STEPS, not by T -- this is the second
+    # place the naive version quietly breaks even after masking the sum
+    return per_step_masked.sum() / mask.sum()
+
+def naive_bce_loss(y_true, y_pred, eps=1e-7):
+    """Buggy version: no mask at all. Padded steps (often y_true=0,
+    y_pred pushed toward whatever the padded input produces) contribute
+    real gradient, silently diluting the signal from genuine timesteps --
+    worse the shorter the real stay is relative to the batch's longest stay.
+    """
+    y_pred = np.clip(y_pred, eps, 1 - eps)
+    per_step = -(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
+    return per_step.mean()
+
+rng = np.random.default_rng(2)
+batch, T = 4, 10
+true_lengths = np.array([3, 10, 5, 8])          # real stay length per patient, hours
+mask = (np.arange(T)[None, :] < true_lengths[:, None]).astype(float)
+
+y_true = (rng.random((batch, T)) < 0.15).astype(float)   # sparse positive sepsis-onset labels
+y_pred = rng.random((batch, T))
+
+print("mask:\n", mask)
+print("masked loss:  ", round(masked_bce_loss(y_true, y_pred, mask), 4))
+print("naive loss:   ", round(naive_bce_loss(y_true, y_pred), 4))
+</code></pre>
+    <p class="caption">The 3-hour patient contributes loss from only 3 real timesteps in the masked version but from all 10 (7 fabricated) in the naive one — with class imbalance already this heavy, that dilution from padding can swing a rare-positive-label epoch's gradient meaningfully. Note the double masking: <code>per_step * mask</code> zeroes padded terms, and dividing by <code>mask.sum()</code> (not <code>T</code>) is what keeps short stays from being under-weighted relative to long ones — miss either half and the loss is still wrong.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Masking has two required halves</strong>: zeroing the loss at padded timesteps and stopping the hidden state from recurring through fabricated padding — packed sequences handle both automatically, manual masking must handle both explicitly.</li>
+        <li><strong>Bidirectional RNNs are disqualified outright for future-prediction tasks</strong>, not merely disadvantaged — the backward pass structurally requires future data the model isn't allowed to see.</li>
+        <li><strong>Missingness should be encoded, never zero-filled</strong>: a per-channel mask plus a time-since-last-observed delta feature lets the model learn that a stale reading is informative rather than treating absence as a false physiological zero.</li>
+        <li><strong>Stateful truncation across batches</strong> is what lets a slow multi-day trend (like a lactate climb) survive chunk boundaries — it requires patient-consistent batch slotting, which stateless truncation doesn't.</li>
+        <li><strong>RNNs still win where attention structurally can't compete</strong>: O(1) compute and memory per new timestep for streaming, always-on, resource-constrained monitoring — the honest trade-off, not a claim that RNNs are broadly superior.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 7 quiz</h2>
+    <p class="quiz-intro">Eight questions spanning all three lessons, mixing multiple choice, true/false, fill-in-the-blank, and a bug-fix — several are multi-step and at least one is a "looks correct until it breaks" trap.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A vanilla RNN trained on 9-day ICU stays fails to learn that a lactate value from day 1 predicts sepsis onset on day 9, even though the training data clearly contains that pattern. Which single change is most directly responsible for fixing this, and why?</p>
+      <ol class="choices" type="A">
+        <li>Increase the hidden state size so it can store more information.</li>
+        <li>Switch to an LSTM, whose additive cell-state update avoids the repeated multiplication by <code>W_hh</code> that causes the day-1 gradient to vanish by day 9.</li>
+        <li>Add gradient clipping so the exploding gradient stops overwhelming the day-1 signal.</li>
+        <li>Shrink the truncated-BPTT chunk size so the network sees day 1 more often.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> The described symptom — long-range signal that exists in the data but can't be learned — is the classic vanishing-gradient signature from Lesson 1, driven by repeated multiplication by <code>W_hh</code> over ~200 timesteps. The LSTM's additive cell-state path (<code>c_t = f_t⊙c_{t-1} + i_t⊙c̃_t</code>) is specifically what removes that repeated-multiplication decay.</p>
+          <p>A is a tempting distractor because more capacity sounds like it should help, but a bigger hidden state still runs through the same vanishing recurrence — it doesn't change the gradient decay. C addresses exploding gradients, the opposite failure mode from the one described. D (smaller truncation chunks) would make the problem worse, not better, since it directly limits how far back gradients can reach at all.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Because packed sequences (or a correctly implemented mask) already stop the loss from counting padded timesteps, it's safe to let the hidden state keep recurring through the padded zeros for the rest of the batch's max length — the loss masking alone is sufficient to make training correct.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> Masking the loss stops padded steps from contributing directly to the gradient, but a naively recurring hidden state still absorbs the fabricated padded inputs into <code>h_t</code> itself. For seq-to-one predictions in particular, the final hidden state used for prediction can end up reflecting hundreds of hours of "vitals are exactly zero" rather than the patient's real last observed state — corrupting the prediction even though the loss term was masked correctly.</p>
+          <p>This is the exact silent bug named in Lesson 3: masking has two required halves (loss and hidden-state carry-forward), and doing only the loss half looks like a complete fix but isn't.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">In the LSTM cell-state update <code>c_t = f_t ⊙ c_{t-1} + i_t ⊙ c̃_t</code>, the reason gradients survive better across long sequences than in a vanilla RNN is that this path uses <span class="blank">&nbsp;</span> rather than repeated matrix multiplication by a shared weight matrix.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: elementwise (gated) addition</strong> — <code>c_t</code> is built from <code>c_{t-1}</code> by elementwise scaling (via the forget and input gates, both bounded in [0,1]) and addition, with no matrix multiply sitting directly on the recurrent <code>c_{t-1} → c_t</code> path.</p>
+          <p>It's worth being precise here: the gates themselves are computed via matrix multiplies on <code>[h_{t-1}, x_t]</code>, so "no matrix multiplication anywhere in the LSTM" would be wrong — the point is specifically that the cell-state recurrence itself is additive, not multiplicative, which is what breaks the geometric decay from Lesson 1.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A colleague proposes using a bidirectional LSTM for the 6-hour-ahead sepsis prediction task, arguing that it consistently scores higher AUROC on the held-out test set than the unidirectional version. What is the correct response?</p>
+      <ol class="choices" type="A">
+        <li>Adopt it — a higher AUROC on held-out data is the definitive measure of model quality, regardless of architecture.</li>
+        <li>Reject it — the backward pass in a bidirectional model requires vitals from after each prediction point, meaning the reported AUROC reflects the model seeing the future it's supposed to predict, not real predictive skill.</li>
+        <li>Adopt it, but only for retrospective research use, since the concern is purely about training speed, not validity.</li>
+        <li>Reject it only if the forward and backward hidden states are concatenated rather than averaged.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> This is exactly the trap named in Lesson 3: a bidirectional model's higher score is not evidence of better modeling, it's evidence of information leakage, because the backward recurrence at hour <code>t</code> has already processed vitals from hours after <code>t</code> — data that would not exist yet at real deployment time. The "hard requirement that the model never peek at the future" makes this a correctness violation, not a modeling choice to weigh against the AUROC gain.</p>
+          <p>A is the trap answer: it treats a benchmark number as ground truth without asking whether the evaluation itself is valid, which is precisely the "looks correct but breaks when you check how the number was produced" failure this question is testing. C is wrong because the concern is about the model architecturally requiring future data, not about compute cost. D is a distractor — how the two directions are combined doesn't change the fact that the backward pass itself requires future information.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">This masked loss function is intended to ignore padded ICU timesteps, and it passes a quick sanity check where every sequence in the batch has the same true length. It silently gives wrong (over-weighted) loss values on any batch with sequences of mixed length. Find the bug.</p>
+      <pre><code>def masked_bce_loss(y_true, y_pred, mask, eps=1e-7):
+    y_pred = np.clip(y_pred, eps, 1 - eps)
+    per_step = -(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
+    per_step_masked = per_step * mask
+    T = y_true.shape[1]
+    return per_step_masked.sum() / (mask.shape[0] * T)   # <- suspect line</code></pre>
+      <ol class="choices" type="A">
+        <li>The masking multiplication itself (<code>per_step * mask</code>) is wrong and should be a division.</li>
+        <li>The normalization divides by <code>batch_size × T</code> (the padded shape) instead of <code>mask.sum()</code> (the actual count of real timesteps), so short sequences get diluted by their own padding in the denominator.</li>
+        <li><code>np.clip</code> should not be applied before masking.</li>
+        <li>The bug is in the sign of the log terms.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> The numerator correctly zeroes out padded terms via <code>per_step * mask</code>, but the denominator still uses the full padded shape (<code>batch_size × T</code>) instead of <code>mask.sum()</code>, the true number of real timesteps. On a uniform-length batch, <code>mask.sum() == batch_size × T</code>, so the bug is invisible — which is exactly why it survives a same-length sanity check. On a mixed-length batch, a 3-hour stay's already-small loss sum gets divided by the same large denominator as a 10-hour stay's, silently shrinking its effective contribution to training.</p>
+          <p>A misdescribes the masking mechanism (multiplication by a 0/1 mask is correct for zeroing padded terms). C is a red herring — clipping before or after masking doesn't change correctness since it only affects numerical stability of the log. D is wrong; the BCE sign convention shown is standard.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A 20-minute-old admission has no lactate draw yet. Which encoding of that missing lactate channel best follows the practice recommended in Lesson 3?</p>
+      <ol class="choices" type="A">
+        <li>Set lactate to 0 for that timestep; zero is a safe neutral default for an unobserved lab value.</li>
+        <li>Set lactate to the population mean lactate value, so the input distribution stays centered.</li>
+        <li>Include a missingness flag for the lactate channel plus a time-since-last-observed feature, and leave the raw value however the pipeline naturally represents "no reading."</li>
+        <li>Drop the lactate channel from the model entirely for patients without an early draw.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> Lesson 3 is explicit that zero-fill (A) and mean-fill (B) are both a form of the same mistake: they hand the network a plausible-looking number with no way to distinguish "this is the true value" from "this was never measured," which risks teaching the model a spurious relationship with whatever fill value was chosen. A mask-plus-delta encoding preserves the distinction and lets the network learn how much to trust a reading based on its own freshness.</p>
+          <p>A is the most tempting wrong answer because zero looks numerically inert, but lactate is never physiologically zero and a rising lactate is a key sepsis signal — a silently-zeroed channel could actively mislead the model into reading "no sepsis signal" from a channel that simply hasn't been drawn yet. D throws away a channel that becomes available and informative later in the stay, which is worse than encoding its absence.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Gradient clipping by global norm, applied during truncated BPTT on ICU sequences, is sufficient on its own to prevent the vanishing-gradient failure mode described in Lesson 1.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> Gradient clipping rescales a gradient vector down when its norm exceeds a threshold — it only ever makes large gradients smaller. A vanishing gradient is already near zero, and clipping has nothing to rescale down; it does not add signal back. Clipping addresses the exploding-gradient side of the spectral-radius problem from Lesson 1, not the vanishing side, which needs an architectural fix (gating, as in Lesson 2) instead.</p>
+          <p>The trap here is that clipping and gating are both "fixes for RNN gradient problems" in a general sense, which makes it easy to conflate them as interchangeable — they address opposite ends of the same underlying instability.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">You're truncating a 9-day ICU stay into 24-hour chunks for training and want the LSTM's memory to span the whole stay, not reset every 24 hours. Complete the missing step between processing chunk <code>k</code> and chunk <code>k+1</code> for the same patient.</p>
+      <pre><code>h, c = np.zeros((1, hidden_dim)), np.zeros((1, hidden_dim))
+for chunk in patient_chunks:            # chunks in stay order, 24h each
+    h, c, loss = run_lstm_chunk(chunk, h, c, params)
+    backward_and_update(loss, params)
+    # ______________________  <- fill in
+</code></pre>
+      <ol class="choices" type="A">
+        <li>Reset <code>h, c = np.zeros(...), np.zeros(...)</code> before the next chunk.</li>
+        <li>Detach <code>h</code> and <code>c</code> from the computation graph (stop gradient tracking) but keep their numerical values to carry into the next chunk.</li>
+        <li>Discard <code>h</code> and <code>c</code> and instead re-run the LSTM from the start of the stay for every chunk.</li>
+        <li>Average <code>h</code> and <code>c</code> with their initial zero values before continuing.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> This is stateful truncation: carrying the hidden and cell state's <em>values</em> forward preserves the memory of the whole stay across chunk boundaries, while detaching them from the graph is what keeps memory bounded to one chunk's worth of stored activations — you get the long-range memory without paying for 216 timesteps of stored backward-pass activations at once.</p>
+          <p>A is stateless truncation, which is exactly what discards the multi-day lactate trend Lesson 3 says stateful truncation is needed to preserve. C defeats the entire purpose of truncating in the first place, reintroducing the full memory cost from Lesson 1. D is not a real technique and would inject meaningless zero-drift into the carried state every chunk.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Deep Learning Foundations · Unit 7 of 8 — Unit 8 closes out the course with a synthesis of everything so far, stress-testing the full toolkit against harder, messier real-world scenarios.</p>
+</footer>
+</body>
+</html>

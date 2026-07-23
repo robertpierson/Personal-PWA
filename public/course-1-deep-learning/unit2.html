@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 2 · Forward propagation and loss functions — Deep Learning Foundations</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Deep Learning Foundations · Unit 2 of 8</p>
+  <h1>Forward propagation and loss functions</h1>
+  <p class="lede">You already know a single perceptron and how layers stack. Now you run a whole batch of hourly electricity readings through a network at once, turn its predictions into one number that says "how wrong," and see what that number can and can't tell you before we touch a single gradient.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. The forward pass as composed matrix operations</a></li>
+      <li><a href="#lesson-2">2. Loss functions: turning a prediction into one number</a></li>
+      <li><a href="#lesson-3">3. From per-sample loss to a training objective</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>The forward pass as composed matrix operations</h2>
+    <p class="opening">Say you're forecasting next-hour electricity demand for a mid-size community center. You've got a year of hourly readings — 8,760 rows, each with temperature, hour-of-day, and an occupancy estimate — and a network from Unit 1 that takes those three numbers in and produces a predicted kWh out. The naive way to get predictions for the whole year is a Python loop: grab row 1, run it through the network, store the output, grab row 2, repeat, 8,760 times. It works. It is also embarrassingly slow, because every one of those passes re-pays the same fixed overhead — function calls, memory allocation, cache misses — for a single row of arithmetic that a CPU or GPU could do thousands-wide in the same time. The fix is not a smarter loop. It's to stop thinking in rows at all.</p>
+    <p>Instead, stack rows into a matrix. Sixty-four hours of readings become a single array of shape <code>(64, 3)</code> — 64 rows, one per hour, 3 columns, one per feature (temperature in °C, hour-of-day as a number 0–23, occupancy as a headcount). This block of 64 hours is a <span class="term">batch</span>, and running it through the network in one shot is <span class="term">batched forward propagation</span>. The network doesn't know or care whether those 64 rows are consecutive hours or 64 hours sampled at random from across the year — matrix multiplication treats each row independently and identically. That independence is exactly what makes batching legal: the math applied to row 12 has zero interaction with the math applied to row 40.</p>
+    <h3>The (batch, features) @ (features, units) contract</h3>
+    <p>Recall from Unit 1 that a single dense layer computes <code>z = w·x + b</code> for one input vector <code>x</code>. Stack <code>B</code> input vectors as rows of a matrix <code>X</code> with shape <code>(B, in_features)</code>, and the same layer becomes a matrix multiplication: <code>Z = X @ W + b</code>, where <code>W</code> has shape <code>(in_features, units)</code> and <code>Z</code> comes out shaped <code>(B, units)</code>. Every row of <code>X</code> gets multiplied against every column of <code>W</code> and summed — that's what <code>@</code> (matrix multiply) does — so row <code>i</code> of <code>Z</code> depends only on row <code>i</code> of <code>X</code>. Nothing leaks across rows. This is the contract you check every single time you wire up a layer: the trailing dimension of the input must equal the leading dimension of the weight matrix, and whatever's left over on each side survives into the output shape.</p>
+    <p>For our demand forecaster: input features are 3 (temperature, hour, occupancy), so the first hidden layer's weight matrix is shaped <code>(3, 16)</code> if you choose 16 hidden units. Feed in <code>X</code> of shape <code>(64, 3)</code>, multiply by <code>W1</code> of shape <code>(3, 16)</code>, and you get <code>Z1</code> of shape <code>(64, 16)</code> — 64 rows, each now described by 16 learned features instead of the original 3. An activation function (ReLU, say, from Unit 1) applies elementwise and doesn't change that shape at all. A second layer with <code>W2</code> shaped <code>(16, 1)</code> takes you from <code>(64, 16)</code> down to <code>(64, 1)</code> — one predicted kWh value per hour in the batch.</p>
+    <h3>Broadcasting the bias</h3>
+    <p>There's a shape mismatch hiding in <code>Z = X @ W + b</code> that NumPy and every deep learning framework quietly paper over. <code>X @ W</code> produces shape <code>(64, 16)</code>, but the bias vector <code>b</code> is only shaped <code>(16,)</code> — one bias per hidden unit, not one per row, because every row should get the <em>same</em> bias added to its corresponding unit. <span class="term">Broadcasting</span> is the rule that lets NumPy add a <code>(16,)</code> vector to a <code>(64, 16)</code> matrix without you writing a loop: it treats the vector as if it were copied down all 64 rows, so <code>b[j]</code> gets added to every entry in column <code>j</code>. No copy actually happens in memory — the broadcast is computed on the fly — but conceptually it's "stretch the smaller shape until it matches, provided the trailing dimensions line up or one of them is 1." This is why bias shapes are always <code>(units,)</code>, never <code>(batch, units)</code>: the bias doesn't know or care how big the batch is, and it shouldn't have to.</p>
+    <h3>Why row-major, batch-first</h3>
+    <p>Every framework you'll touch — NumPy, PyTorch, TensorFlow — puts the batch dimension first: <code>(batch, features)</code>, not <code>(features, batch)</code>. Two reasons, one conceptual and one mechanical. Conceptually, it matches how you already think about the data: a CSV of hourly readings has one row per hour and one column per feature, and "row-major" storage (NumPy's default) lays memory out row by row, so row <code>i</code> is contiguous in memory — cheap to slice out, cheap to shuffle, cheap to drop into a mini-batch. Mechanically, keeping batch first means every layer's weight matrix shape is independent of batch size: a layer with a <code>(3, 16)</code> weight works whether your batch is 1 row or 8,760 rows, because batch size only ever shows up as the leading dimension of the activations, never baked into the weights. Change your batch size from 64 to 256 for a bigger training run and not one weight matrix has to change shape.</p>
+    <h3>Memory footprint and caching activations</h3>
+    <p>Every intermediate result — <code>Z1</code>, the activated <code>A1</code>, <code>Z2</code>, the final prediction — has to live in memory for at least as long as you need it. For a batch of 64 rows through a <code>(3→16→1)</code> network, that's cheap: <code>A1</code> is <code>64 × 16 = 1,024</code> floats, about 4KB at 32-bit precision. But scale up — a full year of hourly data (8,760 rows) through a network with hidden layers of 256 units each — and a single activation tensor is <code>8,760 × 256 ≈ 2.24 million</code> floats, roughly 9MB. Stack several such layers and the activation memory for one forward pass can dwarf the memory the weights themselves take up. This matters now, before we've written any backpropagation code, because Unit 3's gradient computation needs exactly these intermediate activations back — the chain rule multiplies local derivatives that depend on the values computed during the forward pass. So a real training loop doesn't discard <code>Z1</code> and <code>A1</code> after computing the final prediction; it caches them, trading memory for the ability to differentiate later. For now, just note that the forward pass isn't "compute an output and forget everything" — it's "compute an output and remember the trail."</p>
+    <pre><code>import numpy as np
+
+rng = np.random.default_rng(0)
+
+# batch of 64 hourly readings: temperature (C), hour-of-day (0-23), occupancy (headcount)
+batch_size = 64
+X = np.column_stack([
+    rng.normal(22, 6, batch_size),      # temperature
+    rng.integers(0, 24, batch_size),    # hour of day
+    rng.integers(0, 80, batch_size),    # occupancy
+]).astype(np.float64)
+print("X.shape:", X.shape)              # (64, 3)
+
+# layer 1: 3 input features -> 16 hidden units
+W1 = rng.normal(0, 0.1, (3, 16))
+b1 = np.zeros(16)
+Z1 = X @ W1 + b1                        # (64,3) @ (3,16) + (16,) -> (64,16)
+A1 = np.maximum(Z1, 0)                  # ReLU, elementwise, shape unchanged
+print("Z1.shape:", Z1.shape, " A1.shape:", A1.shape)
+
+# layer 2: 16 hidden units -> 1 output (predicted next-hour kWh)
+W2 = rng.normal(0, 0.1, (16, 1))
+b2 = np.zeros(1)
+Z2 = A1 @ W2 + b2                       # (64,16) @ (16,1) + (1,) -> (64,1)
+y_pred = Z2                             # linear output head, regression target
+print("Z2.shape:", Z2.shape)
+print("first 3 predictions (kWh):", y_pred[:3].ravel())
+
+# cache what Unit 3's backward pass will need
+cache = {"X": X, "Z1": Z1, "A1": A1, "Z2": Z2}
+print("cached activations:", list(cache.keys()))
+</code></pre>
+    <p class="caption">Each line prints the shape immediately after the operation that produced it — trace how <code>(64,3)</code> becomes <code>(64,16)</code> becomes <code>(64,1)</code>, and notice the cache dict at the bottom holding everything Unit 3 will need for gradients.</p>
+    <h3>What changes, what doesn't, as batch size scales</h3>
+    <p>Run this same code with <code>batch_size = 1</code> and every weight matrix is untouched — only <code>X</code>, <code>Z1</code>, <code>A1</code>, and <code>Z2</code> change their leading dimension. Run it with <code>batch_size = 8760</code> — a full year in one shot — same story. This is the single fact that makes batching a free lunch on modern hardware: the FLOPs scale with batch size, but the code, the weight shapes, and the logic are identical no matter how many hourly rows you throw at it. The only real limits are memory (can you fit <code>8760 × 256</code> floats per layer, times however many layers, times however many tensors you're caching) and, eventually, diminishing returns on how parallel your hardware actually is. In practice you'll pick a batch size like 32, 64, or 256 that fits comfortably and use it consistently — a decision that resurfaces in Unit 3 when batch size and learning rate turn out to be coupled.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Batching replaces a Python loop with one matrix multiplication</strong> — 64 hourly readings become a <code>(64, features)</code> matrix, and every row is processed identically and independently.</li>
+        <li><strong>The shape contract is <code>(batch, in_features) @ (in_features, units) → (batch, units)</code></strong> — the weight matrix's shape never depends on batch size, only on feature counts.</li>
+        <li><strong>Broadcasting</strong> lets a <code>(units,)</code> bias vector add correctly to a <code>(batch, units)</code> pre-activation without a copy or a loop.</li>
+        <li>Batch-first, row-major layout keeps memory contiguous per-sample and keeps layer weight shapes independent of batch size.</li>
+        <li>Intermediate activations (<code>Z1</code>, <code>A1</code>, <code>Z2</code>) must be cached during the forward pass — Unit 3's backward pass reuses them, and they carry a real memory cost at scale.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Loss functions: turning a prediction into one number</h2>
+    <p class="opening">A <span class="term">loss function</span> is a rule that takes a prediction and the true value it should have matched, and returns a single non-negative number that gets larger the more wrong the prediction was. That's the whole definition. Everything else — which specific formula you pick, how it behaves near zero, how it treats a wildly wrong prediction versus a slightly wrong one — is a design decision, and the right one depends on what kind of wrongness actually costs you something in your application. For our demand forecaster we have two prediction tasks running side by side: a regression task (predict next-hour kWh, a continuous number) and a binary classification task (predict whether this building will trip a peak-demand charge — a yes/no event that utilities often bill heavily for). Each needs its own family of loss functions.</p>
+    <h3>Regression losses: MSE, MAE, Huber</h3>
+    <p><span class="term">Mean Squared Error</span> (MSE) is the default regression loss for good reason: it's smooth everywhere, it has a clean derivative (which Unit 3 will use directly), and it penalizes big errors much more than small ones because the error gets squared.</p>
+    <p class="math">MSE = (1/N) Σ (y_i − ŷ_i)²</p>
+    <p>If your model predicts 42 kWh for an hour where the true value was 45 kWh, that's an error of 3, contributing 9 to the sum. If instead it badly misses a demand spike and predicts 42 kWh when the true value was 90 kWh — the building just spun up every rooftop unit at once — that's an error of 48, contributing 2,304. The squaring means one bad spike-hour can dominate the entire loss computed over thousands of otherwise-decent hours. Sometimes that's exactly what you want — demand spikes are precisely the hours a utility cares about, because they're what triggers a peak-demand charge — and sometimes it's a liability, because a single sensor glitch (occupancy briefly logged as 9,999 due to a counter bug) can drag your whole training signal toward fitting garbage.</p>
+    <p><span class="term">Mean Absolute Error</span> (MAE) takes the absolute value instead of squaring:</p>
+    <p class="math">MAE = (1/N) Σ |y_i − ŷ_i|</p>
+    <p>Now that same 48 kWh spike-miss contributes 48, not 2,304 — linear, not quadratic. MAE is far less sensitive to outliers, which makes it the safer choice when your training data has occasional bad sensor readings you can't fully clean out, or when you genuinely want "typical hour" accuracy rather than accuracy weighted toward rare extreme events. The trade-off: MAE's derivative is a constant magnitude (just the sign of the error) everywhere except exactly at zero error, where it's undefined — a property that will matter once Unit 3 discusses how gradient-based optimizers behave near a loss's minimum.</p>
+    <p><span class="term">Huber loss</span> is the compromise: quadratic (like MSE) for small errors, linear (like MAE) for large ones, switching at a threshold <code>δ</code> you choose.</p>
+    <p class="math">Huber(e) = ½e²  if |e| ≤ δ,  else  δ(|e| − ½δ)   where e = y − ŷ</p>
+    <p>For our demand forecaster, a sensible <code>δ</code> might be 5 kWh — errors smaller than that (normal hour-to-hour prediction noise) get the smooth, well-behaved MSE treatment, while errors bigger than that (a missed spike, a sensor glitch) get damped to linear growth so they don't dominate training. Huber is the practical default in demand forecasting pipelines precisely because both failure modes are real: you want precision on ordinary hours and robustness against the occasional spike or bad reading.</p>
+    <h3>Classification losses: cross-entropy</h3>
+    <p>For "will this building trip a peak-demand charge this hour" — a binary yes/no — the output is a probability <code>ŷ ∈ (0, 1)</code>, typically produced by a sigmoid activation on the final layer. <span class="term">Binary cross-entropy</span> (BCE) measures how well that probability matched the true label <code>y ∈ {0, 1}</code>:</p>
+    <p class="math">BCE = −(1/N) Σ [ y·log(ŷ) + (1−y)·log(1−ŷ) ]</p>
+    <p>Read it one term at a time. When the true label is 1 (the building did trip a peak charge), only the <code>y·log(ŷ)</code> term survives, and it rewards <code>ŷ</code> close to 1 with a loss near 0, while punishing <code>ŷ</code> close to 0 with a loss that blows up toward infinity. When the true label is 0, the <code>(1−y)·log(1−ŷ)</code> term takes over and does the mirror image. Unlike MSE, BCE's punishment for a confidently wrong prediction is unbounded — predict <code>ŷ = 0.001</code> for an hour that does trip a peak charge and <code>log(0.001) ≈ −6.9</code> makes that single sample dominate the loss.</p>
+    <p>If instead of two classes you had several — say, categorizing each hour into "normal," "elevated," or "peak-risk" demand tiers — you'd use <span class="term">categorical cross-entropy</span>, the same idea generalized: a softmax layer turns raw output scores into a probability distribution over all classes, and the loss is the negative log-probability the model assigned to the true class:</p>
+    <p class="math">CCE = −(1/N) Σ log( ŷ_i,c )   where c is the true class of sample i</p>
+    <h3>The softmax + log-sum-exp stability trick</h3>
+    <p>Softmax converts raw scores (<span class="term">logits</span>) into probabilities via <code>softmax(z)_j = exp(z_j) / Σ_k exp(z_k)</code>. Computed literally, this is a numerical landmine: if a logit is, say, 800 (easy to hit with poorly-scaled features or a few bad training steps), <code>exp(800)</code> overflows a 64-bit float completely — you get <code>inf</code>, then <code>inf/inf</code> is <code>nan</code>, and your whole training run silently corrupts. The fix, universally used in every real framework, is to subtract the maximum logit before exponentiating:</p>
+    <p class="math">softmax(z)_j = exp(z_j − max(z)) / Σ_k exp(z_k − max(z))</p>
+    <p>This is mathematically identical — the max cancels out of numerator and denominator — but now the largest exponent computed is <code>exp(0) = 1</code>, and everything else is a fraction, so nothing overflows. When you then take the log of a softmax output for cross-entropy, framework code fuses the two steps into a single <code>log_softmax</code> that never actually materializes the raw probabilities, computing <code>log Σ exp(z_k)</code> (the <span class="term">log-sum-exp</span>) in a similarly shifted, overflow-safe way. You rarely write this by hand, but you should recognize the pattern <code>logits − max(logits)</code> whenever you see it — it's this trick, not a stylistic choice.</p>
+    <pre><code>import numpy as np
+
+# five hourly predictions vs. true kWh (regression) and true peak-trip label (classification)
+y_true_kwh   = np.array([45.0, 52.0, 38.0, 90.0, 47.0])   # actual demand
+y_pred_kwh   = np.array([42.0, 55.0, 39.0, 42.0, 46.5])   # model missed the spike at index 3
+
+y_true_peak  = np.array([0, 0, 0, 1, 0])                  # did this hour trip a peak charge?
+y_pred_prob  = np.array([0.04, 0.10, 0.02, 0.55, 0.08])   # predicted probability of tripping
+
+def mse(y, yhat):
+    return np.mean((y - yhat) ** 2)
+
+def mae(y, yhat):
+    return np.mean(np.abs(y - yhat))
+
+def huber(y, yhat, delta=5.0):
+    e = y - yhat
+    quad = 0.5 * e**2
+    lin = delta * (np.abs(e) - 0.5 * delta)
+    return np.mean(np.where(np.abs(e) <= delta, quad, lin))
+
+def stable_bce(y, yhat, eps=1e-12):
+    yhat = np.clip(yhat, eps, 1 - eps)     # guard log(0)
+    return -np.mean(y * np.log(yhat) + (1 - y) * np.log(1 - yhat))
+
+print(f"MSE:   {mse(y_true_kwh, y_pred_kwh):.3f}")
+print(f"MAE:   {mae(y_true_kwh, y_pred_kwh):.3f}")
+print(f"Huber: {huber(y_true_kwh, y_pred_kwh):.3f}")
+print(f"BCE:   {stable_bce(y_true_peak, y_pred_prob):.3f}")
+</code></pre>
+    <p class="caption">Same predictions, four different loss numbers — MSE (18.8) is dragged up hard by the single missed spike at index 3, MAE (3.5) barely notices it, Huber (10.75) sits between the two, and BCE reports the classification loss on an entirely different scale because it's measuring probability calibration, not kWh error.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li>A loss function is just "prediction + truth → one number," but <strong>which</strong> number depends entirely on which errors you want to punish harder.</li>
+        <li><strong>MSE</strong> squares errors and lets large misses (like a missed demand spike) dominate; <strong>MAE</strong> treats all error sizes proportionally and is robust to sensor-glitch outliers; <strong>Huber</strong> blends both, quadratic near zero and linear past a threshold <code>δ</code>.</li>
+        <li><strong>Binary cross-entropy</strong> punishes confidently wrong probability predictions with unbounded loss — a critical property for a rare, costly event like a peak-demand trip.</li>
+        <li><strong>Categorical cross-entropy</strong> generalizes BCE to multiple classes via softmax, and always needs the <strong>max-subtraction stability trick</strong> to avoid overflow in <code>exp()</code>.</li>
+        <li>The same set of predictions produces meaningfully different loss values depending which function you apply — the choice is a modeling decision, not a formality.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>From per-sample loss to a training objective</h2>
+    <p class="opening">Think of a per-sample loss like a single household's electric bill: it tells you exactly how much that one household owes, but it doesn't tell you anything about the utility's overall revenue until you decide how to combine every household's bill into one number. Do you sum all the bills, or average them? Does a home that used ten times the power count ten times as much, or the same as everyone else? Those combination choices — decisions you make after you already have a per-sample loss for every row in your batch — are what turn "how wrong was this one prediction" into "what number does the optimizer actually try to shrink." That combined number is the <span class="term">training objective</span>, and how you build it has consequences that don't show up until training is already underway.</p>
+    <h3>Reduction: mean vs. sum, and its hidden coupling to learning rate</h3>
+    <p>Given per-sample losses for a batch of 64 hourly readings, you have to <span class="term">reduce</span> them to one scalar before anything downstream can use them. The two obvious choices are <code>mean</code> (divide by batch size) and <code>sum</code> (don't). They look interchangeable — surely the optimizer just cares about the direction it needs to move? — but they aren't, because the size of the loss value directly scales the size of the gradient Unit 3 will compute from it. Sum over a batch of 64 produces a loss, and therefore a gradient, roughly 64 times larger than mean over the same batch. If you switch your batch size from 64 to 256 while using <code>sum</code> reduction, your gradients suddenly jump roughly 4x in magnitude with no change to the model or the learning rate — which, in practice, blows up training or forces you to hand-retune the learning rate every time you touch batch size. <code>mean</code> reduction keeps the loss (and its gradient) at a roughly constant scale regardless of batch size, which is why it's the near-universal default. The rule worth internalizing now, ahead of Unit 3: reduction and learning rate are coupled, and changing one without the other is a common, quiet source of training instability.</p>
+    <h3>Class weighting and pos_weight for imbalanced peak events</h3>
+    <p>Peak-demand trips are rare — maybe 3% of hours in a year actually trigger one. Train on unweighted BCE and the model can get 97% of hours "right" simply by predicting "no trip" every single time, because the loss barely notices the 3% of hours it's getting catastrophically wrong. <span class="term">Class weighting</span> fixes this by multiplying the loss contribution of the minority class before averaging, so the rare-but-important peak-trip hours count for more:</p>
+    <p class="math">BCE_weighted = −(1/N) Σ [ w_pos·y·log(ŷ) + w_neg·(1−y)·log(1−ŷ) ]</p>
+    <p>A common convention, often called <code>pos_weight</code> in framework APIs, sets the positive-class weight to the ratio of negatives to positives — if 3% of hours trip a peak charge, <code>pos_weight ≈ 97/3 ≈ 32</code>, meaning each true positive's error counts roughly 32 times as much as each true negative's. This doesn't change what the loss function fundamentally measures; it changes which mistakes the training objective treats as expensive, nudging the model toward catching more true peak events at the cost of a few more false alarms — a trade-off that's usually worth it, since missing a peak-demand trip costs the client real money and a false alarm costs nothing but a wasted glance.</p>
+    <h3>Sample weighting</h3>
+    <p>Class weighting assigns one weight per class. <span class="term">Sample weighting</span> is more general: every individual row gets its own weight, chosen for whatever reason matters to your problem. You might down-weight hours from a known-faulty temperature sensor so a bad batch of readings doesn't corrupt training, or up-weight readings from summer afternoons — precisely the hours when demand spikes and peak charges are most likely — so the model spends its limited capacity getting those hours right rather than spreading effort evenly across a year that's mostly unremarkable overnight readings. Mechanically it's just one more multiplication before the reduction: multiply each per-sample loss by its weight, then average.</p>
+    <h3>What a loss curve tells you — and what it doesn't</h3>
+    <p>A <span class="term">loss curve</span> — training loss plotted against training step or epoch — tells you whether the optimization process (which Unit 3 covers in full) is making progress: is the number the optimizer is trying to shrink actually getting smaller? That's it. It does not tell you the model is good, and it does not tell you the model generalizes to hours it hasn't seen. A loss curve dropping steadily to near zero on training data is equally consistent with "the model learned real structure in temperature, hour, and occupancy" and with "the model memorized this exact year's 8,760 rows and will fall apart on next year's data" — a failure mode called overfitting that later units address directly. A falling loss curve is necessary evidence of learning; it is not sufficient evidence of a good model.</p>
+    <h3>The loss you optimize vs. the metric you report</h3>
+    <p>This is the distinction that trips up almost everyone the first time: the loss function and the reported metric don't have to be the same thing, and often shouldn't be. You might train the regression head with MSE — because its smooth gradient makes optimization well-behaved — but report performance to a client in <span class="term">MAE</span>, because "on average, we're off by 3.2 kWh" is a number a facilities manager can actually reason about, while a client rarely wants to hear "our mean squared error is 14.7." Similarly, you'd typically train the peak-trip classifier with BCE, but report performance with <span class="term">AUC</span> (area under the ROC curve) or precision/recall at a chosen threshold, because AUC measures ranking quality across every possible decision threshold at once, which is what a client actually cares about when deciding how aggressive to set an alert. The loss is the thing gradient descent climbs down; the metric is the thing a human uses to judge whether the destination was worth reaching. They're related — a lower loss usually, not always, means a better metric — but conflating them is a category error you want to catch now, before Unit 3 hands you the machinery to actually minimize the loss.</p>
+    <pre><code>import numpy as np
+
+def compute_loss(y_true, y_pred, sample_weights=None, reduction="mean", pos_weight=None):
+    """Per-sample MSE with optional sample weighting, class weighting (pos_weight),
+    and a choice of reduction. Illustrates composition, not a specific loss family."""
+    per_sample = (y_true - y_pred) ** 2
+
+    if pos_weight is not None:
+        # treat y_true as a 0/1 label; scale the positive-class rows up
+        class_w = np.where(y_true == 1, pos_weight, 1.0)
+        per_sample = per_sample * class_w
+
+    if sample_weights is not None:
+        per_sample = per_sample * sample_weights
+
+    if reduction == "mean":
+        return np.mean(per_sample)
+    elif reduction == "sum":
+        return np.sum(per_sample)
+    else:
+        raise ValueError(f"unknown reduction: {reduction}")
+
+# fake 5-epoch trace: loss should trend down as a (toy, hand-picked) model improves
+rng = np.random.default_rng(1)
+y_true = np.array([45.0, 52.0, 90.0, 47.0, 38.0])   # note: index 2 is a peak-demand hour
+sample_w = np.array([1.0, 1.0, 3.0, 1.0, 1.0])       # up-weight the peak hour
+
+print(f"{'epoch':>5}  {'mean loss':>10}  {'sum loss':>10}")
+for epoch in range(1, 6):
+    noise_scale = 8.0 / epoch                        # predictions get closer to truth each epoch
+    y_pred = y_true + rng.normal(0, noise_scale, size=5)
+    mean_l = compute_loss(y_true, y_pred, sample_weights=sample_w, reduction="mean")
+    sum_l  = compute_loss(y_true, y_pred, sample_weights=sample_w, reduction="sum")
+    print(f"{epoch:>5}  {mean_l:>10.3f}  {sum_l:>10.3f}")
+</code></pre>
+    <p class="caption">Watch two things: the mean-loss column shrinks steadily as simulated training "improves," while the sum-loss column is consistently ~5x larger for the same predictions — same model, same errors, different scale, purely because of the reduction choice.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Reduction (mean vs. sum)</strong> rescales the gradient the optimizer sees; <code>mean</code> keeps loss magnitude stable across batch sizes, <code>sum</code> doesn't — this is why <code>mean</code> is the default and why the choice is coupled to learning rate.</li>
+        <li><strong>Class weighting / pos_weight</strong> compensates for rare-but-costly events (peak-demand trips) that an unweighted average loss would let the model ignore.</li>
+        <li><strong>Sample weighting</strong> generalizes class weighting to per-row control — down-weight bad sensor data, up-weight the hours you most need right.</li>
+        <li>A falling <strong>loss curve</strong> proves the optimizer is making progress on its objective; it does not prove the model generalizes.</li>
+        <li>The <strong>loss you optimize</strong> (MSE, BCE — chosen for gradient behavior) and the <strong>metric you report</strong> (MAE in kWh, AUC — chosen for human interpretability) are different tools for different jobs, and treating them as interchangeable is a common mistake.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 2 quiz</h2>
+    <p class="quiz-intro">Seven questions covering batched forward propagation, shape contracts, regression and classification losses, numerical stability, and reduction/weighting choices.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A dense layer has weight matrix <code>W</code> of shape <code>(3, 16)</code> and you feed it a batch of 64 hourly readings, each with 3 features. What is the shape of the pre-activation output <code>Z</code>?</p>
+      <ol class="choices" type="A">
+        <li>(3, 16)</li>
+        <li>(64, 3)</li>
+        <li>(64, 16)</li>
+        <li>(16, 64)</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> <code>X</code> is <code>(64, 3)</code>, <code>W</code> is <code>(3, 16)</code>; matrix multiplication cancels the shared inner dimension (3) and keeps the outer dimensions, giving <code>(64, 16)</code> — 64 rows, 16 learned features per row.</p>
+          <p>(B) is a tempting distractor because it's just the input shape unchanged — but the whole point of the layer is to transform the feature dimension from 3 to 16, so the output can't have the same shape as the input.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">A bias vector for a layer with 16 hidden units should have shape <code>(64, 16)</code> so that it can be added directly to a batch of 64 pre-activations without broadcasting.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> The bias should be shape <code>(16,)</code> — one value per hidden unit, independent of batch size. Broadcasting is exactly the mechanism that lets a <code>(16,)</code> vector add correctly to a <code>(64, 16)</code> matrix without ever materializing a <code>(64, 16)</code> copy of the bias.</p>
+          <p>Giving the bias a batch dimension would mean it has to be re-shaped every time the batch size changes, defeating the point of the batch-independent weight/bias design and wasting memory for no benefit.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">A forward pass must cache its intermediate activations (like <code>Z1</code> and <code>A1</code>) because Unit 3's <span class="blank">&nbsp;</span> computation reuses these exact values via the chain rule.</p>
+      <ol class="choices" type="A">
+        <li>loss reduction</li>
+        <li>backward pass / gradient</li>
+        <li>softmax normalization</li>
+        <li>batch shuffling</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B, backward pass / gradient.</strong> Backpropagation applies the chain rule layer by layer, and each layer's local derivative depends on the actual activation values computed during the forward pass — so those values must be kept in memory, not discarded.</p>
+          <p>Loss reduction (A) happens after the forward pass produces predictions and doesn't need intermediate layer activations, only the final output and the true labels.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Your demand forecaster's training data has a handful of hours where a faulty occupancy sensor logged a wildly wrong headcount, producing occasional huge prediction errors that don't reflect real model failure. Which regression loss is most robust to those occasional large outliers?</p>
+      <ol class="choices" type="A">
+        <li>MSE, because squaring rewards large errors with more learning signal</li>
+        <li>MAE, because it penalizes all error magnitudes proportionally rather than quadratically</li>
+        <li>Categorical cross-entropy, because it handles multiple classes</li>
+        <li>Sum-reduced MSE, because summing dilutes any one outlier's effect</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> MAE grows linearly with error size, so one sensor-glitch hour with a huge error contributes proportionally to the total loss rather than dominating it the way a squared error would.</p>
+          <p>(A) is backwards — MSE is exactly the loss that is most sensitive to outliers, since squaring a large error inflates it disproportionately, which is the opposite of what you want with unreliable sensor data.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">This softmax implementation works fine on small logits but returns <code>nan</code> once logits get large (e.g. from a poorly scaled layer). What line is the bug, and what's the one-line fix?</p>
+      <pre><code>def softmax(z):
+    exp_z = np.exp(z)
+    return exp_z / np.sum(exp_z)</code></pre>
+      <ol class="choices" type="A">
+        <li>Nothing is wrong; large logits are a data problem, not a code problem</li>
+        <li>Subtract <code>np.max(z)</code> from <code>z</code> before exponentiating</li>
+        <li>Replace <code>np.exp</code> with <code>np.log</code></li>
+        <li>Divide by <code>len(z)</code> instead of <code>np.sum(exp_z)</code></li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> <code>exp_z = np.exp(z - np.max(z))</code> keeps the largest exponent at <code>exp(0) = 1</code> instead of overflowing on large logits, while leaving the mathematical result identical because the constant cancels between numerator and denominator.</p>
+          <p>(D) would change what the function computes entirely (it's no longer a valid probability distribution) rather than fixing the numerical issue — the bug is about overflow in <code>exp()</code>, not about the normalization constant's identity.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Only 3% of hours in your dataset actually trip a peak-demand charge. Trained with plain unweighted BCE, your classifier reaches 97% accuracy by predicting "no trip" for every hour. What's the most direct fix, given what this lesson covered?</p>
+      <ol class="choices" type="A">
+        <li>Switch reduction from mean to sum so rare events contribute more</li>
+        <li>Apply a pos_weight to the positive (trip) class so its errors count more in the loss</li>
+        <li>Switch from BCE to MSE, since MSE handles imbalance natively</li>
+        <li>Increase the batch size until peak-trip hours appear more often</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> A <code>pos_weight</code> (often set to the negative:positive ratio, here roughly 32) scales up the loss contribution of true peak-trip hours, so the model can no longer get a low loss just by always predicting "no trip."</p>
+          <p>(A) is a distractor because switching mean to sum rescales the whole loss uniformly — it doesn't change the relative weight between classes at all, so the imbalance problem is untouched.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">True / false</span></p>
+      <p class="q-stem">If your peak-demand classifier's training loss (BCE) steadily decreases over 50 epochs, that alone confirms the model will correctly flag peak-demand events on next year's data.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> A falling loss curve only shows that the optimizer is successfully shrinking the training objective — it's equally consistent with genuine learning and with the model memorizing this specific year's data (overfitting), which would fail on new data.</p>
+          <p>The tempting trap here is treating "loss went down" as proof of a good model — the loss curve and generalization are related but distinct, and only the latter is confirmed by evaluating on held-out data the model never trained on.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Deep Learning Foundations · Unit 2 of 8 — Unit 3 picks up the chain rule and shows how the cached activations from this unit's forward pass turn into gradients and a working training loop.</p>
+</footer>
+</body>
+</html>

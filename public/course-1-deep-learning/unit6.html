@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 6 · Convolutional neural networks: the basics — Deep Learning Foundations</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Deep Learning Foundations · Unit 6 of 8</p>
+  <h1>Convolutional neural networks: the basics</h1>
+  <p class="lede">Dense layers can't scale to real images and can't recognize a pattern that moves. This unit builds the convolution operation from scratch, works out the arithmetic of shapes and receptive fields, and assembles those pieces into a working leaf-disease classifier.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. Convolution as local connectivity and weight sharing</a></li>
+      <li><a href="#lesson-2">2. Padding, stride, pooling, and receptive fields</a></li>
+      <li><a href="#lesson-3">3. Assembling a working CNN</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>Convolution as local connectivity and weight sharing</h2>
+    <p class="opening">Take a single field photo of a cassava leaf — 224 pixels tall, 224 wide, 3 color channels — and flatten it into a vector to feed a dense layer, the way Unit 2 taught you to. That flattened vector has 224 × 224 × 3 = 150,528 entries. A dense layer with just one hidden unit needs one weight per entry: 150,528 weights, plus a bias, for a single unit that has learned nothing yet. Give the hidden layer 512 units, which is a modest size, and you're at 77 million weights before the network has seen a second image. That's the first problem, and it's just a parameter-budget problem. The second problem is worse, because it doesn't go away no matter how much compute you throw at it: a dense layer's weights are tied to <em>positions</em>, not to <em>patterns</em>. If it learns to recognize the ragged yellow-green mosaic blotch of cassava mosaic disease when it appears at pixel (40, 60), that knowledge is stored in the weights connected to input positions around (40, 60). A different photo where a farmworker's phone is tilted 15 degrees, or where the same lesion sits 20 pixels to the right because the leaf is oriented differently in frame, presents the network with an entirely different set of input positions. The dense layer has to re-learn the same lesion pattern separately for every place it might appear. That's not a network being thorough — it's a network wasting its entire capacity re-discovering the same fact hundreds of thousands of times.</p>
+    <p>Convolution fixes both problems with one idea: instead of connecting every output to every input, connect each output to a small local patch of the input — typically 3×3 or 5×5 pixels — and instead of learning a separate weight matrix for every patch position, learn <em>one small set of weights</em> and reuse it at every position. That small reusable weight matrix is called a <span class="term">kernel</span> (or filter). A 3×3 kernel over a single-channel image has 9 numbers in it, full stop, regardless of whether the image is 28×28 or 4000×3000. Those 9 numbers get placed over every 3×3 patch of the input in turn, an elementwise multiply is computed between the kernel and the patch, and the 9 products are summed into one output number — the sliding dot product. Slide the kernel one pixel to the right, repeat. Slide it down one row, repeat. The result is a 2-D grid of dot-product outputs called a <span class="term">feature map</span>, and it was produced by exactly 9 learned numbers, not 9 numbers per position.</p>
+    <h3>Weight sharing and the equivariance it buys you</h3>
+    <p>This reuse is called <span class="term">weight sharing</span>, and it is the mechanism, not a side effect, behind the property people usually just call "convolution handles shifted inputs." The precise property is <span class="term">translation equivariance</span>, and it's worth being exact about it because it is commonly and wrongly conflated with translation <em>invariance</em>. Equivariant means: if you shift the input by some amount, the output shifts by the corresponding amount, but the pattern of activation is otherwise identical. If a wheat rust pustule cluster sits at position (30, 30) in one photo and the exact same cluster (same lighting, same crop) sits at (50, 30) in another because the phone was held differently, a single convolution layer with a kernel that has learned to detect that pustule texture will fire at (30, 30) in the first feature map and at (50, 30) in the second — same strength of response, same shape of response, just relocated. That is equivariance: form preserved, position tracked. Invariance is a stronger and different claim: the output stays the <em>same regardless of where the input appears</em>, position discarded entirely. A single conv layer does not give you that. What gives you approximate invariance is what you stack on top — pooling, later conv layers with growing receptive fields, and eventually a global-average-pool that collapses spatial position out of the representation entirely. That's Lesson 2 and Lesson 3's job. For now the important fact is: weight sharing is what makes a lesion-detecting kernel learned from one training photo immediately useful on every other photo, regardless of where in frame the lesion happens to sit — because the same 9 numbers get tried everywhere.</p>
+    <p>Real input images aren't single-channel, and neither are the feature maps that come out of a conv layer once you stack more than one. A photo has 3 input channels (R, G, B). A kernel operating on a 3-channel input is not 3×3 — it's 3×3×3, one 3×3 slice per input channel, and the dot product sums across all three slices into a single output number per position. That single number is the output of <em>one filter</em>. A conv layer almost always learns many filters at once — say 32 — each with its own independent 3×3×3 weights, each producing its own 2-D feature map, stacked together into a 224×224×32 output volume (ignoring padding and stride for a moment, covered next lesson). So a conv layer is described by four numbers: kernel size, input channels, output channels, and the spatial extent it operates over. The "channels in" number tells you how deep each individual filter reaches into the input volume; the "channels out" number tells you how many independently learned filters this layer applies.</p>
+    <h3>What early filters learn versus what deep filters learn</h3>
+    <p>You can inspect what a trained network's early kernels actually converged to, and across an enormous range of tasks and architectures the answer is strikingly consistent: the very first conv layer's filters learn to detect oriented edges (a bright-to-dark transition at some angle) and color-opponent blobs (green-versus-not-green, yellow-versus-not-yellow) — exactly the primitives a human would sketch if asked to describe "what distinguishes a healthy leaf from a diseased one at the pixel level." This isn't a coincidence specific to leaves; it happens on faces, digits, and satellite photos too, because oriented edges and color contrast are the cheapest, most universally useful local statistics an image can offer. A kernel that fires on a sharp green-to-brown transition is directly useful for tomato blight, whose necrotic lesions are exactly that transition. A kernel that fires on a yellow-green mottling pattern at a particular spatial frequency starts to pick out cassava mosaic's blotchy chlorosis. But one layer of edge-and-color detectors can't yet say "this is a rust pustule" — pustules are a spatial arrangement of many small edges and color blobs, not a single edge. That's where depth matters: each subsequent conv layer takes the previous layer's feature maps as its own multi-channel input and combines those primitives into progressively more complex, more disease-specific patterns — a rust pustule's ring shape, a blight lesion's concentric zonation, a whole quadrant of mottled leaf tissue — culminating in filters late in the network that are, functionally, disease detectors rather than edge detectors. Nobody hand-designs this progression; it falls out of gradient descent because complex patterns are cheaper to represent as combinations of simple ones than as a single flat filter would allow.</p>
+    <h3>Seeing the mechanism directly</h3>
+    <p>The clearest way to trust that "sliding dot product" claim is to implement it without any framework doing the work for you. The snippet below runs a single edge-detecting kernel by hand, with explicit loops, over a tiny single-channel crop standing in for the green channel of a wheat leaf photo where a dark horizontal streak (an early rust lesion) crosses the middle rows.</p>
+    <pre><code>import numpy as np
+
+# 8x8 crop, single channel (green channel, normalized 0-1).
+# Rows 2-3 are noticeably darker: an early wheat-rust streak
+# crossing the leaf under uneven outdoor light.
+leaf_crop = np.array([
+    [0.82, 0.80, 0.79, 0.81, 0.83, 0.80, 0.78, 0.81],
+    [0.81, 0.79, 0.80, 0.82, 0.81, 0.79, 0.80, 0.82],
+    [0.35, 0.33, 0.34, 0.36, 0.35, 0.33, 0.34, 0.36],
+    [0.30, 0.31, 0.29, 0.32, 0.30, 0.31, 0.29, 0.32],
+    [0.79, 0.81, 0.80, 0.78, 0.80, 0.82, 0.81, 0.79],
+    [0.80, 0.78, 0.81, 0.79, 0.82, 0.80, 0.78, 0.81],
+    [0.81, 0.80, 0.79, 0.81, 0.80, 0.79, 0.81, 0.80],
+    [0.79, 0.81, 0.80, 0.82, 0.79, 0.81, 0.80, 0.82],
+])
+
+# 3x3 horizontal-edge kernel ("Sobel-Y" style): a positive top row
+# and negative bottom row fire on a bright-above-dark transition.
+edge_kernel = np.array([
+    [ 1,  1,  1],
+    [ 0,  0,  0],
+    [-1, -1, -1],
+])
+
+def conv2d_valid(image, kernel):
+    H, W = image.shape
+    K = kernel.shape[0]
+    out_h, out_w = H - K + 1, W - K + 1
+    output = np.zeros((out_h, out_w))
+    for i in range(out_h):
+        for j in range(out_w):
+            patch = image[i:i+K, j:j+K]
+            output[i, j] = np.sum(patch * kernel)  # the sliding dot product
+    return output
+
+edges = conv2d_valid(leaf_crop, edge_kernel)
+print(edges.round(2))</code></pre>
+    <p class="caption">Notice the output rows near index 1 and 4 spike to roughly ±1.4 — that's the kernel straddling the bright-to-dark and dark-to-bright transitions around the lesion streak — while rows entirely inside the bright or entirely inside the dark region land near zero. One 9-number kernel, reused at all 36 valid positions, located the lesion boundary.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>A conv kernel is a small, reusable set of learned weights</strong> (e.g. 3×3×C_in numbers) applied via a sliding dot product — this is what makes convolution cheap compared to a dense layer's one-weight-per-pixel-per-position scheme.</li>
+        <li><strong>Weight sharing, not invariance, is the mechanism.</strong> The same kernel is tried at every spatial position, so a pattern learned once is detected everywhere without separate training for each location.</li>
+        <li><strong>Equivariance ≠ invariance:</strong> shifting the input shifts a conv layer's output correspondingly (equivariant); the output staying the same regardless of position (invariant) only emerges after pooling/global-aggregation is stacked on top.</li>
+        <li>Channels-in tells you how deep one filter reaches into the input volume; channels-out tells you how many independently learned filters a layer applies, each producing its own feature map.</li>
+        <li>Early layers learn generic edge and color-opponent detectors (useful for blight's necrotic edges, mosaic's chlorotic color shift); depth is what turns those primitives into disease-specific pattern detectors.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Padding, stride, pooling, and receptive fields</h2>
+    <p class="opening"><span class="term">Padding</span> is the number of extra pixel rows/columns of (usually zero-valued) border added around an input before a kernel slides over it. <span class="term">Stride</span> is the number of pixels the kernel jumps between one application and the next. <span class="term">Pooling</span> is a fixed, non-learned downsampling operation — most commonly taking the max or the average over a small window. Those three definitions, plus the kernel size from Lesson 1, are all you need to compute the exact shape of every feature map in a network before you run a single line of training code, which matters enormously in practice: a shape mismatch between two layers is one of the most common bugs in CNN code, and it's entirely preventable by arithmetic.</p>
+    <h3>Valid versus same padding, and the output-size formula</h3>
+    <p>The plain "valid" convolution used in Lesson 1's NumPy example has zero padding, and it shrinks the output: a K×K kernel run over an H×H input with stride 1 and no padding produces an output of size (H − K + 1). Run enough valid convolutions in a row and your feature map eventually shrinks to nothing, which is rarely what you want in the early layers of a network — you'd like to control shrinkage deliberately rather than have it forced on you by kernel size. <span class="term">Same padding</span> adds just enough zero border so that, at stride 1, the output spatial size equals the input spatial size (for odd kernel sizes like 3×3 or 5×5, that's P = (K−1)/2 pixels on each side). The general formula that covers both cases, plus stride, plus dilation, is:</p>
+    <p class="math">out = floor( (H + 2P − K) / S ) + 1</p>
+    <p>where H is input side length, P is padding per side, K is kernel size, and S is stride. Plug in real numbers from a field-photo pipeline: a 224×224 crop, a 5×5 kernel, padding 2 (which would be "same" at stride 1), stride 2 for downsampling. out = floor((224 + 2·2 − 5) / 2) + 1 = floor(223/2) + 1 = floor(111.5) + 1 = 111 + 1 = <strong>112</strong>. Stride 2 halved the spatial size, same as it would with any kernel/padding combination tuned to "same at stride 1" — that's the general rule worth memorizing: stride S downsamples by roughly a factor of S regardless of kernel size, as long as padding is chosen to make the kernel itself shape-neutral.</p>
+    <p><span class="term">Dilation</span> is a fourth, less commonly needed knob: it inserts gaps between kernel elements, so a 3×3 kernel with dilation 2 samples input pixels spaced 2 apart, covering a 5×5 span in the input while still only holding 9 learned weights. It's a cheap way to grow receptive field without growing parameter count or losing resolution, and it shows up in semantic segmentation architectures — not central to this unit, but worth recognizing the term when you see it in a paper's method section.</p>
+    <h3>Max pooling, average pooling, and why stride-2 convs replaced them</h3>
+    <p>Pooling takes a small window (commonly 2×2) and reduces it to one number with a fixed rule: <span class="term">max pooling</span> keeps the largest activation in the window, <span class="term">average pooling</span> keeps the mean. Both downsample identically to a strided convolution in terms of output shape — a 2×2 window, stride 2, halves H and W exactly like the stride-2 conv computed above. The difference is that pooling has zero learnable parameters: it applies the same fixed max/average rule everywhere, on every channel, forever. For years that was considered a feature — a bit of built-in, parameter-free robustness to a lesion sitting one pixel off from where max-pooling's window happens to grab its peak. But it's also a limitation: the network has no say in *what to keep*. If two adjacent features both matter — say, both the sharpest edge of a rust pustule and the surrounding color falloff — max pooling discards everything except the single largest value in that window, whatever it was. Many modern architectures (starting prominently with all-convolutional-net-style designs) instead use a stride-2 convolution to do the downsampling: it learns which combination of input values to keep as it shrinks the map, folding "extract a feature" and "reduce resolution" into one learnable operation rather than two separate steps (one learned, one fixed). The tradeoff is real, not free: a stride-2 conv adds parameters and compute that a pooling layer doesn't, so architectures that care about squeezing out every last parameter (deployment onto a farmworker's phone, for instance) still use pooling deliberately in places.</p>
+    <h3>Receptive field: why it must grow to cover the lesion</h3>
+    <p>The <span class="term">receptive field</span> of a unit in some layer is the size of the region in the *original input image* that can affect that unit's value. A single 3×3 conv layer's units each have a 3×3 receptive field — obviously, since that's literally the kernel's footprint. But stack a second 3×3 conv layer on top, and a unit in that second layer looks at a 3×3 window of the first layer's output, and each of those first-layer units in turn looked at its own 3×3 window of the original image — so the second layer's receptive field is 5×5 in the original image, not 3×3, because the windows overlap and compound. This compounding is exactly why depth matters for classification, independent of the "learn hierarchical features" argument from Lesson 1: a lesion that spans 60 pixels of a 224-pixel photo simply cannot be recognized as one coherent thing by a unit whose receptive field is only 10 pixels wide, no matter how well-trained that unit is — it literally never sees more than a 10-pixel sliver of the lesion at once. The formula for tracking receptive field growth across a stack, layer by layer, is:</p>
+    <p class="math">RF_out = RF_in + (K − 1) × jump_in<br>jump_out = jump_in × S</p>
+    <p>where <code>jump</code> tracks the effective input-pixel spacing between adjacent units at the current layer (it starts at 1 and multiplies by each layer's stride). Every stride-2 operation you pass through doesn't just double the jump for that one layer — it doubles the *effective reach* of every kernel-width added afterward, which is why receptive field grows fast once a few downsampling steps have happened, even though each individual kernel is small.</p>
+    <h3>Working the numbers for a real 5-block network</h3>
+    <p>Put it together for a plausible early-stage cassava/wheat/tomato classifier: 5 blocks, each block a 3×3 "same" conv (stride 1, padding 1) followed by a 2×2 max-pool (stride 2), starting from a 224×224 crop. The code below is exactly the calculator you'd write to check this by hand rather than trust intuition, followed by the table it prints.</p>
+    <pre><code>import math
+
+def conv_output_size(H, K, S, P):
+    """H: input side length, K: kernel size, S: stride, P: padding (per side)."""
+    return math.floor((H + 2 * P - K) / S) + 1
+
+def receptive_field(rf_in, jump_in, K, S):
+    rf_out = rf_in + (K - 1) * jump_in
+    jump_out = jump_in * S
+    return rf_out, jump_out
+
+# 5-block network: each block = 3x3 "same" conv (S1,P1) + 2x2 max pool (S2)
+blocks = [
+    ("block1_conv", 3, 1, 1, 32),
+    ("block1_pool", 2, 2, 0, 32),
+    ("block2_conv", 3, 1, 1, 64),
+    ("block2_pool", 2, 2, 0, 64),
+    ("block3_conv", 3, 1, 1, 128),
+    ("block3_pool", 2, 2, 0, 128),
+    ("block4_conv", 3, 1, 1, 256),
+    ("block4_pool", 2, 2, 0, 256),
+    ("block5_conv", 3, 1, 1, 256),
+    ("block5_pool", 2, 2, 0, 256),
+]
+
+H, rf, jump = 224, 1, 1
+print(f"{'layer':<14}{'shape':<16}{'RF (px)':<10}")
+print(f"{'input':<14}{'224x224x3':<16}{1:<10}")
+for name, K, S, P, C in blocks:
+    H = conv_output_size(H, K, S, P)
+    rf, jump = receptive_field(rf, jump, K, S)
+    print(f"{name:<14}{f'{H}x{H}x{C}':<16}{rf:<10}")</code></pre>
+    <table class="tbl">
+      <thead><tr><th>Layer</th><th>Output shape</th><th>Receptive field</th></tr></thead>
+      <tbody>
+        <tr><td>input</td><td>224×224×3</td><td>1 px</td></tr>
+        <tr><td>block1 conv</td><td>224×224×32</td><td>3 px</td></tr>
+        <tr><td>block1 pool</td><td>112×112×32</td><td>4 px</td></tr>
+        <tr><td>block2 conv</td><td>112×112×64</td><td>8 px</td></tr>
+        <tr><td>block2 pool</td><td>56×56×64</td><td>10 px</td></tr>
+        <tr><td>block3 conv</td><td>56×56×128</td><td>18 px</td></tr>
+        <tr><td>block3 pool</td><td>28×28×128</td><td>22 px</td></tr>
+        <tr><td>block4 conv</td><td>28×28×256</td><td>38 px</td></tr>
+        <tr><td>block4 pool</td><td>14×14×256</td><td>46 px</td></tr>
+        <tr><td>block5 conv</td><td>14×14×256</td><td>78 px</td></tr>
+        <tr><td>block5 pool</td><td>7×7×256</td><td>94 px</td></tr>
+      </tbody>
+    </table>
+    <p class="caption">By block 3 the receptive field (22 px) already comfortably covers a compact wheat-rust pustule cluster; it takes the full five blocks to reach 94 px, wide enough to take in a sprawling cassava-mosaic chlorotic patch that might span a third of the leaf.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li>The output-size formula <code>floor((H + 2P − K)/S) + 1</code> lets you check every layer's shape by hand — treat a shape mismatch as an arithmetic bug to find, not a mystery to debug by trial and error.</li>
+        <li>Stride, not kernel size, controls how much a layer downsamples; "same" padding just keeps the kernel itself shape-neutral at stride 1 so stride alone determines the shrink factor.</li>
+        <li>Pooling downsamples with a fixed, parameter-free rule (max or average); stride-2 convolutions downsample <em>and</em> learn what to keep, at the cost of extra parameters and compute.</li>
+        <li>Receptive field compounds across layers via <code>RF_out = RF_in + (K−1)·jump</code>, and every stride multiplies <code>jump</code> going forward — which is why a handful of downsampling stages is enough to cover a lesion many times the size of any single kernel.</li>
+        <li>A network's receptive field at its final layer must exceed the physical size of the pattern it needs to recognize as one coherent object, not just detect fragments of.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Assembling a working CNN</h2>
+    <p class="opening">Think of a produce packhouse sorting line. Raw fruit comes off the truck bruised, dirty, oddly shaped, and far too voluminous to inspect by hand one item at a time. It passes through a sequence of stations: a wash station, a size-grading station, a color-grading station, a defect-scanning station — each one narrower in scope than the last, each one operating on the *output* of the previous station rather than the raw truckload, and each one throwing away information that doesn't matter (dirt, orientation, exact position on the belt) while concentrating information that does (size, ripeness, defect count). By the end of the line, a single gate decides accept or reject. A CNN classifier is that packhouse line applied to pixels instead of fruit: each block narrows the spatial "belt" while widening the number of things it's tracking per item, until a final decision gate collapses everything to one classification.</p>
+    <h3>The conv-BN-ReLU block, and why channels grow as space shrinks</h3>
+    <p>The workhorse unit of most modern CNNs is a three-step block: a convolution, then <span class="term">batch normalization</span> (Unit 5's technique for keeping layer inputs on a well-behaved scale during training), then a <span class="term">ReLU</span> nonlinearity. Stack these blocks and downsample between them (via stride-2 conv or pooling, Lesson 2), and a very common, deliberately simple design pattern is to *halve spatial resolution and double channel count* at each downsampling step: 224×224×3 in, then blocks producing 112×112×32, 56×56×64, 28×28×128, 14×14×256. The reasoning mirrors the packhouse line: as the spatial map shrinks, each remaining "pixel" position represents a larger and larger patch of the original photo (that's the receptive-field growth from Lesson 2), so it's carrying more information — a bigger channel count gives the network room to represent more distinct things about that larger patch (is this patch showing a pustule ring? a chlorotic gradient? a healthy vein?) even as there are fewer spatial positions to store it in. Halve-and-double is not a law of nature — plenty of production architectures deviate from it — but it's a sane, well-tested default and a good one to reach for first.</p>
+    <p>Once the spatial map has shrunk down to something small (7×7 or 14×14), older architectures flattened it into one long vector and fed it to one or two large dense layers before the final classification layer — and that flatten step alone could reintroduce the parameter explosion from Lesson 1's opening, because a 7×7×256 map flattened is 12,544 values, and a dense layer mapping that to even a modest 512-unit hidden layer costs 6.4 million weights. <span class="term">Global average pooling</span> (GAP) sidesteps this entirely: instead of flattening, it averages each of the 256 channels' 7×7 spatial map down to one number, producing a 256-length vector directly, with zero learned parameters. GAP does throw away exact spatial layout — but by this depth in the network, a channel already represents "how strongly does this disease-relevant pattern appear anywhere in the photo," and for a whole-leaf classification decision (not localization), that's precisely what you want. GAP is also part of what makes a trained CNN able to accept photos of a different resolution than it was trained on, since it collapses whatever spatial size arrives down to a fixed-length vector regardless.</p>
+    <h3>Where the parameters live, and where the FLOPs live — not the same place</h3>
+    <p>A conv layer's parameter count is exactly <code>K × K × C_in × C_out + C_out</code> (that last <code>+ C_out</code> is one bias per output channel, when a bias is used). Take the block3-to-block4 conv from the shape table: a 3×3 kernel, 128 input channels, 256 output channels: 3 × 3 × 128 × 256 + 256 = 294,912 + 256 = 295,168 parameters — and this number doesn't care whether the feature map it's operating on is 28×28 or 280×280, because the same 295,168 numbers get reused (weight sharing again) at every spatial position. That's the crucial asymmetry: <strong>parameters scale with channel depth, not spatial size, while the compute cost (FLOPs) of actually running that layer scales with <em>both</em></strong> — because the layer performs its (small, fixed) parameter count's worth of multiply-adds at *every one* of the spatial positions in its output map. A layer with few channels but a large spatial map (an early block, right after the 224×224 input) does relatively few parameters' worth of work, but repeats that work over tens of thousands of positions, racking up FLOPs; a layer with many channels but a tiny spatial map (a late block, after several halvings) holds the bulk of the network's parameters but only has a few dozen or few hundred positions left to apply them at. In short: <strong>early layers are FLOP-heavy and parameter-light; late layers are parameter-heavy and FLOP-light.</strong> This matters directly for deployment decisions — if you're optimizing for a farmworker's mid-range phone, inference latency tracks FLOPs (dominated by the early, large-spatial-map layers), while on-device storage size tracks parameter count (dominated by the late, high-channel layers) — and those are different bottlenecks needing different fixes.</p>
+    <p>One more building block worth naming explicitly: the <span class="term">1×1 convolution</span>. With K = 1, the "sliding window" arithmetic degenerates to just a per-pixel linear combination across channels — no spatial mixing at all, purely a learned reweighting of the channel dimension at each position independently. It's used constantly as a cheap bottleneck: shrinking 256 channels down to 64 before an expensive 3×3 conv, then expanding back up afterward, cuts that 3×3 conv's parameter count (and FLOPs) by roughly the square of the channel reduction ratio, for a small added cost from the two 1×1 convs — a trick central to architectures like ResNet's bottleneck blocks and Inception's design.</p>
+    <h3>An honest note on depth and skip connections</h3>
+    <p>It would be natural to assume that since depth lets a network build ever more disease-specific filters, simply stacking more conv-BN-ReLU blocks should keep helping indefinitely. It doesn't, and the reason is not the overfitting you'd guess — it's an optimization failure discovered and named by the 2015 ResNet paper: plain stacks of many conv layers (past roughly 20, and worse well beyond) get *harder to train* well enough to fit even their own training set, not just harder to generalize. Gradients computed via backpropagation through dozens of stacked conv-BN-ReLU blocks tend to shrink or distort as they travel backward, so early layers barely get updated. ResNet's fix — the <span class="term">skip connection</span> — is almost embarrassingly simple: add the block's input directly to its output (<code>output = F(x) + x</code>) instead of just outputting <code>F(x)</code>. That identity path gives gradients an unobstructed route straight back to early layers regardless of how deep the network gets, and it means each block only has to learn a *residual correction* on top of its input rather than reconstructing the whole signal from nothing. This is genuinely one of the more important architectural ideas in the whole field — depth stopped being reliably trainable past a couple dozen layers until skip connections made 50, 100, even 150-layer networks not just trainable but often better. The CNN class built below is deliberately a plain, non-residual stack, appropriate for this unit's scope and for a first working baseline — but be honest with yourself about its ceiling: past roughly the depth shown here, expect training to get harder, not easier, without skip connections.</p>
+    <h3>Putting the pieces together</h3>
+    <p>Here is a complete, plausible PyTorch-style class for the 5-class problem this unit has been building toward — healthy, cassava mosaic, wheat rust, tomato blight, or an "other/unknown" catch-all — with a per-layer parameter count printed so you can check the arithmetic above against a real module.</p>
+    <pre><code>import torch.nn as nn
+
+class LeafDiseaseCNN(nn.Module):
+    """5-class classifier: healthy, cassava mosaic, wheat rust,
+    tomato blight, other/unknown — from a 224x224 RGB field photo."""
+
+    def __init__(self, num_classes=5):
+        super().__init__()
+        self.features = nn.Sequential(
+            self._block(3,   32),   # 224 -> 112
+            self._block(32,  64),   # 112 -> 56
+            self._block(64,  128),  # 56  -> 28
+            self._block(128, 256),  # 28  -> 14
+        )
+        self.gap = nn.AdaptiveAvgPool2d(1)  # 14x14x256 -> 1x1x256, no flatten
+        self.classifier = nn.Linear(256, num_classes)
+
+    def _block(self, c_in, c_out):
+        return nn.Sequential(
+            # bias=False: the BatchNorm that follows has its own learned
+            # shift (beta), which makes the conv's own bias redundant.
+            nn.Conv2d(c_in, c_out, kernel_size=3, stride=1, padding=1, bias=False),
+            nn.BatchNorm2d(c_out),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(2, stride=2),
+        )
+
+    def forward(self, x):
+        x = self.features(x)
+        x = self.gap(x)
+        x = x.flatten(1)
+        return self.classifier(x)
+
+
+def count_params(module):
+    return sum(p.numel() for p in module.parameters() if p.requires_grad)
+
+model = LeafDiseaseCNN()
+for name, layer in model.named_children():
+    print(f"{name:<12}{count_params(layer):>10,} params")
+print(f"{'total':<12}{count_params(model):>10,} params")</code></pre>
+    <p class="caption">Notice <code>features</code> holds nearly all the parameters (the 4 conv-BN blocks) while <code>classifier</code> is tiny — a single 256×5 linear layer, only possible because GAP already did the heavy lifting of collapsing 14×14×256 down to a 256-length vector. This is what Unit 4's Adam schedule and Unit 5's dropout/BN techniques are actually optimizing when you train this class end to end.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li>The conv-BN-ReLU block is the standard unit; halving spatial size while doubling channels at each downsampling step is a reasonable, common default, not a rule.</li>
+        <li>Global average pooling replaces flatten+dense heads, cutting a would-be multi-million-parameter final layer down to zero-parameter pooling plus one small linear layer.</li>
+        <li>A conv layer's parameter count is <code>K·K·C_in·C_out + C_out</code>, and it scales with channel depth only — but the FLOPs to run that layer scale with channel depth <em>and</em> spatial size, so early (large-map) layers dominate compute while late (high-channel) layers dominate parameter count.</li>
+        <li>1×1 convolutions mix channels with no spatial extent at all — useful as a cheap bottleneck around expensive 3×3 convs.</li>
+        <li>Skip connections exist to fix an optimization problem (gradient flow through many stacked layers), not a capacity problem — depth past a couple dozen plain conv layers gets harder to train, not just prone to overfit, which is why ResNet-style architectures matter for anything deeper than this unit's baseline.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 6 quiz</h2>
+    <p class="quiz-intro">8 questions covering convolution mechanics, padding/stride/pooling arithmetic, receptive fields, parameter counting, and CNN assembly — including one shape/parameter computation and one bug-fix.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A wheat-rust pustule cluster sits near the top-left of one field photo, and the same cluster (same lighting, same crop) sits 20 pixels further right in a second photo taken from a slightly different angle. Which best describes what a single 3×3 conv layer, with no pooling or stride, does across these two photos?</p>
+      <ol class="choices" type="A">
+        <li>The output feature map is identical in both cases, because the kernel's weights are shared across positions.</li>
+        <li>The activation pattern for the pustule shifts by roughly 20 pixels in the output feature map, but its shape and strength are otherwise the same — translation equivariance, not invariance.</li>
+        <li>The layer fails to detect the pustule in the second photo, since its weights were learned around the first photo's position.</li>
+        <li>The layer becomes fully translation-invariant after this one pass, so no further pooling is needed downstream.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Weight sharing means the same kernel is tried at every position, so wherever the pustule pattern appears, the kernel fires — but the firing shows up at the corresponding shifted location in the output map. That relocation-but-preserved-form behavior is exactly what "translation equivariant" means.</p>
+          <p>A is the tempting wrong answer: it confuses weight sharing (same weights applied everywhere) with invariance (same output regardless of where the pattern is). The kernel being shared is what lets it detect the pattern in both places — it does not make the two output maps identical, because position is still encoded in where the activation lands.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">True or false: a network built entirely from conv layers, with no pooling, no stride, and no global-average-pool, is fully translation-invariant — a lesion in the corner of a photo and the same lesion in the center produce the exact same final feature vector.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> Plain conv layers are equivariant, not invariant — shifting the input shifts where the activation lands in every feature map, all the way through the stack. Without an operation that explicitly discards spatial position (pooling, striding, or a final global-average-pool), the final feature map still encodes location, so a corner-lesion and a center-lesion photo produce differently-arranged (not identical) outputs.</p>
+          <p>It's tempting to treat "shared weights" as synonymous with "position doesn't matter," but sharing is about the filter being reused, not about the output discarding where it fired.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">A 224×224 field photo goes through a conv layer with a 5×5 kernel, stride 2, and padding 2 per side. Using out = floor((H + 2P − K)/S) + 1, the output spatial size is <span class="blank">&nbsp;</span> × <span class="blank">&nbsp;</span>.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: 112 × 112.</strong> floor((224 + 2·2 − 5)/2) + 1 = floor(223/2) + 1 = floor(111.5) + 1 = 111 + 1 = 112.</p>
+          <p>A common slip is forgetting the final "+1" and stopping at 111, or forgetting to floor 111.5 and rounding to 112 by luck without knowing why — the floor comes from the fact that the kernel simply stops sliding once it would run off the padded input's edge, not from any rounding convention.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">Fill in the missing line so this receptive-field tracker matches the formula from Lesson 2 (<code>RF_out = RF_in + (K−1)·jump_in</code>, <code>jump_out = jump_in · S</code>):</p>
+      <pre><code>def receptive_field(rf_in, jump_in, K, S):
+    rf_out = ____________________
+    jump_out = jump_in * S
+    return rf_out, jump_out</code></pre>
+      <ol class="choices" type="A">
+        <li><code>rf_in + (K - 1) * jump_in</code></li>
+        <li><code>rf_in * K * S</code></li>
+        <li><code>rf_in + K * jump_in</code></li>
+        <li><code>(rf_in + K - 1) * S</code></li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: A.</strong> Each additional kernel element beyond the first (<code>K − 1</code> of them) extends the receptive field outward by however many original-image pixels one step at the current layer corresponds to (<code>jump_in</code>) — that's exactly <code>rf_in + (K - 1) * jump_in</code>.</p>
+          <p>Option C is the tempting distractor: it uses the full kernel size <code>K</code> instead of <code>K − 1</code>, which double-counts the first kernel element's contribution (it's already included in <code>rf_in</code> from the previous layer) and overstates the receptive field at every layer, compounding into a larger and larger error deeper in the stack.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A conv layer takes a 112×112×64 feature map as input and applies 128 filters of size 3×3, with a bias per output channel. How many learnable parameters does this layer have?</p>
+      <ol class="choices" type="A">
+        <li>9,216</li>
+        <li>73,728</li>
+        <li>73,856</li>
+        <li>1,048,576</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C, 73,856.</strong> Parameters = K·K·C_in·C_out + C_out = 3·3·64·128 + 128 = 73,728 + 128 = 73,856. The 112×112 spatial size is irrelevant to the parameter count — the same 73,856 numbers get reused at every one of the roughly 12,544 output positions.</p>
+          <p>B (73,728) is the tempting distractor: it's the weight count alone, forgetting the <code>+ C_out</code> bias term — an easy one-line omission when computing this by hand. A (9,216 = 3·3·64·16, an unrelated miscount) and D (which wrongly multiplies in the spatial size) are further off.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">This block is meant to take a 64-channel feature map in and produce a 128-channel feature map out, matching the pattern from Lesson 3. Running it raises: <code>RuntimeError: running_mean should contain 64 elements not 128</code>. Find and fix the bug.</p>
+      <pre><code>def make_block(c_in, c_out):
+    return nn.Sequential(
+        nn.Conv2d(c_in, c_out, kernel_size=3, stride=1, padding=1, bias=False),
+        nn.BatchNorm2d(c_in),
+        nn.ReLU(inplace=True),
+        nn.MaxPool2d(2, stride=2),
+    )</code></pre>
+      <ol class="choices" type="A">
+        <li>Change <code>nn.BatchNorm2d(c_in)</code> to <code>nn.BatchNorm2d(c_out)</code> — BatchNorm normalizes the conv's output, which has <code>c_out</code> channels, not the conv's input.</li>
+        <li>Change <code>kernel_size=3</code> to <code>kernel_size=1</code> — the kernel size is causing the channel mismatch.</li>
+        <li>Remove <code>bias=False</code> from the Conv2d call — the missing bias is what's breaking BatchNorm.</li>
+        <li>Swap the order of Conv2d and BatchNorm2d so BatchNorm runs first.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: A.</strong> BatchNorm2d's argument is the number of channels <em>it will receive</em>, and it receives whatever the previous layer output — here, the Conv2d's <code>c_out</code> channels. Writing <code>BatchNorm2d(c_in)</code> configures it to expect the conv's <em>input</em> channel count instead, so its internal running-mean/running-variance buffers are sized for 64 channels when a 128-channel tensor actually arrives.</p>
+          <p>C is the tempting distractor because <code>bias=False</code> looks unusual if you haven't seen the conv-BN pattern before, but it's deliberate and correct (explained in Lesson 3) — removing it wouldn't fix a channel-count error and isn't the bug. Kernel size (B) and layer order (D) don't produce this specific error message at all; the error is specifically about channel-count mismatch in BatchNorm's stored statistics, which points directly at the argument passed to <code>BatchNorm2d</code>.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Why have many modern CNN designs replaced max-pooling with stride-2 convolutions for downsampling?</p>
+      <ol class="choices" type="A">
+        <li>Because pooling layers have far more parameters than a strided conv, so removing them shrinks the model.</li>
+        <li>Because a strided conv can learn which combination of input values to preserve while downsampling, instead of always applying a fixed max/average rule.</li>
+        <li>Because pooling layers cannot change the spatial resolution of a feature map at all.</li>
+        <li>Because strided convolutions are translation-invariant while pooling layers are not.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Pooling applies the same non-learned rule (max or average) everywhere; a stride-2 conv has learnable weights, so the network can decide what's worth keeping as it downsamples, at the cost of added parameters and compute versus pooling.</p>
+          <p>A is backwards and is the tempting distractor: pooling has <em>zero</em> learnable parameters, not more than a conv — replacing pooling with a strided conv <em>adds</em> parameters, it doesn't remove them. C is false (pooling's entire purpose is changing spatial resolution), and D mischaracterizes both operations, since neither pooling nor a strided conv alone gives full invariance — both are just downsampling steps.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">True / false</span></p>
+      <p class="q-stem">True or false: ResNet's skip connections primarily help by increasing the network's representational capacity — letting it represent more complex functions than a plain stack of the same depth could.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> Skip connections primarily solve an optimization problem: they give gradients an unobstructed identity path back to early layers, which fixes the degradation problem where very deep plain stacks get harder to fit even on their own training set. A plain network of the same depth already has at least as much raw representational capacity (an identity mapping is a function a deep net could in principle learn); the issue ResNet fixes is that gradient descent struggles to actually find that solution without the shortcut.</p>
+          <p>The tempting confusion is treating "deeper network trains worse" as an overfitting/capacity story, since that's the usual explanation for why adding model complexity backfires. Here it's the opposite: deeper plain nets underperform even on training data, which rules out overfitting and points squarely at an optimization/gradient-flow failure — exactly what the identity shortcut addresses.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Deep Learning Foundations · Unit 6 of 8 — Unit 7 moves into training CNNs at scale: data augmentation, transfer learning from pretrained backbones, and the failure modes that only show up once a real, messy field-photo dataset is involved.</p>
+</footer>
+</body>
+</html>

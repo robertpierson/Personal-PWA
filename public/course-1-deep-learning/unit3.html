@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 3 · Backpropagation and gradient descent — Deep Learning Foundations</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Deep Learning Foundations · Unit 3 of 8</p>
+  <h1>Backpropagation and gradient descent</h1>
+  <p class="lede">The forward pass from Units 1–2 turns a scanned ZIP-code digit into a probability distribution over ten classes. This unit derives how the network learns from its mistakes — the chain rule that assigns blame to every weight, and the update rule that nudges each one toward a better sort.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. The chain rule on a computational graph</a></li>
+      <li><a href="#lesson-2">2. Backprop through a two-layer network, by hand</a></li>
+      <li><a href="#lesson-3">3. Gradient descent: batch, stochastic, and mini-batch</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>The chain rule on a computational graph</h2>
+    <p class="opening">In 1986, David Rumelhart, Geoffrey Hinton, and Ronald Williams published "Learning representations by back-propagating errors" in <em>Nature</em>, and the technique finally had a name and an audience. The underlying calculus was not new — Seppo Linnainmaa had described reverse-mode automatic differentiation in his 1970 thesis, and Paul Werbos had proposed applying it to neural networks in 1974 — but those results sat in obscurity for over a decade. What changed in 1986 was demonstration: Rumelhart, Hinton, and Williams showed that a network could learn internal, distributed representations of a problem's structure just by repeatedly applying the chain rule and nudging weights downhill. Three years later, Yann LeCun and colleagues at Bell Labs took the idea somewhere concrete and commercially urgent: reading handwritten ZIP codes off scanned mail. Their 1989 paper, "Backpropagation Applied to Handwritten Zip Code Recognition," trained a convolutional network on 16×16 pixel digit crops drawn from actual U.S. mail, and it worked well enough to matter to the Postal Service. That paper is arguably the first time backprop left the whiteboard and touched a real production pipeline.</p>
+    <p>Why did the idea sit unused for so long before that? Partly it was a matter of reputation: Marvin Minsky and Seymour Papert's 1969 book <em>Perceptrons</em> proved hard limits on what a single-layer network could represent, and though multi-layer networks were not what the book ruled out, the pessimism it created cooled funding and attention for over a decade — a period often called the first AI winter. But the more concrete obstacle was practical: nobody had shown an efficient way to compute the gradient of a loss with respect to every weight in a multi-layer network. Computing each partial derivative independently, layer by layer, from scratch, is expensive enough that it discourages the whole approach. Reverse-mode automatic differentiation removes that obstacle, and once it was demonstrated on a problem people cared about — misrouted mail costs money — the technique had nowhere to go but into every serious model built since.</p>
+    <h3>Two graphs, one computation</h3>
+    <p>Recall the forward pass from Unit 1: a scanned digit crop, flattened into a vector of pixel intensities, moves through a sequence of linear layers and activations — a <span class="term">forward graph</span> where each node is an operation (a matrix multiply, a bias add, a ReLU, a softmax) and each edge carries a tensor of values downstream. The loss function at the end of that graph, cross-entropy against the true digit label from Unit 2, collapses everything to a single scalar: how wrong was this prediction. Backpropagation builds a second graph over the same nodes, running in the opposite direction, in which every edge instead carries a <span class="term">gradient</span> — how much a small change in that value would change the final loss. This is the <span class="term">backward graph</span>, and it is not a separate computation invented after the fact; it is the mechanical consequence of applying the calculus chain rule to every node in the forward graph, one at a time, starting from the loss and working back toward the pixels.</p>
+    <p>The key idea that makes this tractable is that every node only ever needs to know its own <span class="term">local gradient</span> — the derivative of its own output with respect to its own inputs, evaluated at the values it saw during the forward pass. A matrix multiply node does not need to know anything about softmax or cross-entropy three layers downstream; it only needs to know how its own output changes when its own inputs change. The <span class="term">multivariable chain rule</span> is what stitches these local gradients into a global answer: if a value <code>z1</code> feeds forward into several later computations, the gradient flowing back into <code>z1</code> is the <em>sum</em> of the gradients arriving from every path that used it, each scaled by the local gradient along that path. For a two-layer classifier this fan-in is modest, but in a real ZIP-code recognizer with a convolutional front end, a single feature map might feed a dozen downstream computations, and the chain rule guarantees each one contributes its share correctly, without double-counting or omission.</p>
+    <h3>Why you cache activations</h3>
+    <p>Local gradients are evaluated at the specific values the forward pass produced — the derivative of ReLU at a given point depends on whether that point was positive or negative, and the derivative of a matrix multiply with respect to its weights is literally the input that was multiplied. This means the backward pass cannot run on its own; it needs the intermediate activations that the forward pass computed, which is why every serious implementation <span class="term">caches</span> them — the input to each layer, the output of each activation, the pre-softmax scores — for later reuse. For a sorting-facility model processing tens of thousands of digit crops per training batch, this cache is a real memory cost, one deep networks eventually trade off against recomputation (a technique called gradient checkpointing, out of scope here), but for the two-layer network in this unit the cache is simply "keep the arrays around a little longer."</p>
+    <h3>Reverse-mode versus forward-mode</h3>
+    <p>Automatic differentiation comes in two flavors that compute the exact same mathematical answer by different bookkeeping. <span class="term">Forward-mode</span> AD picks one input, perturbs it symbolically, and propagates that perturbation forward through the graph to see how every output responds; the cost of one forward-mode pass scales with the number of <em>inputs</em> you care about. <span class="term">Reverse-mode</span> AD does the opposite: it picks one output, and propagates backward to see how every input contributed to it; its cost scales with the number of <em>outputs</em>. A ZIP-code classifier has a single scalar loss (one output) and easily tens of thousands of weights (the inputs, from the network's point of view during training). Forward-mode would require one full pass per weight to get the complete gradient — utterly impractical. Reverse-mode requires exactly one backward pass, regardless of how many weights the network has, because it computes the gradient with respect to every input simultaneously. This asymmetry is the entire reason backpropagation — reverse-mode AD applied to a computational graph with a scalar loss — is the default training algorithm for every architecture in this course, from the plain two-layer network here to the deepest transformer stack.</p>
+    <pre><code>class Value:
+    """A scalar that remembers how it was made, so it can backprop."""
+    def __init__(self, data, parents=(), local_grads=()):
+        self.data = data
+        self.grad = 0.0
+        self._parents = parents       # tuple of Value objects used to build this one
+        self._local_grads = local_grads  # d(self)/d(parent), same order as _parents
+
+    def __add__(self, other):
+        out = Value(self.data + other.data, (self, other), (1.0, 1.0))
+        return out
+
+    def __mul__(self, other):
+        # local gradient of a*b w.r.t. a is b, and w.r.t. b is a
+        out = Value(self.data * other.data, (self, other), (other.data, self.data))
+        return out
+
+    def relu(self):
+        out = Value(max(0.0, self.data), (self,), (1.0 if self.data > 0 else 0.0,))
+        return out
+
+    def backward(self):
+        # build a topological order so every node fires only after
+        # every node that depends on it has already propagated its gradient
+        order, visited = [], set()
+        def visit(v):
+            if id(v) not in visited:
+                visited.add(id(v))
+                for p in v._parents:
+                    visit(p)
+                order.append(v)
+        visit(self)
+        self.grad = 1.0  # dL/dL = 1, the seed for reverse mode
+        for v in reversed(order):
+            for parent, local in zip(v._parents, v._local_grads):
+                parent.grad += v.grad * local  # multivariable chain rule: sum over paths</code></pre>
+    <p class="caption">A minimal reverse-mode autodiff. Each op stores its parents and local gradients at construction time; <code>backward()</code> walks the topological order once, seeding the output's gradient at 1.0 and accumulating <code>parent.grad += v.grad * local</code> — exactly the chain rule, one multiply-and-add per edge.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Backprop is reverse-mode automatic differentiation</strong> applied to the forward computational graph — not a separate algorithm bolted onto the network, but the chain rule mechanized one node at a time.</li>
+        <li><strong>Every node needs only its local gradient</strong>, evaluated at the forward-pass values it saw; the multivariable chain rule sums contributions when a value feeds multiple downstream paths.</li>
+        <li><strong>Caching forward activations is mandatory</strong> because local gradients (ReLU's derivative, a matmul's derivative with respect to its weights) depend on the specific values computed on the way forward.</li>
+        <li><strong>Reverse-mode wins when there are few outputs and many inputs</strong> — one scalar loss and thousands of weights is the canonical case, and it is exactly the shape of every network trained in this course.</li>
+        <li>LeCun's 1989 Bell Labs system is the historical bridge from Rumelhart, Hinton, and Williams's theoretical demonstration to a working, economically motivated ZIP-code reader.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Backprop through a two-layer network, by hand</h2>
+    <p class="opening">A sorting machine flags a scanned envelope crop, runs it through the two-layer network from Units 1–2 — linear, ReLU, linear, softmax — and gets a distribution over the ten digits for that ZIP-code position. Say the true digit is 7 and the network's highest probability landed on 1. The forward pass alone gives no instruction for fixing this: it produces a number, cross-entropy loss, that says how wrong the guess was, but nothing about which of the network's thousands of weights should move, or in which direction, or by how much. That is exactly the gap backpropagation closes, and for a network this small — small enough that every array fits on one page — it is worth deriving every gradient by hand once, so that the NumPy version in later units is never a black box.</p>
+    <p>Fix notation to match the architecture from Units 1–2. A mini-batch of <code>N</code> digit crops (Unit 3's third lesson will fix <code>N</code>; for now treat it as generic) arrives as <code>x</code>, shape <code>(N, D)</code>, where <code>D</code> is 256 for a 16×16 crop or 784 for a 28×28 crop. The first linear layer has weights <code>W1</code>, shape <code>(D, H)</code>, and bias <code>b1</code>, shape <code>(H,)</code>, producing pre-activation <code>z1 = x @ W1 + b1</code>, shape <code>(N, H)</code>. ReLU gives the hidden activation <code>h = relu(z1)</code>, same shape. The second linear layer has weights <code>W2</code>, shape <code>(H, C)</code>, and bias <code>b2</code>, shape <code>(C,)</code>, with <code>C = 10</code> digit classes, producing scores <code>z2 = h @ W2 + b2</code>, shape <code>(N, C)</code>. Softmax turns those scores into probabilities <code>p</code>, same shape, and cross-entropy against the one-hot labels <code>y</code> gives the scalar loss <code>L</code>, averaged over the batch.</p>
+    <h3>The softmax + cross-entropy gradient</h3>
+    <p>The single most useful identity in this whole derivation is what happens when softmax feeds directly into cross-entropy. Written separately, the softmax Jacobian is a full <code>C×C</code> matrix per example, and the cross-entropy gradient with respect to <code>p</code> involves a division by <code>p</code> that looks fragile near zero. Multiplied together via the chain rule, nearly everything cancels, leaving one of the cleanest results in deep learning:</p>
+    <p class="math">dL/dz2 = (p − y) / N</p>
+    <p>That is: the gradient flowing into the pre-softmax scores is just the predicted probability vector minus the one-hot true label, divided by the batch size to account for averaging. If the network assigns 0.7 probability to the correct digit, the gradient there is negative and small in magnitude — nudge that score up gently. If it assigns only 0.05 to the correct digit, the gradient is close to −1/N — nudge that score up hard. The gradient's magnitude is automatically proportional to how wrong the prediction was, with no extra weighting needed.</p>
+    <h3>Propagating to <code>W2</code> and <code>b2</code></h3>
+    <p>From <code>dz2</code>, shape <code>(N, C)</code>, the weight gradient falls out of the matrix-calculus form of the chain rule: since <code>z2 = h @ W2 + b2</code>, the gradient with respect to <code>W2</code> is <code>h</code> transposed, matrix-multiplied against <code>dz2</code>:</p>
+    <p class="math">dW2 = hᵀ @ dz2 &nbsp;&nbsp;(H, N) @ (N, C) → (H, C), matching W2</p>
+    <p class="math">db2 = Σ over batch of dz2 &nbsp;&nbsp;→ (C,), matching b2</p>
+    <p>Notice the shapes are not a coincidence: the gradient of any parameter always comes out with exactly that parameter's shape, which is both a mathematical necessity and the cheapest sanity check available — if <code>dW2</code> and <code>W2</code> disagree in shape, the derivation has a bug. To keep propagating backward, the gradient also needs to flow through <code>h</code> itself, back toward the first layer:</p>
+    <p class="math">dh = dz2 @ W2ᵀ &nbsp;&nbsp;(N, C) @ (C, H) → (N, H), matching h</p>
+    <h3>Through ReLU, to <code>W1</code> and <code>b1</code></h3>
+    <p>ReLU's local gradient is the simplest nonlinearity to backprop through: its derivative is 1 wherever the forward pre-activation <code>z1</code> was positive, and 0 wherever it was zero or negative — which is precisely why the forward pass must cache <code>z1</code>, not just <code>h</code>. The chain rule gives:</p>
+    <p class="math">dz1 = dh ⊙ (z1 &gt; 0) &nbsp;&nbsp;elementwise mask, shape (N, H)</p>
+    <p>and then the same matrix-calculus pattern as before, one layer earlier:</p>
+    <p class="math">dW1 = xᵀ @ dz1 &nbsp;&nbsp;(D, N) @ (N, H) → (D, H), matching W1</p>
+    <p class="math">db1 = Σ over batch of dz1 &nbsp;&nbsp;→ (H,), matching b1</p>
+    <p>Every gradient the network needs — <code>dW1</code>, <code>db1</code>, <code>dW2</code>, <code>db2</code> — is now expressed in terms of quantities the forward pass already computed (<code>x</code>, <code>z1</code>, <code>h</code>, <code>p</code>) plus the label <code>y</code>. No further calculus is required to train this network; everything downstream is bookkeeping.</p>
+    <h3>A worked example small enough to check by hand</h3>
+    <p>To verify the mechanics without a computer, shrink the problem to a single example (<code>N = 1</code>), two input features, a two-unit hidden layer, and three output classes instead of ten — the mechanism is identical, just smaller than a real 256-input, 10-class ZIP-code layer. Let <code>x = [1.0, −1.0]</code>, <code>W1 = [[0.5, −0.2], [0.3, 0.8]]</code>, <code>b1 = [0.1, −0.1]</code>. Then <code>z1 = x @ W1 + b1 = [0.3, −1.1]</code>, and ReLU gives <code>h = [0.3, 0.0]</code> — the second hidden unit is dead for this input. With <code>W2 = [[1.0, 0.5, −0.5], [0.2, −0.3, 0.1]]</code> and <code>b2 = [0, 0, 0]</code>, the scores are <code>z2 = h @ W2 + b2 = [0.3, 0.15, −0.15]</code>. Softmax of that is approximately <code>p = [0.400, 0.345, 0.255]</code>. Suppose the true digit corresponds to class 0, so <code>y = [1, 0, 0]</code>; then <code>dz2 = p − y ≈ [−0.600, 0.345, 0.255]</code>.</p>
+    <p>From there, <code>dW2 = hᵀ @ dz2</code> has a nonzero first row (since <code>h_0 = 0.3</code>) of approximately <code>[−0.180, 0.103, 0.077]</code> and a second row of exactly <code>[0, 0, 0]</code>, because a dead ReLU unit — zero on the forward pass — contributes nothing to any weight gradient this step. Continuing back, <code>dh = dz2 @ W2ᵀ ≈ [−0.555, −0.198]</code>, and since <code>z1 = [0.3, −1.1]</code> the ReLU mask is <code>[1, 0]</code>, giving <code>dz1 ≈ [−0.555, 0]</code>. Finally <code>dW1 = xᵀ @ dz1</code> works out to approximately <code>[[−0.555, 0], [0.555, 0]]</code>. Every one of these numbers can be reproduced with a calculator in under five minutes, which is exactly the point: before trusting a NumPy implementation on a real batch of ZIP-code crops, trust it on a case you can check by hand.</p>
+    <pre><code>import numpy as np
+
+def backward(x, y_onehot, cache):
+    """
+    x:        (N, D)  input pixel batch
+    y_onehot: (N, C)  true digit labels, one-hot
+    cache:    dict with z1 (N,H), h (N,H), p (N,C) from the forward pass
+    returns:  dict of gradients, one entry per parameter
+    """
+    N = x.shape[0]
+    z1, h, p = cache["z1"], cache["h"], cache["p"]
+    W2 = cache["W2"]
+
+    dz2 = (p - y_onehot) / N                      # (N, C)
+    dW2 = h.T @ dz2                               # (H, C)
+    db2 = dz2.sum(axis=0)                         # (C,)
+
+    dh = dz2 @ W2.T                               # (N, H)
+    dz1 = dh * (z1 > 0)                           # (N, H), ReLU mask
+    dW1 = x.T @ dz1                               # (D, H)
+    db1 = dz1.sum(axis=0)                         # (H,)
+
+    # every gradient must match its parameter's shape — cheap, load-bearing check
+    assert dW2.shape == W2.shape
+    assert dW1.shape == cache["W1"].shape
+    assert db1.shape == cache["b1"].shape
+    assert db2.shape == cache["b2"].shape
+
+    return {"dW1": dW1, "db1": db1, "dW2": dW2, "db2": db2}</code></pre>
+    <p class="caption">A full NumPy backward pass for the two-layer ZIP-code classifier. Every line traces directly back to one of the derivations above; the assertions are not decoration — a transposed matmul or a forgotten <code>.T</code> shows up immediately as a shape mismatch rather than a silently wrong gradient.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Softmax plus cross-entropy collapses to <code>p − y</code></strong> — one of the few places in deep learning where a seemingly complex derivative simplifies to something you can compute in your head.</li>
+        <li><strong>Weight gradients are always the transposed input times the incoming gradient</strong> (<code>dW2 = hᵀ @ dz2</code>, <code>dW1 = xᵀ @ dz1</code>), and bias gradients are always a sum over the batch — the same pattern at every linear layer.</li>
+        <li><strong>ReLU backprop is a binary mask</strong> from the cached pre-activation: a unit that was zero (or negative) on the forward pass gets exactly zero gradient, regardless of how large the downstream gradient is.</li>
+        <li><strong>Gradient shapes must match parameter shapes</strong> — this is the single cheapest correctness check available and catches the majority of hand-derivation and implementation bugs.</li>
+        <li>A small, hand-checkable example (two inputs, two hidden units, three classes) exercises the exact same mechanism as the full 256-input, 10-class network, just at a size a calculator can verify.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Gradient descent: batch, stochastic, and mini-batch</h2>
+    <p class="opening"><span class="term">Gradient descent</span> is the update rule that turns the gradients from Lesson 2 into an actual improvement in the network: <code>θ ← θ − η · ∇L(θ)</code>, where <code>θ</code> stands for any parameter (a weight matrix, a bias vector), <code>∇L(θ)</code> is the gradient of the loss with respect to that parameter computed by backpropagation, and <code>η</code> (eta) is the <span class="term">learning rate</span> — a single scalar controlling how big a step to take. Every training run in this unit is built entirely from that one line, applied over and over, to every parameter, using the gradients derived in Lesson 2. This unit deliberately stops at plain stochastic gradient descent — no momentum, no Adam, no learning-rate schedules — because those refinements only make sense once the raw update rule and its failure modes are second nature; Unit 4 owns the optimizers.</p>
+    <h3>How much data feeds one gradient</h3>
+    <p>The update rule itself never changes, but there is a real design decision in how much data goes into computing <code>∇L(θ)</code> before each update, and it has direct consequences at a sorting facility processing scanned mail around the clock. <span class="term">Batch gradient descent</span> computes the gradient over the entire training set — every labeled ZIP-code crop available — before taking a single step. This gives the most accurate estimate of the true gradient and the smoothest possible descent, but if the training set has 60,000 crops, that is 60,000 forward and backward passes for one update, an enormous amount of compute and memory for very little progress, and it does not fit typical GPU or CPU memory once the dataset grows past a modest size.</p>
+    <p><span class="term">Stochastic gradient descent</span> (SGD, in the narrow historical sense of the term) takes the opposite extreme: compute the gradient from a single example and update immediately. This is cheap per step and lets the network start learning before it has even seen the whole dataset once, but the gradient from one digit crop is a noisy, high-variance estimate of the true gradient over the whole distribution — the loss trace bounces around visibly from step to step. That noise is not purely bad: it can help the optimizer hop out of shallow local minima or saddle points that a smoother, more accurate gradient would settle into. But taken to the extreme, one-example updates also under-use modern hardware, which is built to multiply large matrices in parallel, not to process single vectors one at a time.</p>
+    <p><span class="term">Mini-batch gradient descent</span> is the practical compromise nearly every real system uses, including the ZIP-code sorter in this course: compute the gradient over a modest batch, typically 32 to 256 examples, average it, and update. This keeps the gradient estimate far less noisy than single-example SGD while still taking many updates per pass through the data, and — critically for throughput — batch sizes in that range are exactly what makes efficient use of vectorized matrix multiplication on the hardware actually doing the sorting. In casual usage, and for the rest of this course, "SGD" refers to this mini-batch version unless stated otherwise.</p>
+    <table class="tbl">
+      <tr><th>Variant</th><th>Gradient noise</th><th>Updates per pass</th><th>Hardware fit</th></tr>
+      <tr><td>Batch</td><td>Lowest — exact gradient over all data</td><td>1</td><td>Poor at scale — one huge pass per step, memory-bound</td></tr>
+      <tr><td>Stochastic (single-example)</td><td>Highest — one crop's gradient stands in for the whole set</td><td>One per training example</td><td>Poor — under-uses parallel matrix hardware</td></tr>
+      <tr><td>Mini-batch</td><td>Moderate — averaged over 32–256 crops</td><td>N / batch_size</td><td>Good — matches GPU/CPU vectorization width</td></tr>
+    </table>
+    <h3>Epochs, steps, and the learning rate</h3>
+    <p>One <span class="term">step</span> is a single call to the update rule, using the gradient from one mini-batch. One <span class="term">epoch</span> is one full pass through the entire training set. With 60,000 labeled ZIP-code crops and a batch size of 128, one epoch takes <code>60000 / 128 ≈ 469</code> steps; training for 20 epochs means roughly 9,380 update steps total, and each of those steps is one opportunity for the learning rate to help or hurt.</p>
+    <p>Of every hyperparameter in this unit, the learning rate is the one most likely to make or break a training run, because it interacts multiplicatively with everything else: a network that would otherwise learn perfectly well can fail outright from a poorly chosen <code>η</code>. Set it too high and the updates overshoot the loss surface's curvature — each step lands further from the minimum than the last, and the loss trace does not merely fail to improve, it grows, often diverging to <code>NaN</code> within a few dozen steps as weights blow up. Set it too low and each step barely nudges the weights; the loss decreases, technically, but so slowly that a sorting facility retraining its classifier overnight would not see meaningful improvement by morning — this is a <span class="term">crawl</span>, distinct from failure but wasteful of real wall-clock time. Between those extremes sits a third failure mode worth naming separately: <span class="term">oscillation</span>, where the learning rate is not large enough to diverge outright but is large enough to repeatedly overshoot the minimum and bounce around it, so the loss trace zigzags without ever settling — often mistaken for a "plateau" until you watch it long enough to see it does not flatten so much as jitter.</p>
+    <h3>A first look at vanishing and exploding gradients</h3>
+    <p>The two-layer ReLU network in this unit is shallow enough to sidestep a problem that becomes serious the moment networks get deep: gradients that shrink or grow uncontrollably as they propagate backward through many layers. Consider a deep stack of sigmoid activations instead of ReLU — an architecture common before ReLU became standard. The sigmoid function's derivative is at most 0.25, reached only at its midpoint, and typically much smaller. Backpropagating through ten stacked sigmoid layers multiplies roughly ten such derivatives together via the chain rule, and even at the generous ceiling of 0.25 per layer that is <code>0.25¹⁰ ≈ 0.00000095</code> — the gradient reaching the earliest layers is vanishingly small, and those layers barely update at all no matter how many training steps run. This is the <span class="term">vanishing gradient</span> problem, and it is one of the concrete historical reasons ReLU, whose derivative is a clean 1 for any positive input, displaced sigmoid as the default hidden activation.</p>
+    <p>The opposite failure, <span class="term">exploding gradients</span>, happens when weights are scaled such that each layer's local gradient is greater than 1 rather than less — the product across layers grows rather than shrinks, and a single unlucky batch can produce gradients large enough to send an update rule into the same divergence a too-high learning rate causes. The standard first-line defense is <span class="term">gradient clipping</span>: after computing the gradient for a mini-batch, measure its overall norm, and if that norm exceeds a chosen threshold, rescale the entire gradient down to that threshold before applying the update. Clipping is a guard against explosion specifically — it caps how large a single step can be — but it does nothing to fix vanishing gradients, which is a problem of the gradient being too small to begin with, not too large; no amount of clipping makes a near-zero gradient carry more signal. Deeper architectures need real remedies for vanishing gradients — better activations, normalization, skip connections — which are out of scope for this unit's plain two-layer network but worth naming now, because the diagnosis starts here.</p>
+    <pre><code>import numpy as np
+
+def train_one_epoch(X, Y, params, lr, batch_size=128, rng=None):
+    """
+    X: (N, D) all training crops this epoch, Y: (N, C) one-hot labels
+    params: dict of W1, b1, W2, b2 (mutated in place)
+    lr: learning rate for this run
+    """
+    rng = rng or np.random.default_rng()
+    N = X.shape[0]
+    order = rng.permutation(N)          # shuffle every epoch — no fixed ordering
+    losses = []
+
+    for start in range(0, N, batch_size):
+        idx = order[start:start + batch_size]
+        xb, yb = X[idx], Y[idx]
+
+        cache = forward(xb, params)                 # from Units 1-2
+        loss = cross_entropy(cache["p"], yb)
+        grads = backward(xb, yb, cache)              # from Lesson 2
+
+        for name in ("W1", "b1", "W2", "b2"):
+            params[name] -= lr * grads["d" + name]    # plain SGD, no momentum
+
+        losses.append(loss)
+    return losses
+
+# Same data, same starting weights, three learning rates:
+for lr, label in [(3.0, "too high"), (0.1, "healthy"), (0.0005, "too low")]:
+    p = fresh_params()
+    trace = [np.mean(train_one_epoch(X_train, Y_train, p, lr)) for _ in range(5)]
+    print(label, lr, trace)
+
+# too high 3.0     [2.31, 4.02, 19.87, nan, nan]        -> diverges within 4 epochs
+# healthy  0.1     [2.30, 1.44, 0.97, 0.71, 0.55]        -> steady, real progress
+# too low  0.0005  [2.30, 2.29, 2.28, 2.27, 2.26]        -> crawling, wasting overnight compute</code></pre>
+    <p class="caption">A mini-batch training loop with per-epoch shuffling, and the same five-epoch run at three learning rates. The divergent run's loss blows past a healthy range and hits <code>nan</code>; the crawling run barely moves off its starting cross-entropy of roughly <code>ln(10) ≈ 2.30</code> (the loss a network gets by guessing uniformly among 10 digits before it has learned anything).</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>The update rule is always <code>θ ← θ − η∇L(θ)</code></strong> — batch, stochastic, and mini-batch gradient descent differ only in how much data is averaged into <code>∇L(θ)</code> before each step.</li>
+        <li><strong>Mini-batches of 32–256 examples are the practical default</strong> because they cut gradient noise far below single-example SGD while still matching the vectorized width of real hardware — unlike full-batch, which is accurate but too slow to iterate.</li>
+        <li><strong>An epoch is a full pass over the data; a step is one update</strong> — with N training crops and batch size B, one epoch takes <code>N/B</code> steps, and this ratio is what "overnight retraining" throughput actually depends on.</li>
+        <li><strong>The learning rate is the single highest-leverage hyperparameter</strong>: too high diverges to <code>NaN</code>, too low crawls without meaningful progress, and a rate just below the divergence threshold often oscillates rather than converging cleanly.</li>
+        <li><strong>Vanishing and exploding gradients are opposite failures of the same chain-rule product across layers</strong> — gradient clipping caps explosion by rescaling an over-large gradient norm, but it has no effect on a gradient that vanished from too many small local derivatives multiplied together.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 3 quiz</h2>
+    <p class="quiz-intro">Eight questions covering the chain rule and computational graphs, the hand-derived two-layer backward pass, and batch/stochastic/mini-batch gradient descent with learning-rate diagnosis.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A ZIP-code classifier has one scalar cross-entropy loss as output and roughly 40,000 weights as inputs to differentiate with respect to. Why does reverse-mode automatic differentiation (backpropagation) beat forward-mode here?</p>
+      <ol class="choices" type="A">
+        <li>Forward-mode cannot represent nonlinear operations like ReLU or softmax.</li>
+        <li>Reverse-mode cost scales with the number of outputs (one loss), so a single backward pass yields the full gradient; forward-mode cost scales with the number of inputs (40,000 weights), requiring one pass per weight.</li>
+        <li>Reverse-mode uses less memory because it never caches forward activations.</li>
+        <li>Forward-mode only works for convolutional networks, not fully connected ones.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Reverse-mode's cost is proportional to the number of outputs, and there is exactly one — the scalar loss — so one backward pass produces every weight's gradient at once. Forward-mode's cost is proportional to the number of inputs, so it would need one pass per weight, roughly 40,000 forward-mode passes to match a single backward pass.</p>
+          <p>A is wrong — both modes handle nonlinear operations fine, they just differ in bookkeeping direction. C is wrong — reverse-mode is exactly the technique that requires caching forward activations, which costs extra memory rather than saving it. D is wrong — the input/output asymmetry argument applies to any architecture with a scalar loss, convolutional or not.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Because backpropagation only needs each node's local gradient, a correct implementation never needs to store any of the forward pass's intermediate activations.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> Local gradients are evaluated at the specific values the forward pass produced — ReLU's derivative depends on whether the pre-activation was positive or negative, and a matmul's gradient with respect to its weights is literally the cached input. Without caching those forward values, the backward pass has nothing to evaluate the local gradients at.</p>
+          <p>The tempting reasoning is that "local" means the gradient calculation is self-contained and needs no outside information — but self-contained still means it needs its own forward-pass inputs, which is precisely what gets cached.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">For a network ending in softmax followed by cross-entropy loss, with predicted probabilities <code>p</code> and one-hot true labels <code>y</code>, the gradient flowing back into the pre-softmax scores <code>z2</code> simplifies to <span class="blank">&nbsp;</span> (ignoring the batch-averaging factor).</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: <code>p − y</code>.</strong> The softmax Jacobian and the cross-entropy gradient combine and cancel almost entirely, leaving the predicted probability vector minus the one-hot label — a result whose magnitude is automatically proportional to how wrong the prediction was.</p>
+          <p>A common wrong guess is <code>−y · log(p)</code> — that expression is the cross-entropy <em>loss</em> itself (summed over classes), not its gradient with respect to <code>z2</code>; the log and the softmax Jacobian have already been differentiated away by the time you reach <code>dz2</code>.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">Fill in the missing line so this ReLU backward step matches the derivation from Lesson 2, given cached pre-activation <code>z1</code> and incoming gradient <code>dh</code>.</p>
+      <pre><code>def relu_backward(dh, z1):
+    # dh: gradient flowing in from the layer above, shape (N, H)
+    # z1: cached pre-activation from the forward pass, shape (N, H)
+    dz1 = ____________________
+    return dz1</code></pre>
+      <ol class="choices" type="A">
+        <li><code>dh * (z1 > 0)</code></li>
+        <li><code>dh * z1</code></li>
+        <li><code>np.maximum(dh, 0)</code></li>
+        <li><code>dh / z1</code></li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: A, <code>dh * (z1 &gt; 0)</code>.</strong> ReLU's local gradient is 1 where the cached pre-activation was positive and 0 otherwise; multiplying the incoming gradient by that boolean mask zeroes out exactly the units that were inactive on the forward pass.</p>
+          <p>C is the tempting distractor because <code>np.maximum(x, 0)</code> is the forward-pass ReLU formula itself — applying it to the gradient <code>dh</code> during the backward pass is a category error, clamping the gradient's sign rather than masking by the forward activation's sign.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">This training loop trains noticeably worse than expected across many runs, even at a reasonable learning rate. Find the bug.</p>
+      <pre><code>def train_one_epoch(X, Y, params, lr, batch_size=128):
+    N = X.shape[0]
+    losses = []
+    for start in range(0, N, batch_size):
+        xb = X[start:start + batch_size]
+        yb = Y[start:start + batch_size]
+        cache = forward(xb, params)
+        loss = cross_entropy(cache["p"], yb)
+        grads = backward(xb, yb, cache)
+        for name in ("W1", "b1", "W2", "b2"):
+            params[name] -= lr * grads["d" + name]
+        losses.append(loss)
+    return losses</code></pre>
+      <ol class="choices" type="A">
+        <li>The learning rate is applied inside the loop instead of after it.</li>
+        <li>There is no shuffling — every epoch slices the same fixed contiguous blocks of <code>X</code> and <code>Y</code> in the same order, so if the data is sorted or grouped by digit, batches are non-representative every single epoch.</li>
+        <li><code>cross_entropy</code> is called before <code>backward</code>, which is the wrong order.</li>
+        <li>The gradients should be added to the parameters, not subtracted.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> The loop always takes contiguous slices of <code>X</code> and <code>Y</code> in the same fixed order every epoch. If the underlying ZIP-code data was collected or stored grouped by digit (all 0s, then all 1s, and so on — a realistic scenario for scanned batches from a single sorting run), every mini-batch is systematically unrepresentative, and the same skewed batches repeat epoch after epoch, biasing the gradient estimate. The fix is to shuffle an index array once per epoch and slice through the shuffled indices, as shown in Lesson 3's training loop.</p>
+          <p>A is wrong — applying the update per-batch inside the loop is correct mini-batch behavior. C is wrong — computing the loss for logging and computing gradients for the update can happen in either order since both read from the same cache without mutating it. D is wrong — subtracting the gradient scaled by <code>lr</code> is exactly the correct gradient descent direction; adding it would ascend the loss instead of descending it.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A sorting facility needs to retrain its digit classifier overnight on 500,000 labeled crops using a single GPU built for vectorized matrix operations. Which gradient descent variant fits best, and why?</p>
+      <ol class="choices" type="A">
+        <li>Batch gradient descent, because it produces the most accurate gradient every step.</li>
+        <li>Single-example stochastic gradient descent, because it takes the most update steps per epoch.</li>
+        <li>Mini-batch gradient descent with a batch size like 128 or 256, because it keeps gradient noise moderate while matching the GPU's vectorized throughput.</li>
+        <li>It does not matter, since all three variants take the same total wall-clock time for a fixed number of epochs.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> Mini-batches sized to match the GPU's parallel width get far more updates per pass over the data than full-batch descent, while producing a much less noisy gradient estimate than single-example SGD, and they use the hardware the way it was built to be used.</p>
+          <p>A is wrong in practice at this scale — one update per 500,000 examples means almost no progress per unit of wall-clock time, even though each individual gradient is highly accurate. B is wrong — single-example updates fail to use the GPU's parallel matrix hardware, wasting most of its throughput even though it does take more steps. D is wrong — batch size directly changes how many matrix multiplies happen per step and how well those multiplies use the hardware, so wall-clock time varies substantially between the three variants.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Training the same two-layer ZIP-code classifier for five epochs at three different learning rates produces these loss traces (starting near <code>ln(10) ≈ 2.30</code>, the loss of guessing uniformly among 10 digits):<br><code>Run 1: [2.30, 1.44, 0.97, 0.71, 0.55]</code><br><code>Run 2: [2.31, 4.02, 19.87, nan, nan]</code><br><code>Run 3: [2.30, 2.29, 2.28, 2.27, 2.26]</code><br>Which run used a learning rate that is too high?</p>
+      <ol class="choices" type="A">
+        <li>Run 1</li>
+        <li>Run 2</li>
+        <li>Run 3</li>
+        <li>None — all three are healthy, just at different speeds.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B, Run 2.</strong> The loss grows rather than shrinks and reaches <code>nan</code> within a few epochs — the signature of a learning rate large enough that each update overshoots the loss surface's curvature and the weights diverge.</p>
+          <p>Run 1 is the healthy run — steady, substantial decrease each epoch. Run 3 is not "healthy but slow," it is diagnostically a crawl: the loss barely moves off its random-guessing starting point after five full epochs, meaning the learning rate is too low to make practical progress, not merely a slower version of Run 1's curve.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Gradient clipping — rescaling the gradient when its norm exceeds a threshold — is an effective fix for vanishing gradients in a deep sigmoid network.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> Gradient clipping caps a gradient that has grown too large, which addresses exploding gradients. Vanishing gradients are the opposite problem — the gradient has shrunk toward zero from many small local derivatives (like sigmoid's, at most 0.25) multiplied together across layers — and no amount of rescaling a near-zero value makes it carry more signal.</p>
+          <p>The confusion is understandable because both problems come from the same source, a long product of per-layer local gradients via the chain rule, and both are diagnosed by watching gradient magnitudes during training — but one problem is "too big" and the other is "too small," and clipping only addresses the former.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Deep Learning Foundations · Unit 3 of 8 — Unit 4 builds on plain SGD with momentum, Adam, and learning-rate schedules, still trained on the same ZIP-code sorting task.</p>
+</footer>
+</body>
+</html>

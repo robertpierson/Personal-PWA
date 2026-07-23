@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 8 · Training deep networks in practice — Deep Learning Foundations</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Deep Learning Foundations · Unit 8 of 8</p>
+  <h1>Training deep networks in practice</h1>
+  <p class="lede">The capstone: everything from Units 1–7 — losses, initialization, optimizers, regularization, convolutions, sequence models, and architecture choices — has to survive contact with a real cluster, a real budget, and a job queue measured in GPU-hours. This unit is about not wasting them.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. A debugging methodology that actually finds the bug</a></li>
+      <li><a href="#lesson-2">2. Hyperparameter tuning on a real budget</a></li>
+      <li><a href="#lesson-3">3. Hardware, memory, and throughput</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>A debugging methodology that actually finds the bug</h2>
+    <p class="opening">Loss is 2.303 and it has not moved in 40 epochs. Your team is three weeks into a project classifying facies from a 3-D seismic volume — ten lithology classes, interpreted from well-log ground truth and propagated across a migrated stack that took 400 GPU-hours to preprocess — and the training curve is a flat line. Before you touch a single hyperparameter, look at the number itself: <code>-ln(1/10) = 2.302585</code>. That is not a coincidence. It is the cross-entropy loss of a model outputting a uniform distribution over 10 classes, which is exactly what an untrained (or, worse, an <em>untrainable</em>) softmax head produces. The number is telling you the network has learned nothing at all — not "learned slowly," not "converged to a bad local minimum," but produced zero gradient signal since step one. That distinction changes what you look for next, and it is why the very first move in any debugging session should be arithmetic, not a hyperparameter sweep.</p>
+
+    <p>This is the central discipline this lesson teaches: an <span class="term">ordered debugging protocol</span>, applied in a fixed sequence, that narrows the search space by an order of magnitude at each step instead of guessing. Guessing is what happens when a team facing the flat-2.303 curve tries a lower learning rate, then a different optimizer, then more augmentation, each run costing an hour of A100 time on the shared cluster and each one just as flat as the last. The protocol below would have found the bug in the time it takes to run one batch.</p>
+
+    <h3>Step 0 — check the data before the model</h3>
+    <p>Most "model" bugs are data bugs wearing a disguise. Before instrumenting gradients, pull ten labeled examples straight out of the dataloader — the actual tensors that hit the network, post-augmentation, post-normalization — and inspect them by hand against the well-log labels they're supposed to match. On seismic facies data the classic failure is <span class="term">label misalignment</span>: the inline/crossline/time-slice indexing convention used when the label volume was rasterized from well picks doesn't match the indexing convention the loader uses to slice the amplitude volume, so patch 4,812 of the input lines up with the label meant for patch 4,811. The model isn't wrong to fail — it's being fed input-target pairs that are consistent maybe 60% of the time by pure adjacency, which looks like noise, not zero signal, so it's a sneakier bug than the 2.303 case. Also check: is the <span class="term">data shuffled</span> across training, or is it walking through the volume in raster order, so that every batch in an epoch is drawn from a single facies-homogeneous region and each batch looks like a different, non-stationary distribution to the optimizer? And check the val split: if global amplitude normalization statistics (mean, std) were computed over the entire cube <em>including</em> the validation inlines before splitting, you have <span class="term">leakage</span> — validation loss will look suspiciously good and will stop meaning anything the moment you deploy to a new survey.</p>
+
+    <h3>Step 1 — overfit one batch</h3>
+    <p>If the data checks out, the next and single highest-value step is to take one batch — say 8 seismic patches of shape <code>(8, 1, 128, 128, 128)</code> paired with their 10-class facies labels — and try to drive the loss on <em>that batch alone</em> to near zero, with no regularization, no dropout, no weight decay, running for a few hundred steps. A healthy network with a correct loss, correct labels, and enough capacity will memorize eight examples in well under a minute. If it can't, the bug is not "the model needs more epochs" — it is somewhere in the forward pass, the loss computation, or the labels, and it is there whether you're using one batch or the full multi-terabyte survey. This step matters because it is the one place where "not enough data" and "not enough training" are both ruled out as explanations at once. Only after a single batch overfits do you scale up to the full training set — and if the full-scale run then fails to generalize, you've cleanly separated "the mechanics are broken" (ruled out) from "this is now a capacity, regularization, or optimization-at-scale problem" (Units 5 and 4 territory).</p>
+
+    <pre><code>def overfit_one_batch(model, batch, loss_fn, opt, steps=300, tol=1e-3):
+    x, y = batch
+    model.train()
+    for step in range(steps):
+        opt.zero_grad()
+        logits = model(x)
+        loss = loss_fn(logits, y)
+        loss.backward()
+        opt.step()
+        if step % 50 == 0:
+            print(f"step {step:4d}  loss {loss.item():.4f}")
+    assert loss.item() < tol, (
+        f"failed to overfit a single batch (final loss {loss.item():.4f}); "
+        "bug is in forward pass, loss, or labels — not in scale"
+    )
+    return loss.item()
+
+def sanity_check_initial_loss(model, batch, loss_fn, num_classes):
+    x, y = batch
+    model.eval()
+    with torch.no_grad():
+        logits = model(x)
+        loss = loss_fn(logits, y).item()
+    expected = math.log(num_classes)          # softmax + CE, untrained
+    assert abs(loss - expected) < 0.5, (
+        f"initial loss {loss:.3f} is far from ln({num_classes})={expected:.3f}; "
+        "check the loss reduction, the label range, or a broadcasting bug"
+    )
+    # gradient magnitude sanity: nothing should be exactly zero or exploding
+    model.train()
+    logits = model(x)
+    loss_fn(logits, y).backward()
+    grad_norms = [p.grad.norm().item() for p in model.parameters() if p.grad is not None]
+    assert all(g > 1e-8 for g in grad_norms), "a layer produced a dead (zero) gradient"
+    assert all(g < 1e4 for g in grad_norms), "a layer is exploding before step one"</code></pre>
+    <p class="caption">The overfit harness asserts the loss converges near zero on a single batch; the sanity check asserts the untrained loss lands near <code>ln(num_classes)</code> and that no layer's gradient is already dead or exploding at initialization.</p>
+
+    <h3>Step 2 — the standard bug taxonomy</h3>
+    <p>Once you know whether the failure is "flat from step one" or "degrades at scale," a short checklist covers the overwhelming majority of real cases, roughly in order of how often each one shows up in practice: label misalignment (indices out of sync between input and target, as above); un-shuffled data (an <code>IterableDataset</code> reading sequential inline chunks with <code>shuffle=False</code>, or a shuffle applied once at dataset-build time but never per-epoch); a forgotten <code>model.eval()</code> before validation or inference, which leaves dropout active and batch-norm running on per-batch statistics instead of its accumulated running mean/variance — this one is infamous because training metrics look fine and only validation or deployed inference looks subtly, non-reproducibly wrong; normalization statistics leaked from the validation or test split into the training-time mean/std, discussed above; a wrong <span class="term">loss reduction</span> — summing per-voxel cross-entropy over a <code>(8, 128, 128, 128)</code> volume instead of averaging silently scales your effective learning rate by the voxel count, making a correct learning rate from Unit 4 behave like a wildly too-large one; silent broadcasting, where a per-channel normalization constant of shape <code>(3,)</code> gets broadcast against a seismic amplitude tensor of shape <code>(8, 3, 128, 128)</code> in a way NumPy/PyTorch accepts without error but which does not mean what you think; and NaN losses from <code>log(0)</code> when a softmax output underflows to exactly zero on a confident wrong prediction, or from exploding gradients in a deep 3-D CNN without the normalization and residual-connection choices from Units 3 and 5.</p>
+
+    <h3>Bisection when the taxonomy doesn't immediately name the bug</h3>
+    <p>When nothing on the list matches, bisect the pipeline the same way you'd bisect a commit range: disable augmentation and confirm the bug persists (rules in/out the augmentation code); swap the real 3-D CNN for a two-layer linear model on flattened patches — if the tiny model also produces exactly 2.303, the bug is upstream of the architecture, in data or loss; replace the real facies labels with random integer labels — if loss <em>still</em> won't move even slightly on one batch, gradients aren't reaching the parameters at all (a detached tensor, a frozen layer, an optimizer built on the wrong parameter list). Each bisection step should cut the remaining search space roughly in half, the same logic as a binary search, and it's this systematic halving — not intuition — that makes the difference between finding a bug in ten minutes and burning a week of cluster allocation on directionless reruns.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Check the initial loss against ln(num_classes) before anything else</strong> — a flat loss at that exact value means zero learning signal, not slow learning, and points you at the forward pass or labels, not the optimizer.</li>
+        <li><strong>Overfitting one batch to near-zero loss is the single highest-value diagnostic</strong> — it rules out data-scale and generalization issues at once and isolates bugs to the forward pass, loss function, or label pipeline.</li>
+        <li><strong>The bug taxonomy is ordered by frequency</strong>: label misalignment, un-shuffled data, forgotten <code>eval()</code>, leaked normalization stats, wrong reduction, silent broadcasting, and log(0)/exploding-gradient NaNs cover most real failures.</li>
+        <li><strong>Bisect the pipeline like a commit range</strong> — swap in a trivial model, swap in random labels, disable augmentation — so each test halves the remaining search space instead of guessing at hyperparameters.</li>
+        <li><strong>On a shared cluster, a debugging protocol is a budget decision</strong>: a ten-minute batch-overfit test is cheaper than an hour-long run repeated five times with no diagnosis.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Hyperparameter tuning on a real budget</h2>
+    <p class="opening">In 2012, James Bergstra and Yoshua Bengio published a result that should have ended grid search on the spot: for a fixed compute budget, random search over hyperparameters reliably outperforms grid search, and the reason is almost embarrassingly simple. Most hyperparameters barely affect the outcome. If you lay out a 6×6 grid over two hyperparameters but only one of them actually matters, a grid search wastes five out of every six evaluations re-testing values of the useless dimension while holding the important one fixed at only six distinct values. Random search, drawing both hyperparameters independently for every trial, effectively gets six-times-six-squared, thirty-six, distinct values along whichever dimension turns out to matter — for the same number of trials. On the geothermal-siting project, this is not a theoretical curiosity: a GPU-hour on the shared cluster has to be justified to whoever owns the allocation, and a search strategy that wastes five-sixths of its budget on a hyperparameter nobody needed tuned is a search strategy that gets your next allocation request questioned.</p>
+
+    <h3>What to tune, and in what order</h3>
+    <p>Not all hyperparameters are equal, and tuning them in the wrong order burns budget re-deriving results that a later stage will invalidate anyway. The order that works, built directly on Units 4 and 5: <span class="term">learning rate first, always</span> — it interacts with everything else (the wrong LR makes every other setting look bad or good by accident) and its effect size dwarfs almost everything else you could tune. Then <span class="term">batch size</span>, which on a terabyte-scale 3-D seismic volume is really a memory-and-throughput decision as much as an optimization one (Lesson 3 covers why). Then <span class="term">regularization strength</span> — weight decay, dropout rate, augmentation intensity — tuned against the LR you've already fixed, since regularization and effective learning rate trade off against each other. Only last, <span class="term">architecture</span> choices: number of 3-D conv blocks, channel widths, whether to add the residual connections from Unit 5. Architecture search is the most expensive category per trial and the least likely to move the needle relative to just getting the learning rate right, so it belongs at the end, on whatever budget remains.</p>
+
+    <h3>How to sample: log-uniform vs. uniform</h3>
+    <p>Learning rate and weight decay live on a multiplicative scale, not an additive one — the practical difference between LR 0.001 and 0.003 is comparable in effect to the difference between 0.01 and 0.03, not to the difference between 0.001 and 0.021. Sampling these <span class="term">log-uniformly</span> — drawing <code>u ~ Uniform(-5, -1)</code> and setting <code>lr = 10**u</code> — spreads trials evenly across orders of magnitude. Sampling them uniformly on the raw scale instead wastes most of your budget densely covering the (usually useless) upper end of the range while barely touching the lower orders of magnitude where the good values usually live. Dropout rate and momentum-adjacent quantities like Adam's β₁, by contrast, are naturally bounded in [0, 1) and behave close to linearly in that range, so plain uniform sampling is appropriate there — log-uniform would over-sample near zero for no benefit.</p>
+    <p class="math">lr = 10^u,  u ~ Uniform(log10(lr_min), log10(lr_max))</p>
+
+    <h3>Search strategies, and when each earns its cost</h3>
+    <p>Grid search evaluates every combination of a fixed value set per hyperparameter — cost grows exponentially with dimensions and, per Bergstra & Bengio, wastes budget on unimportant ones. Random search fixes that waste and is the right default when you can't run many sequential rounds. Bayesian optimization and its tree-structured variant <span class="term">TPE</span> (tree-structured Parzen estimator) build a probabilistic model of "which region of hyperparameter space tends to score well" from completed trials and propose the next trial to maximize expected improvement — it earns its (real) implementation and sequencing overhead once evaluations are expensive enough that squeezing more information out of each one matters, which is exactly the seismic case: a single training run at full 3-D resolution can eat 40+ GPU-hours. <span class="term">Hyperband</span> and its asynchronous cousin <span class="term">ASHA</span> (Asynchronous Successive Halving Algorithm) attack the problem from the other direction: run many configurations in parallel at low fidelity (few epochs, or a downsampled sub-volume of the seismic cube), then kill the bottom fraction — commonly half — at each rung and let only the survivors continue to the next, more expensive fidelity level. This matters enormously on a shared cluster because it converts "run 64 configs to completion" into "run 64 configs for one cheap rung, then only the best 8 for a mid rung, then only the best 2 to completion" — the total GPU-hours spent look nothing like 64 full runs.</p>
+
+    <table class="tbl">
+      <tr><th>Strategy</th><th>Cost pattern</th><th>Best when</th></tr>
+      <tr><td>Grid search</td><td>Exponential in dimensions, fixed values</td><td>1–2 hyperparameters, cheap trials</td></tr>
+      <tr><td>Random search</td><td>Linear in trial count, continuous ranges</td><td>Default choice; many hyperparameters, most unimportant</td></tr>
+      <tr><td>Bayesian / TPE</td><td>Sequential, model-guided proposals</td><td>Trials are very expensive; few can run in parallel</td></tr>
+      <tr><td>Hyperband / ASHA</td><td>Many parallel trials, early-killed</td><td>Trials can run at reduced fidelity cheaply; large cluster</td></tr>
+    </table>
+
+    <h3>Two traps that quietly waste a cluster allocation</h3>
+    <p>The first is the <span class="term">seed-variance trap</span>: re-running the same configuration with a different random seed produces a spread in final validation accuracy — commonly 0.2–0.5 percentage points for a mid-size 3-D segmentation model — purely from initialization and data-order noise. A hyperparameter search that reports "config B beat config A by 0.3%" without having run either one across multiple seeds hasn't found an improvement; it's reporting noise, and the team that ships config B on the strength of that single comparison is making a decision no better than a coin flip. The fix is cheap relative to the mistake: run your top 2–3 candidates across 3+ seeds before declaring a winner. The second trap is worse because it invalidates the whole exercise retroactively: <span class="term">tuning on the test set</span>. If the held-out survey data reserved for final reporting to the geothermal client gets used, even once, to pick between hyperparameter configurations, it has stopped being a valid estimate of generalization and become part of the training process — the reported number is now optimistic in a way you cannot correct after the fact. Tune exclusively against a validation split; touch the test split exactly once, at the end.</p>
+
+    <h3>Budgeting: breadth vs. depth</h3>
+    <p>With a fixed GPU-hour allocation you're choosing a point on a spectrum between "N configs at low fidelity" and "one long, careful run." Early in a project, when you don't know which region of hyperparameter space is even plausible, breadth wins — an ASHA sweep of 40+ configs at a fraction of full training length locates the promising region cheaply. Late in a project, once the region is known and you're chasing the last increment of accuracy for a client-facing deliverable, depth wins — one long run (or a handful for seed-variance checking) at full resolution, full epoch budget, on the configuration the earlier sweep already identified.</p>
+
+    <pre><code>import random, math
+
+def sample_config(rng):
+    log_lr = rng.uniform(math.log10(1e-5), math.log10(1e-1))
+    log_wd = rng.uniform(math.log10(1e-6), math.log10(1e-1))
+    return {"lr": 10 ** log_lr, "weight_decay": 10 ** log_wd}
+
+def random_search_with_asha(train_fn, n_configs=32, rungs=(1, 4, 16), keep_frac=0.5):
+    """train_fn(config, max_epochs) -> validation loss after max_epochs.
+    ponytail: single-machine sequential loop; a real cluster runs rungs in
+    parallel across workers, upgrade path is a job queue, not this function."""
+    rng = random.Random(0)
+    survivors = [sample_config(rng) for _ in range(n_configs)]
+    for rung_epochs in rungs:
+        scored = [(cfg, train_fn(cfg, rung_epochs)) for cfg in survivors]
+        scored.sort(key=lambda pair: pair[1])          # lower val loss first
+        n_keep = max(1, int(len(scored) * keep_frac))
+        survivors = [cfg for cfg, _ in scored[:n_keep]]
+        print(f"rung @ {rung_epochs} epochs: kept {len(survivors)}/{len(scored)}")
+    return survivors[0]</code></pre>
+    <p class="caption">Configs are sampled log-uniformly for LR and weight decay; each rung trains every surviving config a little longer, then discards the worse half — an ASHA-style early-kill loop that spends most of its GPU-hours only on configs that have already proven themselves.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Random search beats grid search on a fixed budget</strong> because most hyperparameters don't matter, and random search doesn't waste trials re-covering the ones that don't (Bergstra & Bengio, 2012).</li>
+        <li><strong>Tune in order: learning rate, then batch size, then regularization, then architecture</strong> — tuning out of order re-derives results a later stage invalidates.</li>
+        <li><strong>Sample LR and weight decay log-uniformly</strong>; sample bounded, roughly-linear quantities like dropout rate uniformly.</li>
+        <li><strong>ASHA-style early-killing converts "N full runs" into "N cheap runs + a few expensive ones"</strong> — the right default when trials can run at reduced fidelity.</li>
+        <li><strong>A 0.3% improvement with no seed check may just be noise, and tuning on the test set invalidates your final reported number</strong> — both mistakes are cheap to avoid and expensive to discover later.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Hardware, memory, and throughput</h2>
+    <p class="opening"><span class="term">GPU memory</span>, for training purposes, is the sum of four things that live on the device at once: the model parameters, their gradients, the optimizer's internal state, and the activations saved for the backward pass. Every out-of-memory error on the shared cluster is one of these four growing larger than the card's memory, and knowing which one is the culprit is the difference between a five-minute fix and an afternoon of blind trial and error.</p>
+
+    <h3>Where the memory actually goes</h3>
+    <p>Take a concrete 3-D CNN used for facies segmentation across a seismic sub-volume: 60 million parameters, trained in fp32, with Adam as the optimizer (Unit 4). Parameters at fp32 cost 4 bytes each: 60M × 4B = 240MB. Gradients are the same shape as parameters, so another 240MB. Adam keeps two running-average buffers per parameter — the first and second moment estimates, <code>m</code> and <code>v</code> — each also fp32 and parameter-shaped: 2 × 240MB = 480MB. That's already 240 + 240 + 480 = 960MB before a single activation is stored, which is the arithmetic behind the standard rule of thumb that <span class="term">Adam costs roughly 3× the raw parameter memory</span> just in optimizer state and gradients, on top of the parameters themselves (so 4× total versus plain SGD's roughly 2×, which skips the moment buffers). Activations are the fourth term and, for 3-D volumetric data, often the largest and the least predictable one: a batch of 8 patches at <code>(8, 32, 128, 128, 128)</code> channels-and-spatial-dims through several 3-D conv layers, each needing its input cached for the backward pass, can add several gigabytes on its own — and unlike the other three terms, this one scales with batch size and input resolution, not just model size.</p>
+
+    <pre><code>def estimate_memory_gb(num_params, batch_size, activations_per_sample_mb,
+                        precision="fp32", optimizer="adam"):
+    bytes_per_val = {"fp32": 4, "fp16": 2, "bf16": 2}[precision]
+    param_gb = num_params * bytes_per_val / 1e9
+    grad_gb  = num_params * bytes_per_val / 1e9
+
+    if optimizer == "adam":
+        # m and v buffers are kept in fp32 even under mixed precision,
+        # to avoid underflow in the running-average update
+        opt_gb = num_params * 4 * 2 / 1e9
+    elif optimizer == "sgd_momentum":
+        opt_gb = num_params * 4 / 1e9
+    else:
+        opt_gb = 0.0
+
+    activation_gb = batch_size * activations_per_sample_mb / 1e3
+
+    total = param_gb + grad_gb + opt_gb + activation_gb
+    return {
+        "parameters_gb": round(param_gb, 2),
+        "gradients_gb": round(grad_gb, 2),
+        "optimizer_state_gb": round(opt_gb, 2),
+        "activations_gb": round(activation_gb, 2),
+        "total_gb": round(total, 2),
+    }
+
+# 60M-parameter 3-D facies-segmentation net, batch of 8, ~900MB activations/sample
+estimate_memory_gb(60_000_000, batch_size=8, activations_per_sample_mb=900,
+                    precision="fp16", optimizer="adam")
+# -> {'parameters_gb': 0.12, 'gradients_gb': 0.12, 'optimizer_state_gb': 0.48,
+#     'activations_gb': 7.2, 'total_gb': 7.92}</code></pre>
+    <p class="caption">Adam's optimizer state stays fp32-sized (0.48GB) even though parameters and gradients halve under fp16 — and at batch 8 on a 3-D volume, activations (7.2GB) dominate the whole budget, not the parameters.</p>
+
+    <h3>Mixed precision</h3>
+    <p>Storing parameters and doing most math in <span class="term">fp16</span> or <span class="term">bf16</span> instead of fp32 roughly halves parameter and activation memory and can substantially speed up matrix multiplies on tensor-core hardware. The catch with fp16 specifically is a narrow exponent range: gradients on a deep 3-D network can underflow to zero in fp16 long before they'd underflow in fp32, silently killing the update for whichever layers have small gradients. The standard fix is <span class="term">loss scaling</span> — multiply the loss by a scale factor (say 1024, adjusted dynamically) before the backward pass so gradients land in fp16's representable range, then unscale the gradients before the optimizer step. bf16 has fp32's exponent range and needs no loss scaling, which is why it's become the more common default on hardware that supports it, at the cost of fewer mantissa bits than fp16 (less precision, not less range). Either way, a few things conventionally stay in fp32 regardless: the master copy of the weights (updated in fp32, then cast down for the next forward pass, so tiny updates don't vanish against the current weight value), and Adam's moment buffers, as shown in the estimator above — this is why "fp16 training" doesn't actually cut total memory in half, only the parameter and activation portions.</p>
+
+    <h3>Faking a bigger batch, and trading compute for memory</h3>
+    <p><span class="term">Gradient accumulation</span> answers the question "I need batch size 32 for stable statistics but only 8 fits in memory" by running 4 forward/backward passes of batch 8 each, summing (not overwriting) the gradients, and only calling the optimizer step once every 4 micro-batches. The effective batch size for the update is 32; the peak activation memory is still only what batch 8 needs, since each micro-batch's activations are freed before the next one starts. <span class="term">Activation checkpointing</span> (a.k.a. gradient checkpointing) attacks the activation term directly: instead of caching every intermediate activation for the backward pass, it caches only a subset of "checkpoint" layers and recomputes the rest during backward from the nearest checkpoint. This trades roughly 20–30% more compute time for a large reduction in activation memory — often the deciding factor for whether a full-resolution 3-D volume fits on a single GPU at all, versus being forced to downsample or tile the seismic cube and lose spatial context across tile boundaries.</p>
+
+    <h3>Finding the real bottleneck: the data loader</h3>
+    <p>None of the above helps if the GPU is idle waiting for data. The signature symptom is a GPU utilization monitor (<code>nvidia-smi dmon</code>, or the cluster's job dashboard) sitting around 15–25% instead of the 80%+ you'd expect during a real forward/backward pass — the compute is fast, but each batch is waiting on disk reads and CPU-side preprocessing of multi-gigabyte seismic sub-volumes pulled off shared network storage. This is a data-loader problem, not a model problem, and no amount of mixed precision or a bigger GPU fixes it: the fix is more dataloader worker processes, prefetching the next batch while the current one trains, and — for a terabyte-scale cube read repeatedly across an epoch — caching decoded, normalized sub-volumes to local fast storage instead of re-reading and re-normalizing the raw SEG-Y data from shared storage every epoch.</p>
+
+    <h3>Data-parallel vs. model-parallel</h3>
+    <p><span class="term">Data parallelism</span> replicates the whole model on each of several GPUs, splits a batch across them, and averages gradients after each step — the right default whenever the model itself fits comfortably on one GPU, which covers the large majority of the CNN and sequence architectures from Units 5–7. <span class="term">Model parallelism</span> — splitting the model itself, by layer (pipeline parallelism) or by tensor dimension (tensor parallelism), across multiple GPUs — becomes necessary only when a single copy of the model plus its optimizer state and activations, by the arithmetic above, doesn't fit in one GPU's memory even at batch size 1. For the geothermal seismic-interpretation models in this course, that threshold is rarely crossed; it becomes standard practice at the scale of the large pretrained foundation models that Course 2 begins with.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>GPU memory is parameters + gradients + optimizer state + activations</strong> — Adam's two moment buffers make its optimizer-state cost alone roughly 2× parameter size, on top of gradients, for roughly 4× total versus plain SGD's 2×.</li>
+        <li><strong>bf16 needs no loss scaling; fp16 does</strong>, because fp16's narrow exponent range lets small gradients underflow to zero — and both keep Adam's moment buffers and the master weight copy in fp32 regardless.</li>
+        <li><strong>Gradient accumulation fakes a larger batch without more peak activation memory</strong>; activation checkpointing trades ~20–30% more compute for a large activation-memory reduction.</li>
+        <li><strong>A GPU sitting at 20% utilization is a data-loader problem, not a model problem</strong> — more solved by prefetching workers and local caching than by any change to the model or precision.</li>
+        <li><strong>Model parallelism is only needed when one model copy doesn't fit on one GPU at batch size 1</strong> — data parallelism is the correct default otherwise.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 8 quiz</h2>
+    <p class="quiz-intro">8 questions spanning all three lessons, including a multi-step scenario and a bug-fix that combines the debugging methodology with the optimizer/normalization mechanics from earlier units.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A 3-D facies classifier over 12 lithology classes reports a training loss of 2.485, completely flat, for the first 30 epochs. What does this number, by itself, most strongly suggest?</p>
+      <ol class="choices" type="A">
+        <li>The learning rate is too high and is causing divergence.</li>
+        <li><code>-ln(1/12) ≈ 2.485</code> — the model is outputting a uniform distribution and has learned nothing since initialization.</li>
+        <li>The model has converged to a sharp local minimum.</li>
+        <li>Batch normalization statistics are leaking from validation into training.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> <code>ln(12) ≈ 2.485</code> is exactly the cross-entropy loss of a uniform 12-class prediction. A flat loss sitting at that value for 30 epochs means no learning signal is reaching the parameters at all — the next step is the overfit-one-batch test, not a hyperparameter change.</p>
+          <p>A is wrong because divergence from too-high LR produces a loss that increases or oscillates, not one that sits flat at exactly ln(num_classes) — a diverging loss would drift away from 2.485, not stay pinned to it. C is wrong because a genuine local minimum, sharp or not, is still a point the optimizer moved to from a different starting loss; it wouldn't sit exactly at the untrained uniform-output value for 30 straight epochs. D describes a real bug but produces suspiciously good validation numbers, not a flat, plainly-uninformative training loss.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Overfitting a single batch to near-zero loss proves the full-scale training run, on the terabyte-scale seismic cube, will also converge well.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B, false.</strong> Overfitting one batch only rules out bugs in the forward pass, loss computation, and label pipeline — it says nothing about whether the model generalizes, whether the learning rate and regularization are right at scale, or whether the data loader can keep up. It's a necessary early check, not a sufficient one.</p>
+          <p>The tempting reasoning is "if it can learn at all, it will learn well" — but capacity, regularization strength (Unit 5), and optimization dynamics at full data scale (Unit 4) are separate concerns the single-batch test deliberately doesn't exercise.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">Sampling a learning rate as <code>lr = 10**u</code> where <code>u ~ Uniform(-5, -1)</code> is called <span class="blank">&nbsp;</span> sampling, and it is preferred over plain uniform sampling on the raw scale because the effect of the learning rate is multiplicative, not additive.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: log-uniform.</strong> Drawing the exponent uniformly and exponentiating spreads trials evenly across orders of magnitude, so the search doesn't waste most of its budget densely covering one order of magnitude while barely sampling others.</p>
+          <p>Plain uniform sampling on the raw lr scale (e.g. <code>Uniform(1e-5, 1e-1)</code>) would place the overwhelming majority of draws above 1e-2, since that interval is a tiny fraction of the range in log-space but dominates it in linear space — exactly the waste log-uniform sampling avoids.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Your team ran an ASHA sweep and found config B beats config A by 0.3% validation accuracy on one seed each. What is the correct next step before reporting config B as the winner to the client?</p>
+      <ol class="choices" type="A">
+        <li>Ship config B immediately — 0.3% is a real, reportable improvement.</li>
+        <li>Re-run config B on the held-out test set to confirm the gain.</li>
+        <li>Re-run both configs A and B across several more seeds to check whether 0.3% exceeds normal run-to-run variance.</li>
+        <li>Increase the ASHA keep-fraction and rerun the whole sweep.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> A single-seed 0.3% gap is well within the seed-variance range commonly seen on segmentation-style models (roughly 0.2–0.5 points). Multiple seeds per candidate are needed before treating a small gap as a genuine effect rather than noise.</p>
+          <p>B is the second trap this lesson warns about: touching the test set during model selection — even just to "confirm" a winner before the final report — contaminates it, so any test-set number used this way can no longer serve as an honest generalization estimate later.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">Complete the missing line so this ASHA-style loop actually discards the worse-performing configurations at each rung (lower validation loss is better).</p>
+      <pre><code>scored = [(cfg, train_fn(cfg, rung_epochs)) for cfg in survivors]
+_____________________________________
+n_keep = max(1, int(len(scored) * keep_frac))
+survivors = [cfg for cfg, _ in scored[:n_keep]]</code></pre>
+      <ol class="choices" type="A">
+        <li><code>scored.sort(key=lambda pair: pair[1])</code></li>
+        <li><code>scored.sort(key=lambda pair: pair[1], reverse=True)</code></li>
+        <li><code>random.shuffle(scored)</code></li>
+        <li><code>scored.sort(key=lambda pair: pair[0])</code></li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: A.</strong> Sorting ascending by validation loss (<code>pair[1]</code>) puts the best (lowest-loss) configs first, so slicing <code>scored[:n_keep]</code> keeps the survivors, exactly matching ASHA's early-kill rule.</p>
+          <p>B sorts descending and would keep the <em>worst</em> configs after the same slice — the opposite of successive halving. D sorts by the config dict itself (<code>pair[0]</code>), which has no defined ordering and wouldn't reflect performance at all.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A 60M-parameter 3-D segmentation model is trained with Adam in fp32. Roughly how does the combined memory of gradients plus Adam's optimizer state compare to the memory used by the parameters alone?</p>
+      <ol class="choices" type="A">
+        <li>About the same (1×) — gradients and optimizer state are negligible.</li>
+        <li>About 3× the parameter memory (1× gradients + 2× moment buffers).</li>
+        <li>About 0.5× the parameter memory — Adam is more memory-efficient than plain SGD.</li>
+        <li>It depends only on batch size, not on the optimizer.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Gradients match parameter size (1×), and Adam keeps two parameter-shaped moment buffers, <code>m</code> and <code>v</code> (2×), for 3× the parameter memory in gradients and optimizer state combined — 4× total once parameters themselves are counted.</p>
+          <p>C is backwards: Adam costs more memory than plain SGD (which only needs one momentum buffer, if any), not less — that's the direct tradeoff for Adam's per-parameter adaptive learning rates. D is wrong because parameter and optimizer-state memory scale with parameter count, not batch size; batch size instead scales the activation term.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">This training loop for the facies model reports a suspiciously low validation loss during training, but real-world inference on new survey data is much worse than that validation number predicted. Identify the bug and state the fix. (This question deliberately combines the debugging protocol from Lesson 1 with the batch-norm behavior covered in Unit 5.)</p>
+      <pre><code>def train(model, train_loader, val_loader, opt, loss_fn, epochs):
+    for epoch in range(epochs):
+        model.train()
+        for x, y in train_loader:
+            opt.zero_grad()
+            loss = loss_fn(model(x), y)
+            loss.backward()
+            opt.step()
+
+        val_losses = []
+        for x, y in val_loader:
+            with torch.no_grad():
+                val_losses.append(loss_fn(model(x), y).item())
+        print(f"epoch {epoch}: val_loss={sum(val_losses)/len(val_losses):.4f}")</code></pre>
+      <ol class="choices" type="A">
+        <li>The optimizer step is called before the backward pass.</li>
+        <li>The model is never switched to <code>model.eval()</code> before validation, so batch norm keeps using per-batch statistics and dropout stays active, both of which flatter validation loss relative to true deployed behavior.</li>
+        <li>The loss function reduction is set to <code>sum</code> instead of <code>mean</code>.</li>
+        <li><code>torch.no_grad()</code> should not be used during validation.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> The loop never calls <code>model.eval()</code> before the validation pass, so batch-norm layers keep normalizing with each validation batch's own statistics instead of the accumulated running mean/variance from training, and dropout keeps randomly zeroing activations — both make validation numbers look artificially close to (or sometimes better than) they'll be at real inference time, where <code>eval()</code> mode is correctly used. The fix is one line: call <code>model.eval()</code> at the start of the validation block, and <code>model.train()</code> again at the start of the next training epoch (which this loop does correctly).</p>
+          <p>A is not present in this code — backward is correctly called before <code>opt.step()</code>. C isn't shown or implied by the symptom described; a wrong reduction produces a loss at the wrong overall scale, not a train/inference mismatch specifically at validation time. D is backwards: <code>no_grad()</code> during validation is correct practice (it saves memory by not building a backward graph) and is not the bug here.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A 3-D CNN training job on the shared cluster shows GPU utilization sitting at 22% throughout training, even though a quick profiling run confirms the forward and backward passes are fast. What is the most likely fix, and why doesn't switching to mixed precision address it?</p>
+      <ol class="choices" type="A">
+        <li>Switch to bf16 — it will reduce activation memory and raise utilization.</li>
+        <li>Add more dataloader worker processes and prefetch/cache decoded sub-volumes — the GPU is idle waiting on data, which mixed precision does nothing to fix since it only changes on-device compute and memory, not I/O.</li>
+        <li>Increase the learning rate so each step makes more progress per batch.</li>
+        <li>Switch from data parallelism to model parallelism to spread the I/O load.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Low GPU utilization with a fast forward/backward pass is the signature of a data-loader bottleneck: the GPU finishes each step quickly and then sits idle waiting for the next batch of multi-gigabyte seismic sub-volumes to be read and preprocessed off shared storage. More worker processes, prefetching, and local caching address the actual bottleneck; mixed precision only speeds up on-device compute and shrinks on-device memory, neither of which touches the I/O and CPU-preprocessing path that's actually stalling the GPU.</p>
+          <p>A repeats the trap the question warns against — it's a real technique from Lesson 3 but solves a different problem (memory/compute), not throughput starved by I/O. C is unrelated to utilization; learning rate affects convergence quality, not how fast batches arrive. D is backwards: model parallelism addresses "the model doesn't fit in memory," a different failure mode from a starved data pipeline, and doesn't touch I/O throughput at all.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Deep Learning Foundations · Unit 8 of 8 — Course complete. Course 2, Foundational Model Development, picks up from here: pretraining objectives, tokenization, and the transformer-scale training runs where every technique in this unit — debugging protocol, tuning budget, and memory arithmetic — stops being optional and starts being the whole job.</p>
+</footer>
+</body>
+</html>

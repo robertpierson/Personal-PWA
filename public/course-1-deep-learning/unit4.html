@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 4 · Optimization algorithms — Deep Learning Foundations</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Deep Learning Foundations · Unit 4 of 8</p>
+  <h1>Optimization algorithms</h1>
+  <p class="lede">You already have a working update rule from Unit 3 — plain SGD. This unit is about what breaks when the loss surface isn't a nice round bowl, and the three families of fixes that show up in every serious training run: momentum, adaptive per-parameter scaling, and learning rate schedules.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. Momentum: why plain SGD stalls in ravines</a></li>
+      <li><a href="#lesson-2">2. Adaptive methods: AdaGrad, RMSProp, Adam, AdamW</a></li>
+      <li><a href="#lesson-3">3. Learning rate schedules and how to choose one</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>Momentum: why plain SGD stalls in ravines</h2>
+    <p class="opening">Picture a marble rolling into a canyon — not a smooth round bowl but a long, narrow gorge with near-vertical walls and a shallow slope along the canyon floor toward the exit. Drop it near a wall and it doesn't roll gently toward the far end. It bounces wall to wall, bleeding a little height on each pass, and creeps toward the exit only as fast as friction lets the sideways bouncing die down. Now give the marble real mass — inertia that carries from one bounce into the next — and something better happens: the wall-to-wall bounces are opposite in sign on successive passes, so they start to cancel, while the small forward push along the canyon floor is the same sign every time and accumulates. That's the picture to hold onto for the rest of this lesson, and it maps directly onto training a locomotion policy for a 12-DOF quadruped. Certain parameter directions — say the gains that mostly govern hip stiffness during the stance phase — sit at the bottom of a steep-walled ravine in the loss surface. A different direction, like the overall stride-frequency scaling that every leg shares, sits on a nearly flat floor. Plain SGD has one learning rate and two very different jobs to do with it, and the update from Unit 3 has no way to tell those jobs apart.</p>
+
+    <h3>Ill-conditioning and the condition number</h3>
+    <p>Near any point, a smooth loss can be approximated by a quadratic bowl <code>L(w) ≈ ½ (w-w*)ᵀ A (w-w*)</code>, where <code>A</code> is the local curvature (the Hessian, or a cheap diagonal stand-in for it). The <span class="term">condition number</span> <code>κ = λ_max / λ_min</code> is the ratio of the steepest curvature direction to the flattest one. A well-conditioned bowl has κ close to 1 — round, easy, SGD converges quickly from any direction. An ill-conditioned bowl has κ in the hundreds, and that's routine for a quadruped policy's loss surface in early training: torque limits and ground-contact dynamics make some parameter groups (ankle and hip gains right around foot-strike) extremely sensitive, while others (the coarse forward-velocity command scaling) are comparatively insensitive over a wide range.</p>
+    <p>Here's the arithmetic that makes ill-conditioning a real problem and not just an aesthetic one. Stable SGD requires roughly <code>lr &lt; 2/λ_max</code>, or the steep direction diverges outright. But progress along the shallow direction each step is proportional to <code>lr · λ_min</code>. Combine those two constraints and the number of steps needed to make real progress along the shallow direction scales with κ. At κ=200, a policy that needs, say, 500 steps to converge in a well-conditioned setting can need tens of thousands under plain SGD — not because the algorithm is broken, but because the single learning rate is being asked to simultaneously satisfy a tight stability bound in one direction and a loose progress requirement in another.</p>
+
+    <h3>The velocity buffer: classical momentum</h3>
+    <p>Momentum fixes this by keeping a running <span class="term">velocity</span> buffer that accumulates gradients over time instead of reacting to only the latest one:</p>
+    <p class="math">v_t = β · v_(t-1) + ∇L(w_(t-1))<br>w_t = w_(t-1) − lr · v_t</p>
+    <p>Walk through what this does in the canyon. On the steep wall direction, consecutive gradients alternate in sign as the marble crosses from one wall to the other — a positive gradient this step, a negative one next step, roughly canceling inside <code>v_t</code>. On the shallow floor direction, the gradient sign is consistent step after step, so those contributions add constructively and <code>v_t</code> grows in that direction even though any single gradient there is small. The net effect: oscillation damps out, forward progress compounds. This is exactly the behavior you want when a policy's per-joint gradients are noisy and partially conflicting across a rollout batch, which is the normal case once ground-contact forces enter the picture.</p>
+
+    <h3>Beta as an effective averaging window</h3>
+    <p><code>β</code> isn't just a damping knob, it sets how many past steps meaningfully contribute. Because momentum is a geometric-weighted running sum, the effective number of steps being averaged is approximately <code>1/(1-β)</code>. At <code>β=0.9</code>, that's a 10-step window. At <code>β=0.99</code>, a 100-step window. There's a real trade-off hiding in that number: a longer window smooths out more noise and builds more speed along a genuinely shallow, consistent direction, but it also reacts more slowly when the true gradient direction actually changes — for instance right around a gait phase transition, when the useful descent direction for "swing phase just started" is genuinely different from "stance phase just started." Push β up without also pulling the learning rate down and you get overshoot: the velocity buffer keeps carrying the policy in the old direction for tens of steps after the landscape has changed underneath it. In practice β=0.9 with lr tuned to that window is the standard starting point; β=0.99 is reserved for cases where you've already confirmed the descent direction is stable over long stretches.</p>
+
+    <h3>Nesterov's look-ahead correction</h3>
+    <p>Nesterov momentum makes one change: it evaluates the gradient not at the current position, but at the position the velocity is already about to carry you to:</p>
+    <p class="math">v_t = β · v_(t-1) + ∇L(w_(t-1) − lr·β·v_(t-1))<br>w_t = w_(t-1) − lr · v_t</p>
+    <p>This is a look-ahead: before committing to the full step, it peeks at the gradient at the "about-to-arrive" point and folds that information in, which gives the update a chance to correct course before overshooting rather than after. In terms of the canyon analogy, it's like the marble sensing the upcoming wall slightly before hitting it, rather than bouncing off and correcting afterward.</p>
+    <p>Where does the difference between classical and Nesterov momentum actually show up? Less often than the theory papers imply, for a typical run. With β=0.9 and a well-tuned lr on a genuinely smooth quadratic bowl, the two trajectories differ by only a handful of iterations out of a few hundred — not something you'd notice on a real training-curve plot. The difference becomes visible in two situations: large β (0.99 and above, where the velocity buffer's inertia is large enough that overshoot is a real risk), and landscapes with sharp local curvature changes — exactly what you get right around a foot-contact event in a locomotion reward, where the effective loss curvature can shift abruptly between "foot in the air" and "foot loaded against the ground." For a grasping policy near the moment of contact with an object, the same logic applies: Nesterov's correction earns its keep specifically at these discontinuity-adjacent regions, not on the smooth interior of the landscape.</p>
+
+    <pre><code>import numpy as np
+
+# Loss: L(w) = 0.5 * (a*w0**2 + b*w1**2)
+# w0 ~ hip-stiffness gain (steep direction), w1 ~ stride-frequency scale (shallow direction)
+a, b = 100.0, 1.0          # condition number kappa = a/b = 100
+lr, beta = 0.008, 0.9
+steps = 40
+
+def grad(w):
+    return np.array([a * w[0], b * w[1]])
+
+def run(kind):
+    w = np.array([1.0, 1.0])
+    v = np.zeros(2)
+    trace = [w.copy()]
+    for t in range(steps):
+        if kind == "sgd":
+            w = w - lr * grad(w)
+        elif kind == "momentum":
+            v = beta * v + grad(w)
+            w = w - lr * v
+        elif kind == "nesterov":
+            lookahead = w - lr * beta * v
+            v = beta * v + grad(lookahead)
+            w = w - lr * v
+        trace.append(w.copy())
+    return np.array(trace)
+
+for kind in ("sgd", "momentum", "nesterov"):
+    tr = run(kind)
+    final_dist = np.linalg.norm(tr[-1])
+    print(f"{kind:9s}  w0 sign flips: "
+          f"{np.sum(np.diff(np.sign(tr[:,0])) != 0):2d}   "
+          f"final distance to minimum: {final_dist:.4f}")</code></pre>
+    <p class="caption">SGD racks up many sign flips on <code>w0</code> (the steep hip-stiffness direction) while barely moving <code>w1</code>; momentum cuts the sign-flip count sharply and reaches a smaller final distance in the same 40 steps; Nesterov matches momentum closely here because the bowl is smooth and static — the two only diverge on sharper, contact-like landscapes.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Ill-conditioning is a ratio, not a size.</strong> A large condition number κ means the stability constraint on the steep direction and the progress rate on the shallow direction pull the single SGD learning rate in opposite directions — that's what a slow, oscillating loss curve is telling you.</li>
+        <li><strong>Momentum's velocity buffer cancels alternating-sign noise</strong> and accumulates consistent-sign signal, which is exactly the structure of oscillate-on-steep, drift-on-shallow.</li>
+        <li><strong>β sets an effective averaging window of about 1/(1-β) steps</strong> — 10 steps at β=0.9, 100 at β=0.99 — and a bigger window trades faster shallow-direction progress for slower reaction to genuine changes in descent direction, like a gait-phase transition.</li>
+        <li><strong>Nesterov's look-ahead mostly pays off at large β or near sharp curvature changes</strong> — foot-contact events, object-contact events — not on smooth, static bowls where it's nearly indistinguishable from classical momentum.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Adaptive methods: AdaGrad, RMSProp, Adam, AdamW</h2>
+    <p class="opening">A 7-DOF arm learning to grasp has a fingertip force sensor feature that reads nonzero only when the fingertip is actually touching something. Early in training, while the policy is still mostly failing to reach the object at all, that feature fires on maybe 2% of timesteps. Everything else — joint angles, joint velocities, the commanded target pose — updates on every single step. Momentum from Lesson 1 doesn't fix this: it changes how gradients are combined over time, but it still applies one global learning rate to every parameter. Set that learning rate high enough to make meaningful progress on the contact-related weights during the rare steps they actually receive a gradient, and the joint-angle weights — updated 50 times more often — blow past stable values and diverge. Set it low enough to keep the joint-angle weights stable, and the contact weights barely move over an entire multi-GPU-hour training run, because they only see a useful gradient once every fifty steps or so. One global learning rate cannot serve both populations of parameters well at the same time.</p>
+
+    <h3>Per-parameter scaling by accumulated squared gradients</h3>
+    <p>AdaGrad's fix is to give each parameter its own effective learning rate, shrunk by how much gradient signal that parameter has already seen:</p>
+    <p class="math">G_t = G_(t-1) + g_t²        (elementwise, per parameter)<br>w_t = w_(t-1) − lr / (√G_t + ε) · g_t</p>
+    <p>The joint-angle weights, updated every step, accumulate a large <code>G_t</code> quickly, so their effective step size shrinks over time — appropriate, since they're getting plenty of updates already. The fingertip-contact weights, updated rarely, keep a small <code>G_t</code>, so when a contact gradient does arrive, it's scaled by a comparatively large effective learning rate. That's exactly the behavior the 2%-firing-feature problem calls for: rare-but-informative signals get amplified relative to common ones, automatically, per parameter, with no manual tuning of separate learning rates for separate feature groups.</p>
+
+    <h3>AdaGrad's monotonic decay problem</h3>
+    <p>The flaw is in the same equation: <code>G_t</code> only ever grows. It never forgets. Over the course of an RL training run collecting rollouts for millions of steps, even the rarely-firing contact weights will eventually accumulate enough squared gradient to shrink their effective learning rate toward zero — and the frequently-firing joint-angle weights hit that wall much sooner. Training doesn't fail loudly; it just stalls, with the loss curve flattening out long before the policy has actually converged, while the run keeps consuming GPU-hours on updates that are now too small to matter. This is the specific failure mode that makes AdaGrad a poor default for long RL training runs, even though the per-parameter scaling idea is exactly right.</p>
+
+    <h3>RMSProp's exponential-moving-average fix</h3>
+    <p>RMSProp keeps the per-parameter scaling idea but replaces the ever-growing sum with a decaying exponential moving average:</p>
+    <p class="math">E[g²]_t = ρ · E[g²]_(t-1) + (1-ρ) · g_t²        (ρ typically 0.9–0.99)</p>
+    <p>Now the denominator reflects recent gradient magnitude rather than the entire history, so it doesn't monotonically shrink the effective learning rate to nothing. It also adapts if a parameter's gradient statistics change later in training — for instance once the arm policy has learned to reliably reach and the contact feature starts firing on 40% of steps instead of 2%, RMSProp's estimate for that parameter's typical gradient scale updates to match, where AdaGrad's would still be dragging around squared-gradient history from when contact was rare.</p>
+
+    <h3>Adam: momentum plus RMSProp, with bias correction</h3>
+    <p><span class="term">Adam</span> keeps two exponential moving averages per parameter — a first moment (the momentum from Lesson 1) and a second moment (RMSProp's squared-gradient estimate) — and then corrects both for the fact that they start at zero:</p>
+    <p class="math">m_t = β1·m_(t-1) + (1-β1)·g_t          v_t = β2·v_(t-1) + (1-β2)·g_t²<br>m̂_t = m_t / (1-β1^t)          v̂_t = v_t / (1-β2^t)<br>w_t = w_(t-1) − lr · m̂_t / (√v̂_t + ε)</p>
+    <p>The bias correction is not cosmetic; it matters most exactly at step 1, which is the step you can least afford to waste on an expensive rollout-collection run. With β1=0.9, the raw first moment after one update is <code>m_1 = (1-β1)·g_1 = 0.1·g_1</code> — the EMA started at zero and has only had one chance to move, so it captures just 10% of the true gradient. Divide by <code>(1-β1^1) = 0.1</code> and the corrected estimate is exactly <code>g_1</code> again — the bias is fully removed. The second moment is worse before correction: with β2=0.999, <code>v_1 = 0.001·g_1²</code>, a 1000x understatement, corrected by dividing by <code>(1-β2^1)=0.001</code>. Skip the correction and the first several dozen steps of training use a badly mis-scaled ratio of tiny <code>m</code> over even tinier <code>√v</code> — not simply "too small," but arbitrarily scaled, since numerator and denominator are biased by different amounts. For a policy where each of those early steps corresponds to a full batch of simulated rollouts you already paid GPU-hours to collect, wasting them on a mis-scaled update is a real cost, not a theoretical nicety.</p>
+
+    <h3>Epsilon placement and decoupled weight decay</h3>
+    <p>The <code>ε</code> in the denominator exists purely to prevent division by a near-zero <code>√v̂</code> for a parameter that hasn't received much gradient yet — the default is <code>1e-8</code>, but plenty of RL implementations (PPO and SAC codebases among them) bump it up to <code>1e-5</code> or so, because policy-gradient estimates from noisy rollouts can have <code>v̂</code> sit close to zero for individual parameters far more often than in supervised training, and too-small an <code>ε</code> turns that into an occasional wildly oversized update.</p>
+    <p>AdamW changes one more thing: where to put weight decay. Standard L2 regularization adds <code>wd·w</code> directly into the gradient <em>before</em> the momentum and RMSProp machinery ever sees it — which means the decay term gets divided by <code>√v̂</code> along with everything else. A joint-angle weight updated every step (large <code>v̂</code>) ends up decayed less than its nominal rate; a rarely-firing contact weight (small <code>v̂</code>) ends up decayed more — backwards from what a decay prior is usually meant to do. AdamW decouples it: apply decay straight to the weight, outside the adaptive scaling entirely.</p>
+    <pre><code>import numpy as np
+
+def adam_step(w, g, m, v, t, lr=1e-3, b1=0.9, b2=0.999, eps=1e-8, wd=0.0):
+    m = b1 * m + (1 - b1) * g
+    v = b2 * v + (1 - b2) * (g ** 2)
+    m_hat = m / (1 - b1 ** t)
+    v_hat = v / (1 - b2 ** t)
+    w = w - lr * m_hat / (np.sqrt(v_hat) + eps)
+    if wd:
+        w = w - lr * wd * w          # <-- AdamW's one-line difference: decay applied
+                                       #     directly to w, never divided by sqrt(v_hat)
+    return w, m, v
+
+# toy loop over a single scalar weight to see the buffers warm up
+w, m, v = 2.0, 0.0, 0.0
+for t in range(1, 6):
+    g = 0.3 * w                       # stand-in gradient
+    w, m, v = adam_step(w, g, m, v, t, wd=0.01)
+    print(f"step {t}: w={w:.5f}")</code></pre>
+    <p class="caption">The <code>wd</code> line is the entire AdamW diff — everything above it is plain Adam with bias correction applied at every step via the <code>t</code>-dependent denominators.</p>
+
+    <h3>Real defaults, and where SGD+momentum still wins</h3>
+    <p>The Adam paper's defaults — <code>lr=1e-3</code>, <code>β1=0.9</code>, <code>β2=0.999</code>, <code>ε=1e-8</code> — are a reasonable starting point for supervised settings, and AdamW commonly pairs those with <code>wd=0.01</code>. Robotics policy training usually runs lower: <code>lr</code> in the <code>1e-4</code> to <code>3e-4</code> range is far more common, because policy-gradient estimates from simulated rollouts are noisier than supervised gradients, and an oversized step off one bad rollout batch can push a quadruped into a persistently bad region — a fall, or a joint configuration the policy can't easily recover out of, since the following episodes now stop producing the "still upright" states needed to compute a corrective gradient in the first place.</p>
+    <p>None of this makes Adam a strictly-better default. On tasks where gradient scales are more homogeneous across parameters — a policy that's mostly proprioceptive joint angles feeding a shallow MLP, without the heavy feature heterogeneity of vision plus contact plus proprioception fusion — a well-tuned SGD with momentum and a good schedule (Lesson 3) routinely matches or beats Adam's final performance, and several sim-to-real robotics results report better transfer with SGD+momentum, on the theory that Adam's aggressive per-parameter adaptivity can chase noise in a way that fits flatter, more robust minima less reliably. SGD+momentum also carries half the optimizer state — Adam keeps two extra buffers per parameter, which is real memory on a large vision-based grasping backbone. Adam's genuine advantage is wall-clock progress under a fixed rollout budget, especially early in training and especially when feature scales are heterogeneous — not necessarily the best achievable final policy.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Per-parameter scaling exists because features fire at wildly different rates</strong> — a rarely-firing contact feature and an always-firing joint-angle feature cannot share one global learning rate without one of them being mistreated.</li>
+        <li><strong>AdaGrad's accumulator only grows</strong>, so effective learning rates decay to zero over a long run; RMSProp's EMA replaces the sum and stops that decay.</li>
+        <li><strong>Adam's bias correction matters most at step 1</strong>, where the uncorrected moments understate the true gradient by a factor tied directly to β1 and β2 — skipping it wastes the earliest, often most expensive, training steps.</li>
+        <li><strong>AdamW moves weight decay outside the adaptive denominator</strong> so decay strength no longer depends on how often a parameter happens to fire.</li>
+        <li><strong>Adam wins on heterogeneous features under a fixed budget; SGD+momentum can still win on generalization, memory, and homogeneous-feature policies.</strong> Neither is a strictly dominant default.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Learning rate schedules and how to choose one</h2>
+    <p class="opening">A learning rate schedule is a function: given the current training step (or epoch), it returns the number you feed into the optimizer's <code>lr</code> argument in place of a fixed constant. That's the whole definition — no adaptivity to gradient statistics, no per-parameter behavior, just a pre-planned or metric-driven curve over time that every parameter shares equally. Everything in this lesson is about which curve to pick and why, for a training run measured in GPU-hours against a policy for a simulated robot.</p>
+
+    <h3>Linear warmup, and why large-batch runs need it</h3>
+    <p>Warmup ramps <code>lr</code> linearly from near zero up to the target peak over the first few hundred or few thousand steps: <code>lr(t) = peak · t/warmup_steps</code>. The reason it matters starts at initialization: a freshly-initialized quadruped policy produces close-to-random actions, which routinely saturate actuator torque limits, producing gradients that are both large and badly scaled relative to later training. If you're also running a large batch — say thousands of parallel simulated robot instances collecting rollouts each step, which is standard for keeping GPU utilization high — Adam's bias-corrected moment estimates are unbiased in expectation from step one, but they're still built from a small number of noisy samples early on; correction removes the systematic bias, not the variance. A full-strength learning rate applied to a large, noisy, badly-scaled early gradient can push the policy into a genuinely bad basin — a joint configuration that reliably trips a fall-detection termination — and that's not merely a slow setback, because the following rollouts then never sample the "still upright" states needed to produce a corrective gradient at all. Warmup buys the moving averages, and the policy's basic stability, time to settle before the full step size is allowed to act.</p>
+
+    <h3>Step decay and cosine annealing</h3>
+    <p><span class="term">Step decay</span> drops <code>lr</code> by a fixed factor at fixed milestones — for instance <code>3e-4 → 3e-5</code> at step 300k, then <code>→3e-6</code> at 600k. It's simple to implement and reason about, but it requires guessing the milestones before you know how the run will actually behave, and a run that gets cut short (a shared cluster reclaiming your allocation, say) never benefits from the later drops at all.</p>
+    <p><span class="term">Cosine annealing</span> instead follows a smooth curve down to a floor over a known total budget <code>T</code>:</p>
+    <p class="math">lr(t) = lr_min + 0.5·(peak − lr_min)·(1 + cos(π·t/T))</p>
+    <p>No sudden jumps in the loss curve, one hyperparameter to set (<code>T</code>), and it's the standard pairing with a short warmup at the start — "warmup then cosine" is close to a default choice for a training run where you know the total step budget going in.</p>
+
+    <h3>One-cycle, ReduceLROnPlateau, and warm restarts</h3>
+    <p>The <span class="term">one-cycle</span> schedule (Smith) spans the entire budget in a single up-then-down cycle, often overshooting the naive peak <code>lr</code> while momentum is annealed in the opposite direction (lr rises while momentum falls, then lr falls while momentum rises). It's a good fit exactly when you've been handed a hard, known step budget — say a fixed multi-GPU-hour allocation to fine-tune a grasping policy on a shared cluster — because it's built to reach a good result fast within that fixed horizon rather than to keep improving indefinitely.</p>
+    <p><span class="term">ReduceLROnPlateau</span> flips the logic: instead of a pre-planned curve, it watches a validation metric — for a robotics policy, that should be average episode return on a fixed sim-evaluation suite, not the training loss, which is a poor proxy once the reward is nonstationary or shaped over a curriculum — and cuts <code>lr</code> by a factor when that metric stalls for a patience window of checkpoints. It's the right default when the total budget isn't known ahead of time, or when the return curve is genuinely noisy from stochastic environment resets, since a pre-planned cosine or one-cycle curve would decay on a fixed schedule regardless of whether the policy is actually still improving.</p>
+    <p><span class="term">Warm restarts</span> (SGDR) periodically reset <code>lr</code> back up to peak, following a cosine decay, several times across training. The use case is escaping a policy that's settled into exploiting a suboptimal strategy — for a grasping arm, that might be a policy that always attempts a pinch grasp on objects a power grasp would handle more reliably. The sudden jump back to a higher step size re-perturbs the policy enough to explore alternative strategies it had otherwise stopped visiting.</p>
+
+    <h3>The LR range test</h3>
+    <p>Before committing to a full multi-GPU-hour run, the <span class="term">LR range test</span> (also Smith) is a cheap diagnostic: run a short pass — a few hundred to a few thousand steps — sweeping <code>lr</code> exponentially from tiny to large while logging loss or return, then plot the result. The peak <code>lr</code> worth using is roughly the value just before the curve turns upward or return collapses — the last point where increasing <code>lr</code> was still helping rather than hurting. It costs a few GPU-minutes and can save an entire wasted run built around a badly guessed peak learning rate.</p>
+
+    <h3>Interaction with batch size and total-step budget</h3>
+    <p>The <span class="term">linear scaling rule</span>: if you increase the number of parallel simulated robot instances (effectively, batch size) by a factor <code>k</code> while holding the total sample budget roughly fixed, scale the peak <code>lr</code> by roughly <code>k</code> as well. Larger batches produce lower-variance gradient estimates, which tolerates a proportionally larger step — but the warmup length should grow roughly in proportion too, since the early-training instability warmup guards against gets worse, not better, as the effective step size grows.</p>
+    <p>The schedule choice also has to match how well you know the total step budget. Cosine annealing and one-cycle both assume a fixed horizon <code>T</code> baked into the curve; if your actual allocation is uncertain — contested shared-cluster time, or an early-stopping criterion that could end training anywhere — a schedule built around a fixed <code>T</code> either decays too early (wasting remaining budget at a near-zero <code>lr</code>) or gets cut off mid-curve, which for cosine is a relatively benign ending, but for a warm-restart schedule can strand training right after a restart has pushed <code>lr</code> back up, with no time left to decay it back down. Plateau-based schedules make no assumption about <code>T</code> at all, which is the safer default whenever the budget itself is the uncertain part of the plan.</p>
+
+    <pre><code>import math
+
+def lr_at_step(step, peak_lr=3e-4, warmup_steps=2000, total_steps=50_000, lr_min=1e-6):
+    if step < warmup_steps:
+        return peak_lr * step / warmup_steps
+    progress = (step - warmup_steps) / max(1, total_steps - warmup_steps)
+    progress = min(progress, 1.0)
+    return lr_min + 0.5 * (peak_lr - lr_min) * (1 + math.cos(math.pi * progress))
+
+for step in (0, 500, 5_000, 50_000):
+    print(f"step {step:>6}: lr = {lr_at_step(step):.6f}")</code></pre>
+    <p class="caption">Step 0 sits at the warmup floor, step 500 is partway up the linear ramp (still inside the 2000-step warmup window), step 5,000 is well into the cosine decay, and step 50,000 lands exactly at <code>lr_min</code> because it's the final step of the 50,000-step budget the cosine curve was built for.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>A schedule is just <code>lr(step)</code></strong> — it changes the same number for every parameter, unlike Lesson 2's per-parameter adaptive scaling, and the two combine freely.</li>
+        <li><strong>Warmup exists because early gradients are large, noisy, and badly scaled</strong> — skipping it risks pushing a policy into an unrecoverable bad region before the moving averages have caught up.</li>
+        <li><strong>Cosine and one-cycle need a known total budget; plateau and restarts don't</strong> — pick based on whether you actually know how many steps you'll get.</li>
+        <li><strong>The linear scaling rule ties batch size to peak lr</strong>: scale both together, and lengthen warmup to match, when you add parallel rollout workers.</li>
+        <li><strong>The LR range test is a cheap short run</strong> that tells you the peak lr before you commit GPU-hours to the real one.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 4 quiz</h2>
+    <p class="quiz-intro">8 questions covering momentum, adaptive methods, and schedules — each one gives you a training scenario and asks what you'd change.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">You're training a quadruped locomotion policy with the plain SGD update from Unit 3. The loss curve oscillates sharply step to step and only trends down very slowly over 2,000 steps. A quick diagonal-curvature estimate puts the condition number around 200. What should you try first?</p>
+      <ol class="choices" type="A">
+        <li>Raise the learning rate so the oscillation resolves faster.</li>
+        <li>Add classical momentum (β≈0.9) so alternating-sign gradients along the steep direction cancel while the consistent shallow-direction signal accumulates.</li>
+        <li>Increase the batch size and change nothing else about the update rule.</li>
+        <li>Add weight decay to shrink the oscillating parameters.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> A high condition number with oscillation-and-slow-progress is exactly the ravine pattern from Lesson 1 — momentum's velocity buffer cancels the alternating-sign steep-direction gradients and accumulates the consistent shallow-direction signal.</p>
+          <p>A is the tempting-but-wrong move: raising <code>lr</code> in an already ill-conditioned bowl pushes the steep direction closer to its stability limit <code>2/λ_max</code>, making the oscillation worse, not better, even though it might look like it's "shaking loose" for a step or two before diverging.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Nesterov momentum will noticeably outperform classical momentum on almost every training run, because its look-ahead gradient is always a better estimate.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> On a smooth, static landscape with a typical β=0.9, classical and Nesterov momentum trajectories are nearly indistinguishable. The look-ahead correction earns its keep specifically at larger β (0.99+) or near sharp local curvature changes — like a foot-contact or object-contact event — not as a universal improvement.</p>
+          <p>The claim sounds plausible because Nesterov is "more correct" in a formal sense, but formal correctness on a smooth quadratic bowl doesn't translate into a measurable practical gap — the two updates converge to nearly the same trajectory there.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">You're running momentum with β = 0.99 on a stride-frequency parameter group. The effective number of past steps being averaged into the velocity buffer is approximately <span class="blank">&nbsp;</span> steps.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: 100.</strong> The effective averaging window is <code>1/(1-β)</code>; at β=0.99 that's <code>1/0.01 = 100</code> steps, ten times longer than the roughly 10-step window at the more common β=0.9.</p>
+          <p>A common wrong guess is 99 (mistaking β itself for the window length) — β is the decay factor, not the window size; the window comes from summing the geometric series of decay weights.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A 7-DOF arm's grasp policy has a fingertip force-sensor feature that fires on about 2% of timesteps early in training, while joint-angle features update every step. Plain SGD with a single learning rate either destabilizes the joint-angle weights or leaves the contact weights barely trained. Which change addresses this specific mismatch?</p>
+      <ol class="choices" type="A">
+        <li>Switch to Nesterov momentum instead of classical momentum.</li>
+        <li>Switch to an adaptive method (RMSProp or Adam) that scales each parameter's effective learning rate by its own accumulated gradient statistics.</li>
+        <li>Lower the global learning rate until the joint-angle weights stop diverging.</li>
+        <li>Increase the rollout batch size so the contact feature fires more often.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> This is precisely the problem Lesson 2 opens with: features that fire at very different rates need per-parameter learning rate scaling, which momentum alone does not provide — momentum changes how gradients over time are combined, but still applies one shared learning rate to every parameter.</p>
+          <p>C is the tempting distractor: lowering the global rate does stop the joint-angle weights from diverging, but it makes the contact-weight problem strictly worse, since those weights were already barely moving and now move even less on their rare update steps.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">A teammate's Adam implementation is producing wildly oversized updates in the first ~10 steps of a grasping-policy run, before settling down. Find the bug.</p>
+      <pre><code>def adam_step(w, g, m, v, t, lr=1e-3, b1=0.9, b2=0.999, eps=1e-8):
+    m = b1 * m + (1 - b1) * g
+    v = b2 * v + (1 - b2) * (g ** 2)
+    # (bias correction omitted here)
+    w = w - lr * m / (np.sqrt(v) + eps)
+    return w, m, v</code></pre>
+      <ol class="choices" type="A">
+        <li>The learning rate default of 1e-3 is too high for a robotics policy.</li>
+        <li>Bias correction (dividing <code>m</code> and <code>v</code> by <code>1-b1**t</code> and <code>1-b2**t</code>) is missing, so early steps use raw moment estimates that understate the true gradient by very different factors in the numerator versus the denominator.</li>
+        <li><code>eps</code> should be added inside the square root, not outside it.</li>
+        <li>The squared gradient should use <code>abs(g)</code> instead of <code>g ** 2</code>.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Without correction, <code>m</code> at step 1 is only <code>(1-b1)=10%</code> of the true gradient while <code>v</code> at step 1 is only <code>(1-b2)=0.1%</code> of the true squared gradient — the numerator and denominator are biased by very different factors, so the ratio <code>m/√v</code> is arbitrarily mis-scaled for the first several steps until both EMAs "warm up," matching the reported symptom exactly.</p>
+          <p>A is a real tuning consideration for robotics in general (Lesson 2 recommends 3e-4 to 1e-4), but it doesn't explain a bug that specifically disappears after ~10 steps — a flat-out-too-high lr would keep causing problems well past step 10, not just at the start.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">Complete the one-line change that turns this Adam step into AdamW (decoupled weight decay), given weight decay coefficient <code>wd</code>.</p>
+      <pre><code>w = w - lr * m_hat / (np.sqrt(v_hat) + eps)
+# AdamW adds one line here:
+_____________________</code></pre>
+      <ol class="choices" type="A">
+        <li><code>w = w - lr * wd * m_hat</code></li>
+        <li><code>w = w - lr * wd * w</code></li>
+        <li><code>g = g + wd * w</code>  (added before computing <code>m</code> and <code>v</code>)</li>
+        <li><code>w = w * (1 - wd)</code>  (applied once, before training starts)</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> AdamW applies decay directly to the weight, outside the <code>√v_hat</code> denominator entirely — that's the decoupling.</p>
+          <p>C is the tempting distractor because it looks like ordinary L2 regularization, and it is — but that's precisely the coupled version Lesson 2 says AdamW moves away from: folding decay into <code>g</code> means it gets divided by <code>√v_hat</code> along with the rest of the gradient, so frequently-updated parameters are decayed less than rarely-updated ones, which is backwards from the usual intent of weight decay.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">You scale up a quadruped training run from 512 to 2,048 parallel simulated robot instances (4x the batch size), keeping total sample budget roughly fixed, and keep the same peak learning rate and the same warmup length as the smaller run. Within the first few hundred steps, several policies fall over and never recover. What's the most likely cause, and the fix?</p>
+      <ol class="choices" type="A">
+        <li>The peak learning rate should have been scaled up (roughly 4x) alongside the batch size, with a correspondingly longer warmup — leaving both unchanged under-uses the lower-variance gradient the larger batch provides, and the mismatch specifically shows up as continued early-training instability, not the reverse.</li>
+        <li>Larger batches always destabilize training regardless of learning rate, so the fix is to reduce the batch size back down.</li>
+        <li>The problem is unrelated to batch size; switch optimizers from Adam to plain SGD.</li>
+        <li>Increase β2 in Adam to 0.9999 to fix the instability.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: A.</strong> The linear scaling rule says peak lr should scale roughly with batch size, and warmup should lengthen to match — leaving both unchanged after a 4x batch increase under-scales the step size relative to the now-lower-variance gradient estimates, but more importantly leaves warmup too short relative to the larger effective step, which is the direct cause of early instability described here.</p>
+          <p>B is the tempting distractor because "bigger batch, more instability" sounds intuitive, but larger batches actually produce <em>lower</em>-variance gradients, which is inherently more stabilizing, not less — the instability here comes from a schedule mismatch, not from the batch size itself.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Your team is training a grasping policy on a shared cluster where the actual number of steps you'll get is uncertain — your allocation can be reclaimed at any time. The eval metric (average return on a fixed sim-eval suite) is also fairly noisy run to run. Which schedule fits this situation best?</p>
+      <ol class="choices" type="A">
+        <li>Cosine annealing over an assumed total budget of 200k steps.</li>
+        <li>One-cycle spanning an assumed total budget of 200k steps.</li>
+        <li>ReduceLROnPlateau, monitoring eval return with a patience window, since no schedule that assumes a fixed total-step horizon fits an unknown, revocable budget.</li>
+        <li>Step decay at fixed milestones of 50k/100k/150k steps.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> Both cosine and one-cycle bake a fixed horizon into the curve; if the run ends early (allocation reclaimed) the decay never completes as planned, and if it ends via a warm-restart-style scheme mid-restart, it's stranded with lr pushed back up and no time left to bring it down. Plateau-based scheduling makes no assumption about total steps and reacts directly to whether the (admittedly noisy) eval metric is still improving.</p>
+          <p>A is the tempting distractor because cosine is the "default modern choice" mentioned earlier in the lesson — but that default assumes you know the budget, which is explicitly not true in this scenario.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Deep Learning Foundations · Unit 4 of 8 — Unit 5 turns to regularization: dropout, batch norm, and weight decay as a deliberate generalization tool rather than an optimizer detail.</p>
+</footer>
+</body>
+</html>
