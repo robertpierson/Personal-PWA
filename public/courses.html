@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technical Curriculum — Deep Learning to Computer Vision</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+  font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:78ch;margin-inline:auto;padding:clamp(2.5rem,8vw,5rem) clamp(1.1rem,5vw,2rem) 4rem}
+.eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0 0 .5rem}
+h1{font-size:clamp(2rem,7vw,3rem);line-height:1.05;letter-spacing:-.025em;margin:0 0 1rem;font-weight:650}
+.lede{color:var(--ink-soft);font-size:1.1rem;max-width:60ch;margin:0 0 3rem}
+.course{border:1px solid var(--line);border-radius:16px;background:var(--panel);
+  padding:1.5rem 1.6rem;margin:0 0 1.4rem}
+.course h2{font-size:1.3rem;letter-spacing:-.01em;margin:0 0 .2rem;font-weight:640}
+.course h2 .n{font-family:var(--mono);font-size:.8rem;color:var(--gold);margin-right:.6rem}
+.course p{color:var(--ink-faint);font-size:.9rem;margin:0 0 1.1rem}
+.units{list-style:none;margin:0;padding:0;display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(min(100%,34ch),1fr));gap:.4rem}
+.units a{display:flex;gap:.6rem;align-items:baseline;text-decoration:none;color:var(--ink-soft);
+  border:1px solid var(--line);border-radius:9px;padding:.55rem .75rem;font-size:.9rem;
+  background:var(--panel-2);transition:border-color .15s,color .15s}
+.units a:hover,.units a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
+.units a .u{font-family:var(--mono);font-size:.72rem;color:var(--gold);flex:none}
+footer{color:var(--ink-faint);font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;
+  border-top:1px solid var(--line);margin-top:2.5rem;padding-top:1.6rem}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Technical Curriculum</p>
+  <h1>From deep learning to computer vision</h1>
+  <p class="lede">Four courses, 32 units, 96 lessons. Each unit is a single
+  self-contained page — three lessons and a quiz, code and math inline, no
+  dependencies. Later courses assume the earlier ones.</p>
+
+  <section class="course">
+    <h2><span class="n">01</span>Deep Learning Foundations</h2>
+    <p>Perceptrons, backprop, optimizers, regularization, CNNs, RNNs, training in practice.</p>
+    <ul class="units" id="c1"></ul>
+  </section>
+  <section class="course">
+    <h2><span class="n">02</span>Foundational Model Development</h2>
+    <p>Transformers, tokenization, pretraining objectives, scaling laws, PEFT, alignment.</p>
+    <ul class="units" id="c2"></ul>
+  </section>
+  <section class="course">
+    <h2><span class="n">03</span>Text Processing (NLP)</h2>
+    <p>Preprocessing, TF-IDF, embeddings, LSTMs, BERT vs GPT, NER, seq2seq, RAG.</p>
+    <ul class="units" id="c3"></ul>
+  </section>
+  <section class="course">
+    <h2><span class="n">04</span>Computer Vision</h2>
+    <p>Image representation, classical CV, CNN architectures, detection, segmentation, ViT, generative models.</p>
+    <ul class="units" id="c4"></ul>
+  </section>
+
+  <footer>32 units · self-contained HTML · deep learning → foundation models → NLP → vision</footer>
+</div>
+<script>
+const T={
+ c1:["course-1-deep-learning","Neural network foundations|Forward propagation & loss|Backpropagation & gradient descent|Optimization algorithms|Regularization|Convolutional networks|Recurrent networks|Training in practice"],
+ c2:["course-2-foundational-models","Foundation models & pretrain-adapt|Transformer architecture|Tokenization & embeddings|Pretraining objectives|Scaling laws & design|Fine-tuning & transfer|PEFT & instruction tuning|Evaluation, alignment, deployment"],
+ c3:["course-3-text-processing","Preprocessing & tokenization|Bag-of-Words, TF-IDF, n-grams|Word embeddings|RNN/LSTM language modeling|BERT vs GPT applied|NER & text classification|Seq2seq: translation & summarization|Sentiment, chatbots, RAG"],
+ c4:["course-4-computer-vision","Image representation|Classical CV: edges & features|CNN architectures|Object detection|Segmentation|Vision transformers|Generative models|Building CV applications"]
+};
+for(const id in T){
+ const [slug,titles]=T[id], names=titles.split("|"), ul=document.getElementById(id);
+ names.forEach((name,i)=>{
+  const a=document.createElement("a");
+  a.href=slug+"/unit"+(i+1)+".html";
+  a.innerHTML='<span class="u">U'+(i+1)+'</span><span>'+name+'</span>';
+  ul.appendChild(a);
+ });
+}
+</script>
+</body>
+</html>
