@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 3 · Word embeddings and semantic similarity — Text Processing (NLP)</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Text Processing (NLP) · Unit 3 of 8</p>
+  <h1>Word embeddings and semantic similarity</h1>
+  <p class="lede">TF-IDF gave every word its own dimension and no way to say two different words mean related things. This unit replaces those sparse counts with dense vectors that put "JavaScript" and "ECMAScript" near each other in space — the representation that makes semantic resume-to-job matching possible.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. The distributional hypothesis and dense vectors</a></li>
+      <li><a href="#lesson-2">2. Word2vec and GloVe: how the vectors are learned</a></li>
+      <li><a href="#lesson-3">3. Limits: polysemy, bias, and OOV</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>The distributional hypothesis and dense vectors</h2>
+    <p class="opening">In 1957 the linguist J.R. Firth wrote a sentence that outlived nearly everything else he published: "You shall know a word by the company it keeps." He was not talking about machine learning — word2vec was fifty-six years in the future — but he had put his finger on the exact idea that would eventually let a computer know that "JavaScript" and "ECMAScript" are the same skill wearing two names. Firth was building on Zellig Harris, who a few years earlier had proposed the <span class="term">distributional hypothesis</span> more formally: words that occur in similar contexts tend to have similar meanings. Harris meant it as a claim about linguistics, a way to study meaning without having to define it directly. It took until 2013, when Tomas Mikolov and colleagues at Google published word2vec, for anyone to turn that hypothesis into a practical algorithm that could chew through a corpus and hand back a vector for every word — and for the field to notice that the vectors it produced captured relationships that count-based methods had never been able to touch.</p>
+    <p>Recall the wall Units 1 and 2 ran into. TF-IDF represents a document as a vector with one dimension per vocabulary word, weighted by how distinctively that word appears in the document versus the corpus. That representation is sparse — a job posting mentioning 40 distinct skill terms out of a 20,000-word vocabulary has a vector with 40 nonzero entries and 19,960 zeros — and every one of those dimensions is orthogonal to every other by construction. The "car" dimension and the "automobile" dimension are perpendicular axes with a dot product of exactly zero, no matter how semantically identical the two words are to a human reader. A resume that says "built automotive diagnostic software" and a job posting that asks for "car repair systems experience" share zero TF-IDF overlap on that phrase, because TF-IDF has no mechanism for knowing the two phrases are about the same domain. It only counts which exact tokens appear where. Two resumes describing the same skill in different vocabulary — "JS," "JavaScript," "ECMAScript" — look, to a TF-IDF matcher, as unrelated as "JavaScript" and "accounting."</p>
+    <h3>Trading one-hot for dense</h3>
+    <p>Word embeddings fix this by abandoning the one-dimension-per-word scheme entirely. Instead of a sparse vector as long as the vocabulary, each word gets a <span class="term">dense vector</span> — typically 100 to 300 real-valued numbers, none of which are individually meaningful, but whose overall pattern encodes distributional behavior learned from a large corpus of text. Where "car" and "automobile" used to live on separate, unrelated axes, they now live as two points close together in a shared 300-dimensional space, because they tend to occur near the same neighboring words — "engine," "drive," "dealership," "mileage" — across millions of sentences. The dimensionality drop is not just a storage optimization. A vocabulary of 50,000 skill terms as one-hot vectors gives you 50,000 mutually orthogonal directions and no geometry worth exploiting. The same vocabulary compressed into 300 dense dimensions forces the model to reuse directions across many words, and it turns out the directions it lands on correspond to something usable: a rough axis of "seniority," a rough axis of "programming-language-ness," a rough cluster for "cloud infrastructure vocabulary" versus "data-analysis vocabulary." None of these axes are hand-designed or labeled — they fall out of the statistics of co-occurrence — but downstream, they behave like coordinates in a genuine semantic space.</p>
+    <p>That geometry is what makes <span class="term">cosine similarity</span> the natural tool for comparing two words or two documents built from word vectors. Cosine similarity measures the angle between two vectors, ignoring their magnitude:</p>
+    <p class="math">cos(u, v) = (u · v) / (‖u‖ ‖v‖)</p>
+    <p>The result ranges from -1 (opposite direction) to 1 (identical direction), with 0 meaning no relationship. For a resume-screening tool, this is the whole game: represent a candidate's listed skill "React" as a 300-d vector, represent a job posting's required skill "front-end JavaScript frameworks" as an average of its word vectors, and compute the cosine between them. Even though not one token matches literally, the vectors sit close in angle because both phrases have spent their statistical lives surrounded by the same neighboring words — "component," "DOM," "hooks," "npm." A pure keyword matcher would score that pair as a zero. An embedding-based matcher scores it as a near hit, which is the entire reason HR tech vendors moved off TF-IDF matching in the first place.</p>
+    <h3>The analogy that made everyone pay attention</h3>
+    <p>The demonstration that convinced a skeptical NLP community that these vectors had really learned something structural was an arithmetic trick: take the vector for "king," subtract the vector for "man," add the vector for "woman," and the nearest vector in the whole vocabulary to the result is "queen." Vector offsets, not just proximities, seemed to encode relationships — "king minus man" isolates something like a "royalty" direction, and adding "woman" lands you back on the female royal term. Mikolov's original word2vec paper reported that the same trick worked for country-capital pairs and verb tense pairs, and it is genuinely one of the more startling artifacts in the history of the field: nobody told the model what a queen was, or that gender and royalty were separable concepts, and yet the linear structure fell out of nothing but word co-occurrence statistics.</p>
+    <p>The honest caveat, which took a few years to fully surface in the literature, is that these analogies are heavily cherry-picked. Researchers report the ones that work; the vast majority of analogy queries over a real embedding space return nonsense or near-misses, and the "3CosAdd" method used to compute them (finding the vector nearest to king − man + woman while excluding the three input words) has documented failure modes — it is biased toward whichever input word is most frequent, and it degrades badly outside a narrow set of well-populated relationship types like capital-country. In the job-market domain, the same arithmetic sometimes works charmingly — "senior_developer" minus "senior" plus "junior" can land near "junior_developer" in a well-trained space — and sometimes just returns a nearby frequent word that happens to share little of the intended relationship. Treat the king-queen result as evidence that embeddings capture real linear structure, not as evidence that any specific analogy you construct will resolve correctly.</p>
+    <pre><code>import numpy as np
+
+# Toy 6-dimensional embeddings for job-skill terms.
+# Hand-built to illustrate the geometry — a real embedding
+# space is learned from a corpus (see Lesson 2) and is denser
+# and messier than this.
+vecs = {
+    "javascript":       np.array([0.9, 0.1, 0.8, 0.2, 0.0, 0.3]),
+    "js":               np.array([0.88, 0.12, 0.79, 0.18, 0.02, 0.28]),
+    "ecmascript":       np.array([0.85, 0.15, 0.83, 0.19, 0.01, 0.31]),
+    "python":           np.array([0.7, 0.6, 0.2, 0.1, 0.4, 0.3]),
+    "accounting":       np.array([0.0, 0.9, 0.0, 0.8, 0.1, 0.0]),
+    "junior":           np.array([0.2, 0.2, 0.1, 0.1, 0.9, 0.1]),
+    "senior":           np.array([0.25, 0.22, 0.12, 0.1, 0.1, 0.9]),
+    "junior_developer": np.array([0.75, 0.35, 0.45, 0.15, 0.85, 0.15]),
+    "senior_developer": np.array([0.78, 0.37, 0.46, 0.14, 0.12, 0.88]),
+}
+
+def cosine(a, b):
+    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+
+print(round(cosine(vecs["javascript"], vecs["js"]), 3))          # ~0.999, synonyms
+print(round(cosine(vecs["javascript"], vecs["accounting"]), 3))  # ~0.3, unrelated
+
+# Analogy arithmetic: junior_developer - junior + senior =~ senior_developer
+target = vecs["junior_developer"] - vecs["junior"] + vecs["senior"]
+best, best_score = None, -2
+for word, v in vecs.items():
+    if word in ("junior_developer", "junior", "senior"):
+        continue
+    score = cosine(target, v)
+    if score > best_score:
+        best, best_score = word, score
+print(best, round(best_score, 3))   # senior_developer, ~0.98
+</code></pre>
+    <p class="caption">Cosine similarity puts synonyms ("javascript"/"js") near 1.0 and unrelated terms far lower; the offset arithmetic recovers "senior_developer" from a seniority-swap analogy, mirroring king − man + woman = queen.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>TF-IDF's fatal gap:</strong> one dimension per word makes every pair of distinct words orthogonal by construction — it cannot represent that "car" and "automobile" are related, regardless of how the weights are tuned.</li>
+        <li><strong>Dense vectors buy geometry:</strong> compressing a large vocabulary into ~100–300 real-valued dimensions forces shared structure to emerge, so related words end up as nearby points instead of independent axes.</li>
+        <li><strong>Cosine similarity, not Euclidean distance,</strong> is the standard comparison for word/document vectors because it measures direction (meaning) and ignores magnitude (frequency effects).</li>
+        <li><strong>The king-man+woman=queen result</strong> shows embeddings encode relationships as linear offsets, not just proximities — but the result is a famous cherry-picked example, and most analogy queries on a real space produce weaker or wrong results.</li>
+        <li><strong>The distributional hypothesis</strong> (Harris, formalized; Firth, popularized) — words in similar contexts have similar meanings — is the theoretical bet every embedding method from word2vec through BERT ultimately makes.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Word2vec and GloVe: how the vectors are learned</h2>
+    <p class="opening"><span class="term">Word2vec</span> is a family of two related shallow neural network architectures — skip-gram and CBOW — that learn a dense vector for every word in a vocabulary by training the network to predict word co-occurrence from a large corpus, then discarding the prediction task and keeping only the learned weight matrix as the embedding table. That one-sentence definition hides a genuinely clever engineering trick that made the whole approach computationally feasible, which is most of what this lesson is about.</p>
+    <p>The two architectures differ in which direction the prediction runs. <span class="term">Continuous Bag of Words (CBOW)</span> takes the words surrounding a target position — say, the four words on either side of a gap in a job posting — and tries to predict the missing center word from their averaged context. <span class="term">Skip-gram</span> runs the opposite direction: given a single center word, it tries to predict each of the surrounding context words independently. If the training sentence is "senior backend engineer needed with strong python skills" and the center word is "engineer" with a window of 2, skip-gram generates training pairs (engineer, backend), (engineer, senior), (engineer, needed), (engineer, with) and tries to make each context word likely given "engineer." CBOW would instead take the average of (backend, senior, needed, with) and try to predict "engineer" from that blend. In practice skip-gram tends to do better on rare words, because it produces one training example per context word rather than diluting all context words into a single averaged prediction — a job-posting corpus with a rare skill term like "kubernetes" gets more individual training signal under skip-gram than under CBOW, where "kubernetes" would just be one ingredient in an averaged context vector.</p>
+    <h3>The softmax bottleneck</h3>
+    <p>The naive way to train skip-gram is to treat context prediction as ordinary multi-class classification: given the center word's vector, run it through a softmax over the entire vocabulary and read off the predicted probability of each possible context word, then backpropagate the cross-entropy loss. This is correct but catastrophically slow. A realistic vocabulary for job-posting and resume text might run 100,000 to 1,000,000 distinct tokens once you count multi-word skill phrases, company names, and misspellings. Computing a softmax over a million-way output means computing and normalizing a million dot products for every single training pair, and there are billions of training pairs in even a modest corpus. Training would take, by some estimates from the original word2vec paper, weeks to months on hardware of the era — a nonstarter.</p>
+    <h3>Negative sampling: turning it into logistic regression</h3>
+    <p>Mikolov's fix, <span class="term">negative sampling</span>, reframes the entire problem. Instead of asking "which word, out of everything in the vocabulary, is most likely to appear here," it asks a much cheaper binary question repeated a handful of times: "does this specific word pair actually co-occur, yes or no?" For each true (center, context) pair pulled from the corpus — a <span class="term">positive example</span> — the algorithm also samples <code>k</code> random words from the vocabulary that did <em>not</em> appear in that context window, called <span class="term">negative samples</span> (k is typically 5–20 for smaller corpora, 2–5 for very large ones). Training becomes k+1 independent logistic regression problems per training pair: push the predicted probability up for the real context word, push it down for each sampled negative. The full-vocabulary softmax turns into k+1 sigmoid evaluations — a five-orders-of-magnitude reduction in per-step cost when the vocabulary is large.</p>
+    <p>The negatives are not sampled uniformly at random — that would oversample rare words relative to what's useful, and undersample common ones. Word2vec samples a word <code>w</code> as a negative with probability proportional to its unigram frequency raised to the <code>0.75</code> power:</p>
+    <p class="math">P(w) = freq(w)^0.75 / Σ_i freq(i)^0.75</p>
+    <p>The exponent <code>0.75</code> was found empirically, not derived from theory, and it does one specific job: it flattens the frequency distribution just enough to boost the sampling rate of mid- and low-frequency words relative to raw frequency, without going so far as to make everything uniform. Without the exponent (plain unigram sampling), a term like "the" or, in a job-postings corpus, ubiquitous filler like "experience" or "team" would dominate the negative samples for every single training step, and the model would spend almost all its negative-sampling budget learning "this is not 'experience'" instead of learning the more informative distinctions between actual skill terms. Raising frequency to the 0.75 power pulls high-frequency words down and pulls low-frequency words up relative to their raw share, which in practice produces much better-quality vectors for the long tail of specific skill and technology terms that populate resumes.</p>
+    <h3>Window size shapes what "similar" means</h3>
+    <p>One underappreciated hyperparameter is the context window size — how many words on either side of the center word count as "context." A small window (2–3 words) tends to produce vectors where nearby words are <em>syntactically</em> substitutable — "python," "java," and "ruby" cluster tightly because they occupy the same slot in sentences like "proficient in ___." A larger window (8–10 words) captures more <em>topical</em> similarity — "python" ends up nearer "data," "pandas," "machine learning," and "backend" because those words co-occur across a whole job-posting paragraph even if they never sit adjacent to "python." Neither window size is objectively correct; the choice trades off syntactic precision against topical breadth, and production embedding systems for resume matching typically favor the larger-window, more topical setting because the goal is finding candidates whose broader experience overlaps a role, not finding grammatically interchangeable words.</p>
+    <h3>GloVe: the same destination by a different road</h3>
+    <p><span class="term">GloVe</span> (Global Vectors, Pennington, Socher, and Manning, 2014) rejects the local-context prediction framing entirely and instead starts by building an explicit global co-occurrence matrix — a giant table of how often every word appears near every other word across the whole corpus, counted once, up front. GloVe then factorizes that matrix: it learns word vectors such that the dot product of two word vectors approximates the log of their co-occurrence count, weighted so that very rare co-occurrences (likely noise) contribute less to the loss than common ones. Where word2vec learns online, one local window at a time, GloVe learns from aggregated global statistics computed once. Despite the very different optimization objective, GloVe vectors and word2vec vectors end up occupying similar regions of quality on most benchmarks — both are exploiting the same underlying distributional hypothesis, just through different loss functions, and empirically neither approach reliably beats the other across all tasks. The practical takeaway for a resume-matching system is that the choice between them is usually decided by convenience — pretrained GloVe vectors are readily available as flat files, while word2vec is often retrained on domain-specific text (actual job postings and resumes) since general-purpose web-text embeddings underrepresent niche technology and skill vocabulary.</p>
+    <pre><code>import numpy as np
+
+def sigmoid(x):
+    return 1.0 / (1.0 + np.exp(-x))
+
+# Toy vocabulary drawn from job-posting text; each word has a
+# "center" embedding and a separate "context" embedding (word2vec
+# trains two embedding matrices, then usually keeps just the center one).
+vocab = ["python", "pandas", "sql", "tableau", "excel", "kubernetes", "the", "and"]
+dim = 4
+rng = np.random.default_rng(0)
+center_vecs  = {w: rng.normal(0, 0.1, dim) for w in vocab}
+context_vecs = {w: rng.normal(0, 0.1, dim) for w in vocab}
+
+# Unigram^0.75 sampling distribution for negatives.
+raw_freq = {"python": 50, "pandas": 20, "sql": 60, "tableau": 15,
+            "excel": 80, "kubernetes": 10, "the": 500, "and": 480}
+weights = np.array([raw_freq[w] ** 0.75 for w in vocab])
+neg_probs = weights / weights.sum()
+
+def sample_negatives(k, exclude):
+    negs = []
+    while len(negs) < k:
+        w = rng.choice(vocab, p=neg_probs)
+        if w not in exclude:
+            negs.append(w)
+    return negs
+
+# One training step: center="python", true context="pandas", k=3 negatives.
+lr = 0.05
+center, pos_context = "python", "pandas"
+negatives = sample_negatives(3, exclude={center, pos_context})
+
+v_c = center_vecs[center]
+v_pos = context_vecs[pos_context]
+
+# Positive pair: push predicted probability toward 1.
+pos_score = sigmoid(np.dot(v_c, v_pos))
+grad_common = (pos_score - 1.0)          # dL/d(dot product) for the positive pair
+center_vecs[center]  -= lr * grad_common * v_pos
+context_vecs[pos_context] -= lr * grad_common * v_c
+
+# Negative pairs: push predicted probability toward 0.
+for neg in negatives:
+    v_neg = context_vecs[neg]
+    neg_score = sigmoid(np.dot(v_c, v_neg))
+    grad_common = neg_score               # dL/d(dot product) for a negative pair
+    center_vecs[center] -= lr * grad_common * v_neg
+    context_vecs[neg]   -= lr * grad_common * v_c
+
+print("updated python vector:", np.round(center_vecs["python"], 4))
+</code></pre>
+    <p class="caption">One skip-gram-with-negative-sampling step: the positive pair's gradient pulls "python" and "pandas" together, while each sampled negative (drawn from the unigram^0.75 distribution, so "the"/"and" are damped relative to raw frequency) pushes them apart.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Skip-gram predicts context from center word; CBOW predicts center word from averaged context</strong> — skip-gram generally wins on rare words because it generates one training example per context word instead of averaging them away.</li>
+        <li><strong>Full-vocabulary softmax is the bottleneck:</strong> a million-word vocabulary makes exact softmax training computationally infeasible at corpus scale.</li>
+        <li><strong>Negative sampling converts the problem into k+1 binary logistic regressions</strong> per training pair — one real pair pushed toward "yes," k sampled noise pairs pushed toward "no."</li>
+        <li><strong>The unigram^0.75 exponent</strong> is an empirically-tuned smoothing factor that boosts rare-word sampling rate and damps ultra-frequent filler words, without going fully uniform.</li>
+        <li><strong>Window size trades syntactic for topical similarity</strong> — small windows cluster grammatically interchangeable words, large windows cluster words that share a topic.</li>
+        <li><strong>GloVe factorizes a precomputed global co-occurrence matrix</strong> rather than predicting local context online, but lands in similar-quality vector space — both approaches operationalize the same distributional hypothesis differently.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Limits: polysemy, bias, and OOV</h2>
+    <p class="opening">A resume-matching system built on the word2vec and GloVe vectors from Lesson 2 will, sooner or later, confidently do something wrong. Ask it for candidates similar to "python" and it will happily surface people who mentioned reptile handling on a hobby line, because word2vec assigns exactly one vector to the string "python" and that single vector is an average of every context the word ever appeared in during training — the programming language, the snake, the Monty Python references, all blended into one point in space. Ask the same system to rank candidates for a "programmer" role by embedding similarity to the job title, and — depending on the training corpus — it may systematically rank male-associated names or resumes higher, not because anyone programmed that rule, but because the vectors learned it from historical hiring text that itself reflects historical hiring bias. These are not edge-case bugs to patch later; they are structural properties of what a single dense vector per word-string can and cannot represent, and any HR tech product built on Lesson 1 and 2's techniques inherits them by default.</p>
+    <h3>One vector, many meanings</h3>
+    <p>The polysemy problem is a direct consequence of how word2vec and GloVe are trained: both methods learn exactly one vector per unique token string, computed by pooling statistics across every occurrence of that string in the corpus. "Python" the language and "python" the snake never get to have separate identities, because the training algorithm never looks past the string itself to ask which sense is meant on any given occurrence — it just accumulates co-occurrence statistics under one shared key. In a general-purpose corpus, the resulting vector for "python" ends up as a compromise, geometrically pulled toward both "programming"-cluster words and "reptile"-cluster words, sitting somewhere unsatisfying between the two senses rather than cleanly representing either. For a resume matcher this shows up as false positives: a candidate whose resume happens to use "python" in a non-technical sense, or a job posting for a herpetology position, could register spurious similarity to software engineering roles purely through vector contamination between senses.</p>
+    <p>The fix that the field eventually converged on is <span class="term">contextual embeddings</span> — instead of a fixed lookup table with one vector per word type, compute a word's vector fresh, on the fly, as a function of the specific sentence it appears in, so "python" in "built the backend in Python" and "python" in "kept a ball python as a pet" get different vectors reflecting their different contexts. That is the core idea behind BERT and its relatives, which Unit 5 covers in depth; for now it is enough to know that contextual embeddings exist specifically to solve the one-vector-per-word-string ceiling that word2vec and GloVe cannot get past, because they were designed around a static lookup table, not a function of context.</p>
+    <h3>Bias is not a bug you can patch out</h3>
+    <p>The bias finding that got the widest attention is Bolukbasi et al.'s 2016 paper, which showed that word2vec vectors trained on ordinary Google News text encode a measurable gender direction, and that direction correlates with occupation words in a way that mirrors real-world occupational gender imbalance: "programmer" sits closer to stereotypically male-associated names and words than to female-associated ones, while "homemaker" or "nurse" show the reverse pattern. The mechanism is exactly what Lesson 1 and 2 described as a feature, now showing its dark side: distributional statistics faithfully encode whatever patterns exist in the training text, and historical job-posting and news text contains decades of skewed hiring language, skewed pronoun usage, and skewed occupational framing. The embeddings did not invent the bias; they compressed it into geometry with perfect fidelity.</p>
+    <p>A standard way to measure this quantitatively is the <span class="term">Word Embedding Association Test (WEAT)</span>, from Caliskan, Bryson, and Narayanan (2017), adapted from the psychology literature's Implicit Association Test. WEAT takes two sets of <span class="term">target words</span> (say, career-associated terms like "executive," "management," "professional" versus family-associated terms like "home," "children," "relatives") and two sets of <span class="term">attribute words</span> (conventionally, male versus female first names), and computes whether the target sets show significantly different average cosine similarity to the two attribute sets. A large, consistent gap indicates the embedding space has absorbed an association the training corpus carried, whether or not anyone intended it. For an HR tech vendor this matters directly: if the same test run over "leadership" versus "support-role" target words against gendered name sets shows a wide gap, then any similarity-based candidate ranking built on that embedding space will quietly reproduce the association in its rankings, surfacing male candidates more often for leadership-framed postings regardless of actual qualifications.</p>
+    <p>Debiasing techniques — most notably Bolukbasi's own proposal to identify a "gender direction" as the top principal component of several gendered word-pair differences, then project it out of occupation words — help but do not fully solve the problem. Removing the identified direction leaves indirect, correlated biases intact (the geometry still separately encodes things correlated with gender even after the explicit axis is zeroed out), and subsequent research (Gonen and Goldberg, 2019) showed that debiased vectors often still cluster stereotypically male and female words together even after the direct associations are removed — bias hides in the overall neighborhood structure, not just in one linear direction. The honest summary for a production system: debiasing reduces measurable association scores, it does not certify a system as fair, and any real deployment needs bias audits on the actual downstream ranking outputs, not just on the raw embedding geometry.</p>
+    <h3>Words the training corpus never saw</h3>
+    <p>A separate, more mundane limitation is <span class="term">out-of-vocabulary (OOV)</span> handling: word2vec and GloVe only have vectors for word-strings that appeared in their training corpus, so a brand-new technology name — a framework released after the embeddings were trained, or a company-specific internal tool name on a resume — simply has no vector at all. <span class="term">fastText</span> (Bojanowski et al., 2017) fixes this by representing each word as a bag of character n-grams (for "kubernetes" with n=4, that includes "kube," "uber," "bern," "etes," and so on) and summing the learned n-gram vectors to build the word vector, plus the whole-word vector when available. An unseen word like "kubectl" or a newly coined tool name still gets a reasonable vector at inference time, assembled from n-grams it shares with words the model did see, rather than failing outright — a meaningful advantage for a resume-parsing system that will always encounter this month's new framework name.</p>
+    <p>Finally, evaluating whether any of this vector space is any good splits into two traditions. <span class="term">Intrinsic evaluation</span> tests the vectors directly — analogy accuracy (the king-queen-style tests from Lesson 1), or correlation between cosine similarity and human-labeled word-similarity judgments on benchmark datasets like WordSim-353. <span class="term">Extrinsic evaluation</span> instead plugs the vectors into a real downstream task — does using these embeddings improve resume-to-job matching accuracy, measured against actual hiring outcomes — and measures the task metric. The two do not always agree: an embedding space can score well on analogy benchmarks and still underperform on a specific downstream task if the benchmark's notion of similarity doesn't match what the task actually needs, which is why serious NLP evaluation always includes an extrinsic check rather than trusting intrinsic scores alone.</p>
+    <pre><code>import numpy as np
+
+def cosine(a, b):
+    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+
+# Toy vectors (hand-built, 5-d) standing in for a trained embedding
+# space. In a real WEAT run these come from an actual trained model.
+vecs = {
+    # Attribute set A: names conventionally coded male in the training data
+    "john": np.array([0.8, 0.1, 0.6, 0.2, 0.1]),
+    "paul": np.array([0.75, 0.15, 0.55, 0.25, 0.05]),
+    "mike": np.array([0.82, 0.05, 0.58, 0.18, 0.12]),
+    # Attribute set B: names conventionally coded female in the training data
+    "amy":  np.array([0.1, 0.8, 0.15, 0.6, 0.2]),
+    "lisa": np.array([0.15, 0.75, 0.1, 0.65, 0.25]),
+    "joan": np.array([0.05, 0.82, 0.18, 0.58, 0.22]),
+    # Target set X: career/leadership-coded words
+    "executive": np.array([0.7, 0.2, 0.5, 0.3, 0.1]),
+    "management": np.array([0.68, 0.22, 0.48, 0.28, 0.15]),
+    # Target set Y: support/care-coded words
+    "assistant": np.array([0.2, 0.7, 0.2, 0.5, 0.2]),
+    "caregiver": np.array([0.15, 0.72, 0.18, 0.55, 0.18]),
+}
+A = ["john", "paul", "mike"]
+B = ["amy", "lisa", "joan"]
+X = ["executive", "management"]
+Y = ["assistant", "caregiver"]
+
+def assoc(word, A, B):
+    """s(w, A, B): mean similarity to A minus mean similarity to B."""
+    mean_a = np.mean([cosine(vecs[word], vecs[a]) for a in A])
+    mean_b = np.mean([cosine(vecs[word], vecs[b]) for b in B])
+    return mean_a - mean_b
+
+def weat_score(X, Y, A, B):
+    """Differential association between target sets X and Y."""
+    sum_x = sum(assoc(x, A, B) for x in X)
+    sum_y = sum(assoc(y, A, B) for y in Y)
+    return sum_x - sum_y
+
+score = weat_score(X, Y, A, B)
+print(f"WEAT differential association: {score:.3f}")
+# Large positive score: X (career) associates more with A (john/paul/mike)
+# than Y (support) does -- a measurable bias signal, not proof of intent.
+</code></pre>
+    <p class="caption">The WEAT score sums each career-word's (male-minus-female) association and subtracts the same sum for support-words; a large positive number flags that the embedding space separates the two target sets along the same axis as the two name sets, mirroring Bolukbasi et al.'s finding.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>One vector per word-string</strong> means word2vec/GloVe cannot separate senses — "python" the language and the snake share a single, blended vector, causing false-positive similarity in ambiguous cases.</li>
+        <li><strong>Contextual embeddings (BERT, Unit 5) compute a vector per occurrence</strong>, not per word-string, which is the structural fix for polysemy that static embeddings cannot provide.</li>
+        <li><strong>Bias is not a training bug:</strong> embeddings faithfully encode whatever associations the training corpus contains, including historical hiring-related gender and demographic skew (Bolukbasi et al., 2016).</li>
+        <li><strong>WEAT quantifies embedding-level bias</strong> by comparing target-word similarity to two attribute-word sets — a large, consistent gap signals absorbed association, useful as an audit tool before deployment.</li>
+        <li><strong>Debiasing (e.g., projecting out a gender direction) is partial:</strong> correlated, indirect bias survives even after the identified axis is removed (Gonen & Goldberg, 2019) — downstream ranking audits are still necessary.</li>
+        <li><strong>fastText's subword n-grams handle OOV terms</strong> — new tool and framework names get assembled vectors instead of failing outright.</li>
+        <li><strong>Intrinsic evaluation (analogy, similarity benchmarks) and extrinsic evaluation (downstream task performance) can disagree</strong> — always check the downstream metric that actually matters for the deployed system.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 3 quiz</h2>
+    <p class="quiz-intro">8 questions covering the distributional hypothesis, dense vectors and cosine similarity, word2vec/GloVe training mechanics, and polysemy/bias/OOV limitations.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Which pairing correctly attributes the two foundational ideas behind the distributional hypothesis?</p>
+      <ol class="choices" type="A">
+        <li>Firth formalized "distributional structure" as a linguistic theory; Harris popularized "you shall know a word by the company it keeps."</li>
+        <li>Harris formalized distributional structure; Firth is credited with the "company it keeps" line.</li>
+        <li>Mikolov coined both ideas in the 2013 word2vec paper.</li>
+        <li>Pennington and Socher first proposed the distributional hypothesis in the GloVe paper.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Zellig Harris formalized the distributional hypothesis in the 1950s; J.R. Firth's 1957 line is the memorable popularization of the same idea. Mikolov's word2vec (2013) operationalized the hypothesis into a trainable algorithm decades later — it didn't originate the idea.</p>
+          <p>Option A swaps the two names' contributions. Option D is wrong because GloVe (2014) is a training method built on the same pre-existing hypothesis, not its origin.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Given a large enough corpus and better-tuned weights, a TF-IDF vector representation can be made to recognize that "car" and "automobile" are semantically related.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> TF-IDF assigns one fixed dimension per vocabulary word; "car" and "automobile" occupy separate, mutually orthogonal axes by construction. No amount of reweighting changes the fact that the dot product between two distinct word-dimensions is zero — the representation has no mechanism for cross-word relationships at all.</p>
+          <p>This is a structural limitation of the representation's dimensionality scheme, not a tuning problem, which is exactly why dense embeddings (Lesson 1) were needed as a different representation, not a better-weighted version of the same one.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">Cosine similarity between two vectors ranges from <span class="blank">&nbsp;</span> (opposite direction) to <span class="blank">&nbsp;</span> (identical direction), and is computed as the dot product divided by the product of the two vectors' <span class="blank">&nbsp;</span>.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: -1, 1, magnitudes (norms).</strong> cos(u,v) = (u·v)/(‖u‖‖v‖). Dividing by the norms is exactly what makes the measure ignore vector length and respond only to direction/angle.</p>
+          <p>A common wrong fill-in is "0 to 1" — that range applies to some normalized similarity scores but not to raw cosine similarity, which can be negative when vectors point in substantially different directions.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A resume-matching pipeline needs embeddings that group words by broad topical relatedness (e.g., "python" near "pandas," "data," and "backend") rather than strict grammatical substitutability. Which training choice best supports that goal?</p>
+      <ol class="choices" type="A">
+        <li>Use CBOW instead of skip-gram.</li>
+        <li>Use a small context window (2–3 words).</li>
+        <li>Use a larger context window (8–10 words).</li>
+        <li>Increase the negative sampling exponent above 1.0.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> A larger window captures topical co-occurrence across a whole sentence or paragraph, pulling together words that share a subject matter even if they never sit adjacent. Small windows instead favor syntactic substitutability — words that occupy the same grammatical slot.</p>
+          <p>A is a red herring: CBOW vs. skip-gram affects rare-word quality and training speed, not the syntactic/topical trade-off, which is governed by window size regardless of architecture. D describes changing the negative-sampling smoothing exponent, which affects which negative words get sampled, not what kind of similarity the positive-context signal encodes.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Why does word2vec sample negative words with probability proportional to unigram_frequency^0.75 rather than raw unigram frequency?</p>
+      <ol class="choices" type="A">
+        <li>Raising to the 0.75 power makes the softmax computation itself faster.</li>
+        <li>It flattens the distribution enough to boost sampling of rare/mid-frequency words and damp extremely frequent filler words, without going fully uniform.</li>
+        <li>It guarantees the sampled negatives are never true context words.</li>
+        <li>It converts the multi-class problem back into an exact softmax.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> The 0.75 exponent is an empirically-chosen smoothing factor: it reduces the sampling dominance of very common words (like "the," "and," or generic filler in job postings) while still respecting overall frequency more than a pure uniform distribution would, producing better-quality vectors for the specific, informative vocabulary that matters for skill matching.</p>
+          <p>A is wrong — negative sampling's speed gain comes from avoiding the full-vocabulary softmax entirely (turning it into k+1 sigmoids), not from the exponent itself. C is wrong — negative sampling does not guarantee exclusion of true context words; collisions are simply accepted as noise in most implementations.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">This skip-gram-with-negative-sampling step is missing the negative-pair gradient direction. Given that <code>neg_score = sigmoid(dot(v_c, v_neg))</code> should be pushed toward 0 (unlike the positive pair, pushed toward 1), which line correctly completes the update?</p>
+      <pre><code># Positive pair pulls vectors together:
+grad_common = (pos_score - 1.0)
+v_c    -= lr * grad_common * v_pos
+v_pos  -= lr * grad_common * v_c
+
+# Negative pair should push vectors apart. Complete the gradient:
+neg_score = sigmoid(np.dot(v_c, v_neg))
+grad_common = ____________
+v_c    -= lr * grad_common * v_neg
+v_neg  -= lr * grad_common * v_c</code></pre>
+      <ol class="choices" type="A">
+        <li><code>neg_score - 1.0</code></li>
+        <li><code>neg_score</code></li>
+        <li><code>1.0 - neg_score</code></li>
+        <li><code>-neg_score</code></li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B, <code>neg_score</code>.</strong> The gradient of the binary cross-entropy loss with respect to the dot product is (predicted − target). For the positive pair, target is 1, giving (pos_score − 1.0). For a negative pair, target is 0, giving (neg_score − 0.0), which simplifies to just <code>neg_score</code>.</p>
+          <p>Option A reuses the positive pair's formula with the wrong target. Option C flips the sign, which would push negatives together with the center word instead of apart — the opposite of the intended effect.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Once a debiasing technique (such as projecting out a learned "gender direction") is applied to an embedding space, downstream applications like resume ranking can be considered free of the bias that was measured before debiasing.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> Gonen and Goldberg (2019) showed that debiased vectors still cluster stereotypically male- and female-associated words together in their overall neighborhood structure, even after the single identified linear direction is projected out — the bias is distributed across correlated directions, not confined to the one axis that got removed.</p>
+          <p>Debiasing measurably reduces the specific association score it targets, which is why it's worth doing, but it is not a certification of fairness — production systems still need bias audits on actual downstream ranking outputs.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">This WEAT-style association function is meant to compute s(w, A, B): the mean cosine similarity of word <code>w</code> to attribute set A, minus the mean cosine similarity of <code>w</code> to attribute set B. It returns a value that never distinguishes bias direction correctly. Find the bug.</p>
+      <pre><code>def assoc(word, A, B):
+    sum_a = sum(cosine(vecs[word], vecs[a]) for a in A)
+    sum_b = sum(cosine(vecs[word], vecs[b]) for b in B)
+    return sum_a - sum_b</code></pre>
+      <ol class="choices" type="A">
+        <li>It uses <code>sum</code> instead of <code>np.mean</code> for both sets, so unequal-sized attribute sets (e.g. 5 names in A, 3 in B) bias the result toward whichever set is larger, independent of actual similarity.</li>
+        <li><code>cosine</code> should be replaced with a raw dot product.</li>
+        <li>The subtraction order should be <code>sum_b - sum_a</code>.</li>
+        <li>There is no bug; the function is correct as written.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: A.</strong> WEAT's association score is explicitly defined using the <em>mean</em> similarity over each attribute set, precisely so that set size doesn't confound the comparison — summing instead of averaging means a larger attribute set will mechanically produce a larger sum regardless of per-word similarity, corrupting the score whenever |A| ≠ |B|.</p>
+          <p>Option C just flips the sign convention, which doesn't fix the size-confound bug. Option B would change what's being measured (cosine similarity is the standard because it normalizes out vector magnitude, which raw dot products don't) but isn't the bug being described here, since magnitude differences aren't the stated symptom.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Text Processing (NLP) · Unit 3 of 8 — Next: Unit 4 moves from static word vectors to sequence models, covering how RNNs and LSTMs read a resume or posting word-by-word while carrying state forward.</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 1 · Text preprocessing and tokenization fundamentals — Text Processing (NLP)</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Text Processing (NLP) · Unit 1 of 8</p>
+  <h1>Text preprocessing and tokenization fundamentals</h1>
+  <p class="lede">Before any moderation model sees a post, someone decides what "the text" even is — and every one of those decisions throws away information. This unit re-grounds preprocessing and tokenization from scratch, using the messiest text on the internet: raw social posts.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. The preprocessing pipeline</a></li>
+      <li><a href="#lesson-2">2. Tokenization: word, subword, character</a></li>
+      <li><a href="#lesson-3">3. Stemming, lemmatization, stopwords, and the classical normalisation stack</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>The preprocessing pipeline</h2>
+    <p class="opening">Somewhere on a review queue sits this post: <code>SOOO excited!!! 😍 #blessed @friend http://x.co</code>. A moderation model — say, one flagging spam, harassment, or coordinated bot activity — never sees those sixty-odd characters directly. Something has to turn them into the fixed-shape numeric input a model expects, and whoever writes that "something" makes a dozen small decisions along the way, each of which quietly deletes information the model might have needed. Strip the emoji and you lose the sentiment amplifier that tells you this is excitement, not sarcasm. Lowercase the caps and you lose the shouting. Delete the URL and you lose the exact signal that this post is trying to route traffic somewhere, which is often the whole point of a spam classifier's job. Preprocessing is never neutral cleanup — it is a sequence of modelling decisions disguised as hygiene, and the goal of this lesson is to make each one visible so you can choose it on purpose instead of by default.</p>
+
+    <p>It helps to say plainly what preprocessing is for. Raw text arrives as a stream of Unicode codepoints with essentially unlimited variation: any user can type any sequence of any of the roughly 150,000 characters Unicode defines, in any order, with invisible formatting marks mixed in. A model's vocabulary and downstream layers assume far more regularity than that — the same word should usually map to the same representation, invisible characters should not silently change meaning, and semantically equivalent inputs should end up close together. Preprocessing is the bridge between those two worlds. It is <em>lossy</em> by construction — you cannot both compress a space of near-infinite variation into a small, reusable vocabulary and preserve every distinction the raw text carried. The question is never "how do I remove noise," it is "which distinctions can this particular model, for this particular task, afford to lose."</p>
+
+    <h3>Unicode normalisation: NFC, NFKC, and why it's a security question</h3>
+    <p>The first problem is that the "same" text can arrive as different byte sequences. The character é can be one codepoint (U+00E9, precomposed) or two (U+0065 "e" plus U+0301 a combining acute accent) — visually identical, but a naive string-equality check or a tokenizer's lookup table sees them as different tokens. <span class="term">Unicode normalisation</span> fixes this by rewriting text into one of a handful of canonical forms. <span class="term">NFC</span> (Normalization Form Canonical Composition) prefers the precomposed form wherever one exists, which is usually what you want for display and for a model vocabulary trained on typical text. <span class="term">NFKC</span> (Compatibility Composition) goes further: it also collapses "compatibility" variants that are stylistically different but semantically identical — the fullwidth "Ａ" used in some East Asian typesetting becomes ordinary "A," a ligature like "ﬁ" becomes "f" + "i," superscript "²" becomes "2." For moderation pipelines specifically, this is not a cosmetic nicety — it is a security control. Adversarial posters use <span class="term">homoglyph substitution</span>, swapping Latin letters for visually near-identical characters from other scripts (Cyrillic "а" for Latin "a," to dodge a keyword filter on a banned word), and they use invisible characters like zero-width spaces or joiners to break up a filtered string without changing how it renders. NFKC normalisation, combined with stripping known invisible-format codepoints, closes a real fraction of these evasions before the text ever reaches tokenization — though never all of them, since new homoglyph tricks appear as fast as filters catch old ones.</p>
+
+    <h3>Case folding: not always a win</h3>
+    <p>Lowercasing everything is the oldest reflex in text preprocessing, and for many tasks it is still correct: it collapses "Excited," "excited," and "EXCITED" to one vocabulary entry, shrinking vocabulary size and data sparsity. But notice what that collapse destroys for a moderation model specifically. ALL-CAPS is a real signal — of shouting, aggression, or excitement — and case is one of the cheapest features a classifier can use to detect it. Case also disambiguates named entities from common words ("US" the country versus "us" the pronoun, "March" the month versus "march" the verb), which matters for entity-aware moderation like doxxing detection. The honest rule is: fold case when your downstream representation is sparse (word counts, classic bag-of-words features) and case variants would otherwise fragment your vocabulary pointlessly; keep case when your model is expressive enough to use it as signal (subword or character-level neural models, which can learn "all-caps span" as a pattern) or when the task explicitly needs it. There is no universally correct answer — only the one your task and your downstream tokenizer can afford.</p>
+
+    <h3>URLs, @mentions, and #hashtags: placeholder, keep, or drop</h3>
+    <p>Social posts are dense with three structural elements that plain prose never has, and each admits three treatments with different costs. You can <em>drop</em> them entirely (delete the URL, mention, hashtag text), which shrinks the input but destroys any signal the element carried — dropping every URL makes it impossible to tell "post with a suspicious shortened link" from "post with no link at all." You can <em>keep</em> them verbatim, which preserves everything but explodes vocabulary size, since URLs and usernames are close to unique strings that will appear once each in the entire dataset and contribute nothing generalizable to a model. Or you can <em>replace with a placeholder</em> — a fixed token like <code>&lt;URL&gt;</code>, <code>&lt;MENTION&gt;</code>, <code>&lt;HASHTAG&gt;</code> — which is usually the right middle ground for moderation: the model learns "this post contains a link" as a reusable, generalizable feature without ever needing to memorize the specific link. Hashtags deserve special care, though, because unlike mentions and URLs they often carry real linguistic content: <code>#blessed</code> is not noise to discard, it is a sentiment-bearing word glued to a symbol. A common compromise is to strip the leading <code>#</code> but keep the word, and only fall back to a placeholder for hashtags that are pure keyword salad with no readable word boundary.</p>
+
+    <h3>Emoji as signal, not noise</h3>
+    <p>Early NLP pipelines stripped emoji as "non-text noise" reflexively, and for moderation that is close to a modelling error. Emoji frequently carry the sentiment or intent of a post more reliably than the words around them — 😍 and 😡 disambiguate tone in exactly the short, context-free posts where moderation models struggle most, and specific emoji sequences function as adversarial code themselves (certain fruit or plant emoji are used as drug-sale euphemisms, for instance). Modern subword tokenizers handle emoji natively as Unicode codepoints, so keeping them costs little; the decision that matters is whether to normalise emoji variants (skin-tone modifiers, gender variation selectors) to a base form, trading some nuance for a smaller, more learnable emoji vocabulary.</p>
+
+    <h3>Whitespace and control characters</h3>
+    <p>The least glamorous step is also the one that breaks pipelines silently: collapsing runs of whitespace, stripping non-printing control characters, and normalising line endings. Elongated words like "soooo goooood" are a whitespace-adjacent problem too — they are not extra spaces, but repeated-character runs that a naive tokenizer treats as unknown words distinct from "so good," even though they carry emphasis a moderation model benefits from detecting (repetition often correlates with strong emotion or bot-like scripted spam). A common move is to cap character repetition at two or three ("soooo" → "soo") rather than collapsing to one, preserving the "this was emphasized" signal while still controlling vocabulary blowup.</p>
+
+    <pre><code>import unicodedata, re
+
+def preprocess(text: str) -> str:
+    print(f"0. raw:         {text!r}")
+
+    # 1. Unicode normalisation — collapse homoglyphs/compatibility forms
+    text = unicodedata.normalize("NFKC", text)
+    print(f"1. NFKC:        {text!r}")
+
+    # 2. Strip invisible/control characters (zero-width space, etc.)
+    text = re.sub(r"[​‌‍﻿]", "", text)
+    print(f"2. no ZW chars: {text!r}")
+
+    # 3. Cap repeated characters at 2 (soooo -> soo), preserves emphasis signal
+    text = re.sub(r"(.)\1{2,}", r"\1\1", text)
+    print(f"3. de-elongate: {text!r}")
+
+    # 4. Replace URLs and @mentions with placeholders; keep hashtag words
+    text = re.sub(r"https?://\S+", "<URL>", text)
+    text = re.sub(r"@\w+", "<MENTION>", text)
+    text = re.sub(r"#(\w+)", r"\1", text)
+    print(f"4. placeholders:{text!r}")
+
+    # 5. Collapse whitespace runs
+    text = re.sub(r"\s+", " ", text).strip()
+    print(f"5. whitespace:  {text!r}")
+
+    return text
+
+preprocess("SOOO excited!!! 😍 #blessed @friend http://x.co")</code></pre>
+    <p class="caption">Case is deliberately left untouched here — notice how each stage transforms the string incrementally, and how the final output still keeps "SOOO," the emoji, and "blessed" as meaningful tokens rather than deleting them.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Preprocessing is always lossy</strong> — there is no "clean" version of a text that preserves all information; every step is a trade-off you should make deliberately for your task.</li>
+        <li><strong>NFKC normalisation is a security control for moderation systems</strong>, not just cosmetic cleanup — it closes homoglyph and compatibility-character evasions of keyword filters.</li>
+        <li><strong>Case folding helps sparse bag-of-words models but can delete shouting/emphasis signal</strong> that a moderation classifier specifically needs.</li>
+        <li><strong>URLs, mentions, and hashtags each need their own treatment</strong> — placeholder tokens usually beat both keeping the raw string and dropping it outright.</li>
+        <li><strong>Emoji and repeated-character elongation carry sentiment and intent</strong> — capping repetition instead of collapsing it preserves that signal while still controlling vocabulary size.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Tokenization: word, subword, character</h2>
+    <p class="opening">A <span class="term">token</span> is the smallest unit of text a model treats as one item — the atomic thing that gets mapped to a vector, attended over, and predicted. That definition sounds simple until you try to pin down where one token ends and the next begins in real text, and social posts are exactly where the simple version breaks. This lesson works through three ways of drawing token boundaries — splitting on words, splitting on learned subword pieces, and splitting on raw characters or bytes — and shows concretely where each one wins or fails on noisy, adversarial user text.</p>
+
+    <h3>Whitespace and rule-based tokenization — and where it breaks</h3>
+    <p>The naive approach is to split on whitespace and call each resulting chunk a token. It is fast, requires no training data, and works fine on tidy formal prose. It breaks in at least four ways that matter for social text. <strong>Contractions</strong> like "don't" split inconsistently — is that one token or two ("do" + "n't")? Different downstream tasks want different answers, and whitespace alone can't decide. <strong>Hyphenated and multi-word units</strong> like "New York" or "co-worker" are semantically one thing but whitespace or punctuation splits them into two or three tokens, losing the fact that "New" and "York" together mean something a model can't recover from the parts alone. <strong>Punctuation glued to words</strong> — "excited!!!", "money?!" — needs its own splitting rule, or the tokenizer ends up with "excited!!!" as one opaque token distinct from every other use of "excited." And <strong>emoji and emoji sequences</strong> glued to text with no whitespace ("goooood😍😍") are invisible to a tokenizer that only looks for space characters. A slightly better approach layers regex rules on top of whitespace splitting: match words, punctuation, contractions, and emoji as separate regex classes and split at every boundary between classes. This is the <span class="term">regex tokenizer</span> approach, and it is what the classic <span class="term">Penn Treebank (PTB)</span> tokenization conventions formalize — a set of rules from the 1990s Penn Treebank corpus project that split contractions ("don't" → "do" + "n't"), separate most punctuation into its own token, and handle common abbreviations as exceptions. PTB-style tokenization is still the reference standard many English NLP tools default to, precisely because it made these judgment calls explicit and reusable instead of leaving every project to invent its own.</p>
+
+    <h3>The out-of-vocabulary wall</h3>
+    <p>Whitespace and regex tokenizers share a deeper problem once you fix a vocabulary size: every token that was not seen during training is <span class="term">out-of-vocabulary (OOV)</span>, typically mapped to a generic <code>&lt;UNK&gt;</code> token that throws away everything distinctive about that word. Formal prose has a fairly closed vocabulary — a large training corpus covers the vast majority of words a new document will contain. Social-media text does not. Users invent spellings constantly: elongation ("goooood"), leetspeak substitution ("fr€€ m0ney," "m0ney" for "money"), deliberate misspelling to dodge filters, and code-switching between languages mid-sentence. Every one of these generates a "new word" a word-level tokenizer has never indexed, and a word-level vocabulary trained on even millions of posts still hits a wall of UNK tokens on next week's slang and this week's obfuscation attempts. This is precisely the OOV problem that motivated the shift to subword tokenization industry-wide.</p>
+
+    <h3>Subword tokenization: the modern default</h3>
+    <p><span class="term">Subword tokenization</span> — <span class="term">BPE</span> (byte-pair encoding) and <span class="term">WordPiece</span> chief among them, covered in mechanical detail in Course 2 Unit 3 — solves the OOV problem by building a vocabulary of frequent character sequences rather than whole words, so any string can be represented as some sequence of known pieces even if the whole word was never seen. "m0ney" might not be in the vocabulary as one unit, but "m", "0", "ney" almost certainly are, since a subword vocabulary is built to guarantee full coverage of its training alphabet. That is exactly why subword schemes dominate the noisy-text case: a user who invents "goooood" or swaps letters for symbols to dodge a keyword filter cannot escape a subword tokenizer's coverage the way they escape a word-level vocabulary's fixed list, because subword pieces compose all the way down to individual characters when nothing larger matches. The cost is longer token sequences for unusual text — a heavily obfuscated post might tokenize into twice as many pieces as clean prose — but "more tokens, fully represented" beats "fewer tokens, mostly UNK" for almost every downstream task.</p>
+
+    <h3>Character and byte tokenization: the fully robust fallback</h3>
+    <p>Push subword splitting to its logical extreme and you get <span class="term">character-level</span> tokenization — every individual Unicode codepoint (or, one level lower, every raw byte) is its own token. This has a vocabulary so small it is trivially complete: there is no such thing as an OOV character, because every possible input decomposes into the same closed alphabet, whether that's roughly 150,000 Unicode codepoints or, at the byte level, exactly 256 values. Character and byte tokenizers are the honest answer to "what handles truly arbitrary adversarial text," including homoglyph attacks, zero-width character insertion, and mixed-script obfuscation that would confuse a subword vocabulary trained mostly on clean English. The trade-off is sequence length: a ten-word post becomes ten tokens under a word tokenizer, roughly fifteen to twenty-five under subword tokenization, and fifty-plus characters under character tokenization — and since transformer compute scales with sequence length, character-level models pay substantially more compute per unit of text, which is exactly why production systems use subword tokenization as the default and reserve character/byte-level approaches for cases where robustness to arbitrary input matters more than efficiency.</p>
+
+    <h3>Choosing a tokenizer in practice</h3>
+    <p>None of these three approaches is "the" right tokenizer in the abstract — production moderation systems pick based on what they can afford to get wrong. A first-pass spam filter running on every post at ingestion time, where latency and throughput dominate, often still leans on cheap regex or word-level splitting for a coarse pre-filter, accepting some OOV loss because the downstream human reviewer is a safety net. A neural classifier making the actual moderation decision almost always uses subword tokenization matched to whatever pretrained transformer it's built on, because retraining a tokenizer from scratch throws away the pretraining the whole model depends on — the tokenizer is effectively part of the model's frozen interface, not a preprocessing detail you swap freely. Character or byte-level tokenization earns its cost specifically in adversarial-robustness settings: a system explicitly designed to catch obfuscated banned terms, homoglyph tricks, or mixed-script evasion may run a lightweight byte-level pass as a second check precisely because it cannot be fooled by any string a subword vocabulary hasn't seen. Notice that this mirrors Lesson 1's central lesson exactly — there is no universally correct tokenizer, only the one that fits the failure mode you're guarding against.</p>
+
+    <pre><code>import re
+
+posts = [
+    "SOOO excited!!! 😍 #blessed",
+    "don't trust this seller, it's a scam",
+    "fr€€ m0ney click now!!",
+    "New York is lit tonight 🔥🔥🔥",
+    "lol going ¯\\_(ツ)_/¯ ok whatever",
+]
+
+def whitespace_tokenize(s):
+    return s.split()
+
+def regex_tokenize(s):
+    # words, standalone punctuation runs, and emoji as their own tokens
+    return re.findall(r"\w+|[^\w\s]", s, re.UNICODE)
+
+def char_tokenize(s):
+    return list(s.replace(" ", ""))  # drop plain spaces, keep every other char
+
+for post in posts:
+    ws, rx, ch = whitespace_tokenize(post), regex_tokenize(post), char_tokenize(post)
+    print(f"{post!r}")
+    print(f"  whitespace: {len(ws):>2} tokens  {ws}")
+    print(f"  regex:      {len(rx):>2} tokens  {rx}")
+    print(f"  char:       {len(ch):>2} tokens")
+    print()</code></pre>
+    <p class="caption">On "fr€€ m0ney click now!!" the whitespace tokenizer produces only three tokens ("fr€€", "m0ney", "click", "now!!" — none of which match a normal-English vocabulary and would mostly become UNK); the regex tokenizer splits the punctuation and symbols off, giving a real subword-style tokenizer more recognizable pieces to work with ("fr", "€", "€", "m0ney" still whole); only character tokenization guarantees zero unknown tokens, at the cost of roughly 4x the token count.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>A token is whatever unit a model treats as atomic</strong> — the boundary is a design choice, not a fact about language.</li>
+        <li><strong>Whitespace tokenization fails on contractions, multi-word entities, glued punctuation, and glued emoji</strong> — all common in social posts.</li>
+        <li><strong>Word-level vocabularies hit an OOV wall on invented spellings, elongation, and leetspeak obfuscation</strong> — exactly the adversarial patterns moderation systems must catch.</li>
+        <li><strong>Subword tokenization (BPE/WordPiece) solves OOV by composing rare or unseen words from frequent sub-pieces</strong>, which is why it is the modern default for noisy user text.</li>
+        <li><strong>Character/byte tokenization has a closed, complete vocabulary and cannot produce true OOV</strong>, but pays for that robustness in much longer sequences and higher compute per post.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Stemming, lemmatization, stopwords, and the classical normalisation stack</h2>
+    <p class="opening">In 1980, Martin Porter published a short, deliberately crude algorithm for stripping suffixes off English words — five phases of hand-written rules that turn "moderation," "moderating," and "moderated" all into "moder." The <span class="term">Porter stemmer</span> was built for a world where computing a document's relevant words mattered more than computing them elegantly: the <span class="term">information retrieval (IR)</span> systems of the 1970s and 80s indexed documents by exact word match, and a query for "moderate" needed to find documents containing "moderation" or the search was useless. Stemming solved a real, expensive problem cheaply, using no dictionaries, no part-of-speech tagging, and almost no computation — just suffix-stripping rules a machine from that era could run over a full document collection in reasonable time. That history matters because it explains both why this classical stack was once treated as mandatory in nearly every NLP pipeline, and why almost none of it is mandatory anymore. Understanding what changed is as important as understanding the techniques themselves.</p>
+
+    <h3>Stemming: fast, crude, and rule-based</h3>
+    <p><span class="term">Stemming</span> chops affixes off words using fixed rules, with no awareness of what part of speech the word is or whether the result is a real word at all. The Porter stemmer and its successor, the <span class="term">Snowball stemmer</span> (a more systematic, multi-language rewrite Porter himself later produced), both do this: "running" becomes "run," but "universal," "university," and "universe" can all collapse toward "univers" — a string that is not an English word, because the algorithm has no model of meaning, only pattern-matching on letter endings. For a moderation pipeline, this crudeness cuts both ways. It usefully collapses spam variants ("clicking," "clicked," "click," "clicks" all becoming one indexed form) so a keyword-based filter catches all of them with one rule. But it also over-collapses in ways that lose distinctions moderation cares about — a stemmer can conflate "bullying" and "bully" (fine) with "bull" (a completely different word, if the stemmer is aggressive enough to strip "-y"), creating false-positive matches on an unrelated term.</p>
+
+    <h3>Lemmatization: slower, correct, dictionary-driven</h3>
+    <p><span class="term">Lemmatization</span> takes the more expensive, more correct path: it looks up a word's <span class="term">lemma</span> — its canonical dictionary form — using an actual dictionary or morphological database, and typically needs to know the word's part of speech first, since the same surface form lemmatizes differently depending on grammatical role ("saw" the past tense of "see" versus "saw" the tool are different lemmas requiring different lookups). Because it consults real linguistic knowledge rather than pattern-matching suffixes, lemmatization never produces a non-word the way aggressive stemming can — "universities" correctly lemmatizes to "university," never to a fragment like "univers." The cost is speed and pipeline complexity: lemmatization typically requires a part-of-speech tagger to run first, plus a dictionary lookup, both of which are meaningfully slower than stemming's direct rule application, and both of which can themselves fail on the ungrammatical, fragment-heavy sentences typical of social posts, where a POS tagger trained on formal text may mistag words in a nonstandard slangy sentence and send lemmatization down the wrong path.</p>
+
+    <h3>Why lemmatization struggles on the same text that breaks tokenizers</h3>
+    <p>Lemmatization's dependence on part-of-speech tagging creates a second-order version of the exact noisy-text problem this unit keeps returning to. POS taggers, like most classical NLP tools, were trained overwhelmingly on grammatical, punctuated, formally-cased prose — news text, treebank sentences, edited writing. Feed one a real moderation-relevant fragment like "fr€€ m0ney click now!!" or "lol going ¯\\_(ツ)_/¯ ok whatever" and there is barely a well-formed clause for the tagger to anchor on: no reliable capitalization to mark proper nouns, no consistent punctuation to mark clause boundaries, slang verbs used as nouns and back again. A mistagged word sends the lemma lookup to the wrong dictionary entry entirely, which is a quieter failure than stemming's crude suffix errors but not a better one — it just moves the error upstream into a component that looks authoritative because it consulted a real dictionary. This is one more reason production moderation systems increasingly route around the whole classical stack for the neural half of the pipeline, reserving stemming and lemmatization for narrower, more controlled contexts — a curated banned-word list, say, where the input vocabulary is small and clean enough that a stemmer's crude rules or a lemmatizer's dictionary lookups both behave predictably, rather than the wide-open space of arbitrary user posts.</p>
+
+    <h3>Stopword removal — and when it destroys meaning</h3>
+    <p><span class="term">Stopwords</span> are the small set of extremely frequent function words — "the," "a," "is," "to," "not," "and" — that classical IR systems removed before indexing, on the reasoning that words appearing in nearly every document carry no discriminating power for retrieval. For plain document search this reasoning mostly holds. It fails hard the moment negation or exact phrasing carries the meaning. Shakespeare's "to be or not to be" is built entirely from words on a standard English stopword list — "to," "be," "or," "not" — and stripping them leaves nothing at all. More concretely for moderation: "not going to hurt you" and "going to hurt you" differ by exactly one stopword, "not," and mean opposite things; a pipeline that blindly strips stopwords before a threat-detection model sees the text has just erased the single word that decided the sentence's meaning. The safe version of stopword removal restricts itself to tasks where word-order and negation genuinely don't matter — coarse topic classification or document retrieval — and is switched off entirely for anything sentiment-, negation-, or intent-sensitive, which describes most moderation tasks.</p>
+
+    <h3>N-grams and the honest modern verdict</h3>
+    <p>One classical technique survives this whole shift essentially unscathed: <span class="term">n-grams</span>, contiguous sequences of n tokens treated as a unit ("not going" as a bigram, rather than "not" and "going" scored separately). Preserving n-grams — or simply not stemming/stopword-filtering them apart — is one direct fix for the negation problem above, since "not_hurt" as one bigram feature survives stopword removal in a way that "not" and "hurt" scored independently do not. The larger honest verdict, though, is this: nearly the entire classical stack — stemming, lemmatization, and stopword removal — is skipped when preprocessing input for a modern subword transformer. A transformer's subword tokenizer already handles morphological variants implicitly, by breaking "running," "runs," and "run" into overlapping subword pieces the model learns to treat similarly through its own training, and its attention mechanism learns which words matter for a given prediction without needing frequency-based stopword heuristics decided in advance. What survives is narrower but real: classical stemming, lemmatization, and stopword removal still live inside sparse retrieval systems (keyword search indexes, some feature-engineered classical ML pipelines) where reducing vocabulary size and exact-match brittleness is still the whole game, and inside old-fashioned bag-of-words or TF-IDF feature pipelines for the same reason. Porter's 1980 rules did not become useless; they became a specialist tool for a narrower set of problems than they used to own.</p>
+
+    <pre><code># crude illustration of stemmer over-aggression vs. lemmatizer correctness
+# (a real project would use nltk.PorterStemmer / spacy's lemmatizer;
+#  this hand-rolled version shows the *mechanism*, not production code)
+
+def toy_stem(word):
+    for suffix in ("ational", "ing", "edly", "ed", "ies", "ly", "es", "s", "y"):
+        if word.endswith(suffix) and len(word) - len(suffix) >= 3:
+            return word[: -len(suffix)]
+    return word
+
+# lemma lookup pretending to be a dictionary + POS-aware system
+LEMMA_TABLE = {
+    "bullying": "bully", "bullied": "bully", "bullies": "bully",
+    "universities": "university", "universal": "universal",
+    "running": "run", "ran": "run", "saw": "see",
+}
+
+words = ["bullying", "bullied", "universities", "universal", "running", "ran", "saw"]
+
+for w in words:
+    stem = toy_stem(w)
+    lemma = LEMMA_TABLE.get(w, w)
+    flag = "  <- non-word fragment" if stem not in ("run", "see", "univers") and not stem.isalpha() is False and len(stem) < 4 else ""
+    print(f"{w:14} stem={stem:12} lemma={lemma}")</code></pre>
+    <p class="caption">Watch "universities" and "universal": the toy stemmer strips "-al" and "-ies" respectively and lands both near "univers," falsely suggesting they're related, while the lemma table correctly keeps "universal" as its own word and maps "universities" to "university" — the exact failure mode that makes stemming risky for moderation keyword matching.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>The Porter stemmer (1980) and the classical normalisation stack were built for 1970s–80s information retrieval</strong>, where cheap exact-match indexing mattered more than linguistic correctness.</li>
+        <li><strong>Stemming is fast and rule-based but can produce non-words and false conflations</strong> (e.g., "bully" collapsing toward "bull") — lemmatization is slower and dictionary-driven but stays linguistically correct.</li>
+        <li><strong>Stopword removal can delete the exact word that carries meaning</strong> — negation words like "not" are stopwords, and removing them can flip a sentence's meaning for a moderation model.</li>
+        <li><strong>N-gram features are one direct fix for the negation problem</strong>, since a bigram like "not_hurt" survives as one unit where individually-scored words don't.</li>
+        <li><strong>Modern subword transformers skip nearly this entire classical stack</strong> — but it still lives on inside sparse retrieval indexes and classical bag-of-words/TF-IDF feature pipelines.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 1 quiz</h2>
+    <p class="quiz-intro">Eight questions covering the preprocessing pipeline, the three tokenization strategies, and the classical stemming/lemmatization/stopword stack.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A moderation pipeline needs to normalise a post that mixes precomposed accented characters, Cyrillic look-alike letters used to dodge a keyword filter, and a fullwidth Unicode variant of a Latin letter. Which normalisation form is the right choice, and why?</p>
+      <ol class="choices" type="A">
+        <li>NFD, because it decomposes everything into base characters plus combining marks</li>
+        <li>NFC, because it always prefers the shortest possible representation</li>
+        <li>NFKC, because it collapses both canonical and compatibility variants, including many homoglyph and fullwidth substitutions</li>
+        <li>Lowercasing, because case folding also normalises alternate character forms</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> NFKC (Compatibility Composition) collapses both canonically equivalent forms and compatibility variants — fullwidth letters, ligatures, and many stylistic substitutions — into one standard form, which is exactly the security-relevant behavior needed against homoglyph and compatibility-character evasion.</p>
+          <p>NFD decomposes rather than composes, which doesn't help match variants to a single form for lookup. NFC only handles canonical equivalence (like the two ways to write "é"), not compatibility variants like fullwidth letters. Lowercasing addresses case, not character-form substitution — a Cyrillic "а" lowercased is still a different codepoint from Latin "a".</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Lowercasing every post before feeding it to a moderation classifier is always the correct preprocessing choice, because case carries no useful signal.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> ALL-CAPS is a real signal of shouting, aggression, or heightened emotion, and case also disambiguates named entities from common words. Whether to lowercase depends on the downstream model and task — a sparse bag-of-words feature set benefits from folding, but an expressive subword/neural model can use case as a useful feature and loses information if it's folded away.</p>
+          <p>This is a common default reflex left over from classical NLP, where every fragmentation of the vocabulary was costly enough that folding almost always won. Modern moderation-relevant signals like shouting detection are exactly the case where that old default actively hurts.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">Replacing every URL in a post with a fixed <code>&lt;URL&gt;</code> token rather than keeping the raw link or deleting it entirely is preferred because it lets the model learn "this post contains a link" as a reusable, <span class="blank">&nbsp;</span> feature, instead of either destroying that signal or bloating the vocabulary with near-unique strings.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: generalizable (reusable across posts).</strong> A placeholder token collapses every distinct URL into one shared symbol the model can learn to weight, whereas keeping raw URLs creates a huge number of effectively unique, one-off vocabulary entries, and dropping URLs erases the fact that a link was present at all.</p>
+          <p>A tempting wrong answer is "shorter," but token count reduction is a side effect, not the reason — the real payoff is that the model gets a signal it can generalize across every post containing any link, rather than memorizing individual URLs it will never see again.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Why does whitespace tokenization handle "fr€€ m0ney" (a leetspeak spam attempt) particularly badly compared to a subword tokenizer?</p>
+      <ol class="choices" type="A">
+        <li>Whitespace tokenization cannot process any string containing a currency symbol</li>
+        <li>Whitespace tokenization treats "fr€€" and "m0ney" as whole, previously-unseen tokens likely to map to UNK, while a subword tokenizer can decompose them into known smaller pieces</li>
+        <li>Whitespace tokenization always produces more tokens than subword tokenization on any input</li>
+        <li>Whitespace tokenization requires a dictionary lookup that a subword tokenizer skips</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Since neither "fr€€" nor "m0ney" appeared during training as whole units, a word-level vocabulary has no entry for them and falls back to a generic UNK token, erasing the word entirely. A subword tokenizer can fall back to smaller known pieces — individual characters or short substrings — so the string is still represented, just with more tokens.</p>
+          <p>Whitespace tokenizers process currency symbols and digits fine as characters within a split token, that's not the failure mode. Whitespace tokenization typically produces fewer, not more, tokens than subword tokenization on any given input, since it splits less finely. And whitespace tokenization needs no dictionary at all, only spaces — the opposite of the stated distractor.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">This function is meant to cap runs of a repeated character at two, so "soooo goooood" becomes "soo goood" without collapsing all the way to "so good" and losing the emphasis. Fill in the regex pattern and replacement.</p>
+      <pre><code>import re
+
+def de_elongate(text):
+    return re.sub(<span class="blank">&nbsp;</span>, <span class="blank">&nbsp;</span>, text)</code></pre>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer:</strong> <code>re.sub(r"(.)\1{2,}", r"\1\1", text)</code>. The pattern <code>(.)\1{2,}</code> captures any character followed by at least two more repeats of itself (three or more total occurrences), and the replacement <code>\1\1</code> writes back exactly two copies of that captured character, regardless of how many were originally there.</p>
+          <p>A tempting but wrong pattern is <code>(.)\1+</code> replaced with <code>\1</code>, which collapses every repeated run down to a single character — that's the elongation-destroying version the lesson explicitly warns against, since it erases the "this was emphasized" signal instead of just normalising its length.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Character-level (or byte-level) tokenization can never produce an out-of-vocabulary token, because its vocabulary already covers every possible input by construction.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: True.</strong> A character-level vocabulary is the full Unicode codepoint set (or, at the byte level, exactly the 256 possible byte values), so any input string, however novel or adversarial, decomposes into some sequence of already-known units — there is no such thing as an unrepresentable character or byte.</p>
+          <p>This is the one clean advantage character/byte tokenization has over both word-level and subword tokenization; the cost, covered in the lesson, is that this completeness comes with much longer token sequences and higher compute per unit of text, not that it fails to achieve full coverage.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">A junior engineer wrote this stopword-removal step for a threat-detection moderation model and can't figure out why it's producing false negatives on real threats. Identify the bug.</p>
+      <pre><code>STOPWORDS = {"the", "a", "is", "to", "not", "and", "or", "be"}
+
+def clean(text):
+    tokens = text.lower().split()
+    return [t for t in tokens if t not in STOPWORDS]
+
+clean("i am not going to hurt you")
+# -&gt; ['i', 'am', 'going', 'hurt', 'you']</code></pre>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer:</strong> The bug is including "not" in the stopword list at all for a negation-sensitive task. Removing it turns "not going to hurt you" into "going hurt you," which reads as an active threat rather than its explicit denial — the stopword filter has deleted the one word that decided the sentence's meaning.</p>
+          <p>The fix isn't a coding error in the loop or the split — the code runs exactly as written. The real fix is task-level: either skip stopword removal entirely for negation/intent-sensitive tasks like threat detection, or explicitly exclude negation words ("not," "no," "never") from any stopword list used upstream of such a model.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Why is the classical stemming/lemmatization/stopword-removal stack largely skipped when preparing input for a modern subword transformer, but still used in some retrieval and feature-engineering pipelines?</p>
+      <ol class="choices" type="A">
+        <li>Transformers cannot process any text that hasn't been stemmed first, so the stack is irrelevant, not skipped</li>
+        <li>Subword tokenization already groups morphological variants into overlapping pieces the model learns to treat similarly, while classical exact-match retrieval and bag-of-words features still benefit from collapsing variants explicitly</li>
+        <li>Stemming and lemmatization were both proven mathematically incorrect and are never used anywhere today</li>
+        <li>Transformers are trained specifically to reverse stemming, making the step redundant</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> A subword tokenizer implicitly captures morphological relationships by breaking related words into shared pieces, and attention lets the model weigh context without pre-decided stopword rules — so the classical stack's job is already partly done by the tokenizer and the model. Sparse retrieval indexes and classical feature pipelines (bag-of-words, TF-IDF) still rely on exact string matching, where explicit stemming/lemmatization/stopword removal genuinely reduces vocabulary fragmentation and improves match rates.</p>
+          <p>Transformers process raw (tokenized) text just fine without any classical normalisation — the claim that they require it is backwards. And the stack isn't "proven incorrect"; it is a working, still-used tool for a narrower category of systems than it used to serve, as the lesson's historical framing makes clear.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Text Processing (NLP) · Unit 1 of 8 — Unit 2 moves from tokens to counts: Bag-of-Words and TF-IDF as the first real numeric representation of a post.</p>
+</footer>
+</body>
+</html>

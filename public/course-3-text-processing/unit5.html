@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 5 · Transformer-based NLP applied: BERT vs GPT — Text Processing (NLP)</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Text Processing (NLP) · Unit 5 of 8</p>
+  <h1>Transformer-based NLP applied: BERT vs GPT</h1>
+  <p class="lede">Same attention mechanism, opposite jobs: BERT reads a headline in every direction at once to classify it; GPT reads left-to-right to write one. This unit puts both to work on financial-news intelligence — sentiment, ticker extraction, and analyst summaries — and asks which family actually fits each task.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. Two families from one architecture</a></li>
+      <li><a href="#lesson-2">2. Applying BERT: fine-tuning for understanding tasks</a></li>
+      <li><a href="#lesson-3">3. Applying GPT: prompting, in-context learning, and when to fine-tune</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>Two families from one architecture</h2>
+    <p class="opening">A transformer is a single architecture, but the direction you point its self-attention mask splits it into two model families with almost opposite skills. <span class="term">Encoder-only models</span> like BERT attend in both directions at once — every token sees every other token, before and after it in the sequence — which makes them experts at understanding a fixed span of text but structurally incapable of generating one token at a time from scratch. <span class="term">Decoder-only models</span> like GPT attend only backward, each position conditioned solely on what came before it, which is exactly the constraint that lets them generate fluently but costs them the free look-ahead that makes classification and extraction so accurate for BERT. Neither family is a stunted version of the other; they are trained on different objectives for different jobs, and picking between them is mostly a question of which one your task's information flow actually needs.</p>
+
+    <p>Recall from Course 2 Unit 4 that BERT is pretrained with <span class="term">masked language modeling (MLM)</span>: roughly 15% of input tokens are replaced with a <code>[MASK]</code> placeholder, and the model has to predict the original token using context from both sides. To predict a masked word in the middle of "NVDA <code>[MASK]</code> Q3 estimates on strong data-center demand," the model needs "NVDA" behind it and "Q3 estimates" ahead of it — bidirectional context is not a bonus feature, it is the entire training signal. That objective is only possible because BERT's self-attention has no causal mask: every layer lets every token attend freely to every other token in the sequence, in both directions, at every step of pretraining and at every step of inference afterward.</p>
+
+    <p>GPT is pretrained with the complementary objective, <span class="term">causal language modeling (CLM)</span>, also covered in Course 2 Unit 4: given every token up to position <em>i</em>, predict token <em>i</em>+1. The self-attention layers enforce a causal mask so that position <em>i</em> can only attend to positions 0 through <em>i</em> — it is mathematically prevented from seeing what comes after, because during real generation what comes after does not exist yet. This is not a design choice you could remove without breaking the model: a decoder trained without the causal mask would have learned to "predict" the next token by simply reading it, and would collapse the moment you tried to generate text one token at a time, where future tokens genuinely are not available.</p>
+
+    <p>That single masking difference is the entire explanation for why bidirectionality helps understanding but forbids generation. Understanding tasks — does this headline mean the stock goes up or down, which spans of text are company names, is this a routine filing or a material one — are naturally full-sequence judgments: you already have the whole headline in hand, so there is no reason to withhold future tokens from the model while it forms an opinion. Generation is different in kind: you are producing text you do not yet have, one piece at a time, so a model that depends on seeing the ending in order to predict the middle is useless for the job. BERT could in principle be shown a whole sequence and asked to fill in a masked ending, but it was never trained to do that autoregressively, has no mechanism to feed its own output back in as the next input, and in practice is never used this way.</p>
+
+    <h3>The [CLS] token and pooling</h3>
+    <p>BERT's input is always prefixed with a special <code>[CLS]</code> token, and its final hidden state is treated as a stand-in for the whole sequence. During pretraining, <code>[CLS]</code>'s output is also used for a secondary next-sentence-style objective, so by the time pretraining finishes, its final-layer representation has learned to aggregate information from every other token via attention. For a downstream classification task — say, labeling a headline bullish, bearish, or neutral — you take that single 768-dimensional vector (for BERT-base), pass it through one small feed-forward "pooler" layer with a <code>tanh</code> activation, and then a final linear layer that projects down to the number of classes. This is <span class="term">[CLS] pooling</span>. An alternative, <span class="term">mean pooling</span>, averages the final hidden states across every token instead of relying on one designated summary token; it is common in sentence-embedding models and occasionally outperforms <code>[CLS]</code> pooling on small fine-tuning datasets, but it is not the default assumption baked into BERT's pretraining, so it needs to be tried rather than assumed.</p>
+
+    <p>GPT has no equivalent pooling step, because it has no equivalent job. Its output head is a single linear projection from the hidden size up to vocabulary size, applied at every position, producing a probability distribution over "what token comes next" at each step. There is no token whose entire purpose is to summarize the sequence, because GPT's forward pass is never asked to produce a verdict about the sequence — only a continuation of it.</p>
+
+    <h3>Mapping the families onto financial-news tasks</h3>
+    <p>This unit's applied domain gives four concrete tasks, and the split falls out cleanly. Classifying a headline's sentiment (bullish / bearish / neutral), separating market-moving disclosures from routine ones, extracting which tickers and companies a story is about, and detecting whether an analyst's quote agrees or disagrees with a headline's framing are all <em>understanding</em> tasks — you have the full text already, and you want one judgment or one set of labeled spans out of it. Those are BERT's home turf: sequence classification off <code>[CLS]</code>, token classification (covered in depth in Lesson 2) for ticker and company spans, and sentence-pair classification for headline-versus-quote stance. Writing a short analyst-style summary paragraph of the day's biggest earnings surprise is a <em>generation</em> task — you do not have the output text yet, you are producing it — and that is GPT's home turf, covered in Lesson 3, including the now-common trick of getting GPT to also do classification and extraction by prompting rather than fine-tuning.</p>
+
+    <h3>The same input, two heads</h3>
+    <p>The clearest way to see the split is to run the identical tokenized headline through both kinds of output head and watch what each one does with the resulting hidden states.</p>
+    <pre><code># Same headline, two different heads on top of transformer output
+
+headline = "NVDA beats Q3 EPS estimates; guidance raised for FY25"
+# tokenize -> transformer -> hidden_states: (batch=1, seq_len=14, hidden=768)
+
+# --- BERT-style: encoder, bidirectional attention, sequence classification ---
+# hidden_states[:, 0, :] is the [CLS] position -- it attended to every other
+# token in both directions during the forward pass, so by the last layer it
+# holds a pooled summary of the whole headline, not just what precedes it.
+cls_vector = hidden_states[:, 0, :]                    # (1, 768)
+pooled = tanh(cls_vector @ W_pool + b_pool)            # (1, 768) BERT's pooler
+logits = pooled @ W_cls + b_cls                        # (1, 3)  bullish/neutral/bearish
+label = softmax(logits).argmax()                       # ONE label, whole headline
+
+# --- GPT-style: decoder, causal attention, next-token head ---
+# hidden_states here come from a causally-masked stack: position i only ever
+# saw tokens 0..i, never i+1..end. There is no [CLS] -- every position is
+# "just another token," so we read the LAST position to predict what's next.
+last_hidden = hidden_states[:, -1, :]                   # (1, 768)
+next_token_logits = last_hidden @ W_vocab.T             # (1, vocab_size)
+next_token = softmax(next_token_logits).argmax()        # e.g. the start of a
+                                                         # generated summary:
+                                                         # " NVIDIA topped..."
+</code></pre>
+    <p class="caption">Same hidden-state shape coming out of the transformer trunk, but BERT collapses it once through a pooled [CLS] vector into a single verdict, while GPT reads it position-by-position to keep extending the sequence one token at a time.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Bidirectional attention (MLM, Course 2 Unit 4)</strong> gives BERT full context on a fixed span, which is exactly what classification, extraction, and stance detection need.</li>
+        <li><strong>The causal mask (CLM, Course 2 Unit 4)</strong> is not a limitation to work around in GPT — it is the property that makes autoregressive generation possible at all.</li>
+        <li><strong>[CLS] pooling</strong> turns a variable-length sequence into one fixed vector for BERT's classification head; mean pooling is a viable alternative but not the trained default.</li>
+        <li>On financial news: BERT owns headline sentiment, ticker/company extraction, market-moving-vs-routine classification, and stance detection; GPT owns generating analyst commentary.</li>
+        <li>Neither family gets the other's skill for free — fine-tuning a decoder to "classify" means training it to generate a label token, an indirect route BERT doesn't need.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Applying BERT: fine-tuning for understanding tasks</h2>
+    <p class="opening">Your news feed forwards 50,000 raw earnings headlines a day, and a research analyst has hand-labeled 2,000 of them bullish, bearish, or neutral. That is nowhere near enough data to train a transformer from scratch — a randomly initialized 110-million-parameter encoder would memorize the idiosyncrasies of those 2,000 examples long before it learned anything general about market language, and it would fall apart on headline number 2,001. It is, however, plenty of data to fine-tune a BERT that already spent its pretraining budget on masked language modeling over billions of tokens of general text, and has therefore already learned syntax, word sense, and a great deal of the statistical structure of English before it ever saw a single earnings headline. The entire fine-tuning question becomes: how do you attach a small, task-specific head to that pretrained trunk, and how do you get the labels lined up correctly with the model's own tokenization?</p>
+
+    <h3>The fine-tuning recipe, applied</h3>
+    <p>Course 2 Unit 6 covered the general fine-tuning recipe: keep the pretrained weights as initialization, attach a small task head, and train the whole stack end-to-end with a much smaller learning rate than pretraining used — typically 2e-5 to 5e-5 — for only a handful of epochs, often 2 to 4, with linear warmup and decay. Applied here, sequence classification (headline sentiment) attaches a linear layer on pooled <code>[CLS]</code> output, exactly as in Lesson 1, and trains against cross-entropy over three classes. <span class="term">Token classification</span> (which spans are tickers, which are company names) instead attaches a linear layer to <em>every</em> token position's final hidden state, each one independently predicting a tag from a small label set. Both share the same pretrained trunk, the same small learning rate, and the same intuition: the 2,000 labeled examples don't need to teach the model English, they only need to teach it how to route what it already knows about English toward this specific decision boundary. That's why 2,000 examples, which would be hopeless for training from scratch, is workable for fine-tuning.</p>
+
+    <h3>Sub-word label alignment: the classic bug</h3>
+    <p>Token classification introduces a wrinkle that trips up almost everyone the first time: your labels are almost certainly written per <em>word</em> ("Palantir" is one company-name label), but BERT's WordPiece tokenizer will happily split an uncommon word like "Palantir" into multiple sub-word pieces — <code>Pal</code>, <code>##ant</code>, <code>##ir</code> — each of which needs its <em>own</em> label fed to the model, because the model produces one prediction per token position, not per word. Get this alignment wrong and you get one of two failure modes: either every sub-word piece is stamped with the full word's label, which inflates the loss (the model is "punished" three separate times for one entity) and corrupts entity-level evaluation metrics (a ticker split across two tokens can register as two separate hits instead of one); or the labels silently shift by one or two positions relative to the tokens they're meant to describe, which trains the model to associate a tag with the wrong span entirely and is much harder to notice because training still converges, just to something subtly wrong.</p>
+
+    <p>The standard fix, used by essentially every modern token-classification pipeline, is to label only the <em>first</em> sub-word piece of each original word with the real tag, and mask every continuation piece with the ignore index <code>-100</code> so it contributes nothing to the loss and is skipped by both training and evaluation. Tokenizers that support word-level input (feeding in a list of already-split words rather than raw text) expose a <code>word_ids()</code> method that maps every output token back to the index of the original word it came from — <code>None</code> for special tokens like <code>[CLS]</code> and <code>[SEP]</code>, and a repeated integer for every sub-word piece belonging to the same word. That mapping is exactly what you need to align labels correctly.</p>
+
+    <pre><code>words  = ["Palantir", "(", "PLTR", ")", "shares", "surge", "after", "Q2", "beat"]
+labels = ["B-ORG",    "O", "B-TICKER", "O", "O",   "O",     "O",     "O",  "O"]
+
+encoded = tokenizer(words, is_split_into_words=True)
+# encoded.tokens() ->
+# ['[CLS]', 'Pal', '##ant', '##ir', '(', 'PL', '##TR', ')', 'shares',
+#  'surge', 'after', 'Q', '##2', 'beat', '[SEP]']
+
+word_ids = encoded.word_ids()
+# [None, 0, 0, 0, 1, 2, 2, 3, 4, 5, 6, 7, 7, 8, None]
+
+# BUGGY approach: repeat the word's label onto every sub-word piece.
+# "Pal", "##ant", "##ir" all get "B-ORG" -- the model sees three separate
+# B-ORG training signals for one entity, and eval code that counts token
+# hits (rather than entity spans) will over- or under-count "PLTR" too.
+
+# CORRECT: label only the FIRST sub-word of each word; mask every
+# continuation piece with -100 so the loss and the metrics ignore it.
+aligned_labels = []
+prev_word_id = None
+for word_id in word_ids:
+    if word_id is None:
+        aligned_labels.append(-100)                          # [CLS], [SEP]
+    elif word_id != prev_word_id:
+        aligned_labels.append(label_to_id[labels[word_id]])   # first piece
+    else:
+        aligned_labels.append(-100)                           # e.g. "##TR", "##ant"
+    prev_word_id = word_id
+</code></pre>
+    <p class="caption"><code>word_ids()</code> maps every wordpiece back to its original word index; only the first fragment of "Palantir" and of "PLTR" carries a real tag, so the loss function and the entity-level F1 score both see one prediction per word, not one per token fragment.</p>
+
+    <h3>[SEP] and sentence-pair tasks</h3>
+    <p>Some understanding tasks in this domain aren't about a single headline in isolation — stance detection asks whether an analyst's spoken quote agrees or disagrees with the framing of a headline it's paired with ("Guidance cut points to demand weakness" versus a headline reading "Company reaffirms full-year outlook"). BERT handles sentence-pair inputs natively: pack both sequences into one input as <code>[CLS] headline tokens [SEP] quote tokens [SEP]</code>, and add a second learned "segment embedding" to every token indicating whether it belongs to sequence A or sequence B. The <code>[SEP]</code> token marks the boundary; the segment embedding tells self-attention which half of the input each token structurally belongs to, even though attention can still look across the boundary in both directions. Classification proceeds exactly as before, off the pooled <code>[CLS]</code> vector — the only change from single-sequence classification is what you packed into the input.</p>
+
+    <h3>Domain-adaptive pretraining: the FinBERT move</h3>
+    <p>General-purpose BERT was pretrained on Wikipedia and book text, where "bear," "short," "call," and "guidance" mean something different — or nothing in particular — compared with how a trading desk uses them. <span class="term">Domain-adaptive pretraining</span> continues the MLM objective on unlabeled finance text (10-K filings, earnings-call transcripts, financial news wires) before task fine-tuning even begins, letting the model absorb finance-specific vocabulary and word senses cheaply, using the same self-supervised objective and no labels at all. FinBERT is the best-known instance of this pattern, and it consistently outperforms general BERT on finance-domain sentiment and classification tasks with the same amount of labeled fine-tuning data, because the labeled examples no longer have to do the work of teaching the model what "guidance" means in this context — they only have to teach the decision boundary.</p>
+
+    <p>Pooling choice interacts with sequence length in ways worth checking rather than assuming. Three-to-ten-word headlines fine-tune comparably well under either <code>[CLS]</code> or mean pooling, since there isn't much sequence for the two strategies to disagree over. Longer inputs — a full paragraph pulled from an earnings-call transcript rather than a headline — are a different story: <code>[CLS]</code> pooling can lose sharpness with only 2,000 fine-tuning examples, because the pooler layer gets relatively few gradient steps to learn which parts of a long, information-dense passage actually matter to the decision. Running both pooling strategies against a held-out slice of the labeled set costs an afternoon and settles the question with evidence specific to your data, rather than defaulting to whichever pooling the original BERT paper happened to popularize.</p>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li>The fine-tuning recipe from Course 2 Unit 6 — small learning rate, few epochs, task head on the pretrained trunk — makes 2,000 labeled headlines workable where training from scratch would fail.</li>
+        <li>Token classification requires aligning per-word labels to sub-word tokens; label only the first WordPiece of each word and mask continuations with <code>-100</code>, or your loss and metrics are both wrong.</li>
+        <li><code>[SEP]</code> plus segment embeddings let one BERT forward pass handle sentence-pair tasks like headline-versus-analyst-quote stance detection.</li>
+        <li>Domain-adaptive pretraining (the FinBERT pattern) fixes vocabulary and word-sense mismatch by continuing MLM on unlabeled finance text — cheaper than collecting more labels.</li>
+        <li><code>[CLS]</code> pooling is the trained default for classification heads; mean pooling is worth testing on small datasets but is not a free substitute.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Applying GPT: prompting, in-context learning, and when to fine-tune</h2>
+    <p class="opening">Fine-tuning a BERT classifier is like training an in-house junior analyst: weeks of onboarding on your specific ticket types, but afterward they process a headline in an eye-blink and give the same answer every time given the same input. Prompting a large GPT model is like calling a sharp outside consultant: no onboarding at all — you hand over a few examples on a sticky note and a question, and a thoughtful answer comes back immediately. But every call costs money, takes longer to arrive, and the phrasing might vary slightly depending on the day, or occasionally misread the sticky note entirely. Both are legitimate choices depending on whether you need to run the identical check on 50,000 headlines tonight, or produce one nuanced write-up for tomorrow's newsletter.</p>
+
+    <h3>Zero-shot, few-shot, and in-context learning</h3>
+    <p>Course 2 Unit 7 covered instruction tuning: a base GPT model, further trained (often with RLHF) to follow natural-language task descriptions rather than just continue text. That instruction-following ability is what makes <span class="term">zero-shot prompting</span> possible — describing the ticker-extraction task in plain English and getting a reasonable attempt back with no examples at all — and <span class="term">few-shot prompting</span>, where two or three worked examples are placed in the prompt before the real input, sharpens the model's sense of the expected format and typically improves accuracy further. Both are instances of <span class="term">in-context learning (ICL)</span>: the model's behavior changes based on what's in the prompt, but no gradient update happens anywhere and no weights change. The examples condition a single forward pass; the moment that pass ends, whatever "learning" happened is gone, and the next request starts from the identical pretrained weights.</p>
+
+    <p>It is worth being honest that <em>why</em> in-context learning works as well as it does is still an open research question, not settled science. Competing explanations exist side by side: some studies frame it as the attention mechanism performing something functionally like an implicit optimization step within the forward pass; others frame the examples as mostly helping the model locate which pretrained skill or format to apply, rather than teaching new content, pointing to experiments where even examples with scrambled or partially wrong labels barely hurt performance — suggesting the demonstrations sometimes matter more for their format than their correctness. No single account is fully agreed upon, and it is more accurate to say the field has several partial explanations than one settled mechanism.</p>
+
+    <h3>Prompt sensitivity and format brittleness</h3>
+    <p>A direct consequence of that uncertainty is that prompted performance is fragile in ways fine-tuned models are not. Reordering the same three few-shot examples, changing whitespace, or swapping a label word from <code>"bullish"</code> to <code>"positive"</code> can shift accuracy by ten points or more on the identical underlying task, with no change to the model's weights. This is not a minor implementation detail — it means a prompt is closer to a piece of code that needs testing and version control than to a one-time instruction you write once and trust forever. A pipeline built on a prompted model needs the same kind of held-out evaluation set and regression testing that a fine-tuned model gets, specifically because small, seemingly cosmetic prompt edits are a live source of silent accuracy drift.</p>
+
+    <h3>When BERT wins, when GPT is required</h3>
+    <p>For high-volume, fixed-schema classification — the 50,000-headline-a-day bullish/bearish/neutral pipeline from Lesson 2 — a small fine-tuned BERT is very hard to beat on three dimensions simultaneously: latency, cost, and consistency. It runs in single-digit milliseconds on a small GPU or even CPU, has no per-call API cost once trained, and — because its weights are fixed — gives a genuinely deterministic answer to a genuinely identical input every time. A prompted large GPT model, by contrast, is a network round trip away (hundreds of milliseconds to a couple of seconds per call), carries a real marginal cost per request that adds up fast at 50,000 calls a day, and can phrase or hedge its answer slightly differently from one call to the next unless the output is tightly constrained. None of that makes GPT the wrong tool in general — it makes it the wrong tool for <em>this specific shape</em> of task: high volume, narrow schema, needs-to-be-boringly-reliable.</p>
+
+    <p>Generation flips the calculus completely, because it isn't a shape BERT can produce at all. Writing the actual analyst-style summary paragraph — "NVIDIA topped Q3 EPS estimates and raised FY25 guidance, extending a string of beats driven by data-center demand" — requires producing novel, fluent text token by token, which is precisely the job BERT's architecture cannot do (Lesson 1). For that task, and for low-volume or format-novel extraction jobs where standing up a labeled training set isn't worth it, a prompted GPT model is not just competitive, it is often the only practical option.</p>
+
+    <h3>Structured extraction with a prompt vs. a fine-tuned tagger</h3>
+    <p>The ticker-extraction task from Lesson 2 can be approached either way, and comparing them side by side makes the trade-off concrete.</p>
+    <pre><code># --- Approach A: few-shot prompt to a GPT-class model (in-context learning) ---
+prompt = '''
+Extract every stock ticker mentioned in the headline. Return JSON only.
+
+Headline: "Apple supplier Foxconn posts record Q4 revenue"
+Tickers: []
+
+Headline: "Tesla (TSLA) recalls 2M vehicles over autopilot software"
+Tickers: ["TSLA"]
+
+Headline: "JPMorgan (JPM) and Goldman (GS) both beat on trading revenue"
+Tickers: ["JPM", "GS"]
+
+Headline: "Palantir shares (PLTR) surge after government contract news"
+Tickers:
+'''
+# response = llm.generate(prompt, max_tokens=20)
+# -> '["PLTR"]'           # right answer, zero gradient steps, ever
+
+# --- Approach B: fine-tuned BERT token classifier, same headline ---
+encoded = tokenizer("Palantir shares (PLTR) surge after government contract news",
+                     return_tensors="pt")
+logits = finetuned_bert(**encoded).logits             # (1, seq_len, num_tags)
+tags = logits.argmax(-1)                                # per-token B-TICKER/O/...
+# -> token "PL" tagged B-TICKER, "##TR" tagged I-TICKER, everything else O
+</code></pre>
+    <p class="caption">The prompt reaches the right answer by pattern-matching the three demonstrations at inference time; the fine-tuned tagger reaches it because it actually learned ticker-tagging during training and never needs the demonstrations again.</p>
+
+    <p>Getting reliable structured output from a prompted model takes more than asking nicely for JSON. Production pipelines typically pair the prompt with schema-constrained decoding — a JSON-mode flag or grammar-based sampling that restricts each next-token choice to only the tokens that keep the output syntactically valid JSON — because an unconstrained model will occasionally wrap its answer in a sentence, add a trailing explanation, or emit a malformed bracket under prompts that are otherwise identical to ones that worked. Constrained decoding doesn't fix the prompt-sensitivity problem from the previous section — the model can still extract the wrong tickers — but it does eliminate a whole separate class of downstream parsing failures that would otherwise force a human to babysit the extraction step before it can feed anything further downstream.</p>
+
+    <table class="tbl">
+      <tr><th>Dimension</th><th>Fine-tuned BERT tagger</th><th>Few-shot prompted GPT-class model</th></tr>
+      <tr><td>Per-headline latency</td><td>~5–15 ms on CPU/small GPU</td><td>~500–2000 ms API round trip</td></tr>
+      <tr><td>Cost at 50,000 headlines/day</td><td>~$0 marginal, self-hosted</td><td>~tens to low hundreds of dollars/day depending on model and tokens</td></tr>
+      <tr><td>Output consistency</td><td>Deterministic given fixed weights</td><td>Can vary run to run; needs JSON mode / schema constraints</td></tr>
+      <tr><td>Setup cost</td><td>Needs 1–2k labeled examples plus a training run</td><td>Works from a handful of in-prompt examples, no training</td></tr>
+      <tr><td>Best fit</td><td>High-volume, stable-schema classification/extraction</td><td>Low-volume, novel formats, and any actual generation</td></tr>
+    </table>
+
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li>In-context learning changes model behavior entirely within a forward pass — no weights are updated, and why it works as well as it does remains a genuinely open research question.</li>
+        <li>Prompt format (example order, label wording, whitespace) can swing accuracy by ten points or more; treat prompts like code that needs testing, not instructions you write once.</li>
+        <li>For high-volume, fixed-schema classification (50k headlines/day, three labels), a small fine-tuned BERT usually wins on latency, cost, and determinism simultaneously.</li>
+        <li>Generation tasks — analyst-style summary paragraphs — are exclusively GPT's territory, because BERT's architecture cannot produce novel fluent text at all.</li>
+        <li>Structured extraction (tickers, companies) can go either way: a fine-tuned tagger is cheaper at scale, a prompted model with JSON-mode/schema constraints is faster to stand up for a one-off or low-volume need.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 5 quiz</h2>
+    <p class="quiz-intro">Eight questions across five formats, all scenario-driven: pick the right model family, trace the attention-mask consequences, and fix a broken sub-word label alignment.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Your pipeline ingests 200,000 earnings-call transcript snippets per day and must tag each one "material guidance change" or "routine" with a strict 50ms latency budget per snippet. Which approach fits best?</p>
+      <ol class="choices" type="A">
+        <li>Zero-shot prompt each snippet to a large GPT-class model.</li>
+        <li>Fine-tune a BERT encoder with a sequence-classification head on labeled examples.</li>
+        <li>Fine-tune a GPT decoder to generate a one-word label token for each snippet.</li>
+        <li>Prompt a GPT-class model to generate a one-paragraph summary, then classify the summary.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Fixed two-label schema, high volume, and a tight latency budget is exactly the profile where a fine-tuned BERT classification head wins on latency, cost, and determinism.</p>
+          <p>Option A is too slow and costly at this volume, and risks inconsistent labeling. Option C works around a limitation BERT doesn't have — routing classification through token generation adds complexity for no benefit here. Option D adds a whole unnecessary generation step before the classification even happens.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">If you removed the causal mask from a pretrained GPT model's self-attention layers, it would generate text just as well as before, only with richer context.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> The causal mask isn't an optional restriction — it reflects the real constraint at generation time that future tokens don't exist yet. A model trained without it learns to attend to positions it won't have access to during actual autoregressive generation, and its next-token predictions become meaningless once you try to generate one token at a time for real.</p>
+          <p>It's tempting to think "more context is always better," which holds for understanding tasks like BERT's, but generation specifically requires the model's training-time information access to match its inference-time reality.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">BERT prepends a special token to every input sequence; that token's final hidden state is passed through a pooler layer and used as the whole-sequence representation for classification. That token is called <span class="blank">&nbsp;</span>.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: <code>[CLS]</code>.</strong> Because it attends to every other token bidirectionally, by the final layer it holds a learned summary of the entire input.</p>
+          <p>A common wrong guess is <code>[SEP]</code>, which instead marks the boundary between two packed sequences (as in sentence-pair tasks) and is not the token whose output is pooled for classification.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">Complete the sub-word label alignment loop so that continuation word-pieces (like <code>"##TR"</code> in a split ticker) are correctly excluded from the loss.</p>
+      <pre><code>aligned_labels = []
+prev_word_id = None
+for word_id in word_ids:
+    if word_id is None:
+        aligned_labels.append(-100)
+    elif word_id != prev_word_id:
+        aligned_labels.append(label_to_id[labels[word_id]])
+    else:
+        aligned_labels.append(____)   # <-- fill in
+    prev_word_id = word_id</code></pre>
+      <ol class="choices" type="A">
+        <li><code>label_to_id[labels[word_id]]</code></li>
+        <li><code>-100</code></li>
+        <li><code>0</code></li>
+        <li><code>label_to_id["O"]</code></li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B, <code>-100</code>.</strong> Continuation word-pieces must be masked with the ignore index so they contribute nothing to the loss and are skipped in entity-level evaluation — only the first piece of each word carries a real label.</p>
+          <p>Option A repeats the label onto every fragment, the classic bug from Lesson 2: it inflates the loss and corrupts span-level metrics. Options C and D both assign a real, counted label ("O" or class 0) to a fragment that should carry no training signal at all — silently different from masking, since the model is still penalized for whatever it predicts there.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">A teammate wrote this label-alignment code for tagging "Snowflake (SNOW) reports..." and reports that their entity-level F1 score is much lower than expected, with tickers frequently mis-scored. Find and fix the bug.</p>
+      <pre><code>words  = ["Snowflake", "(", "SNOW", ")", "reports", "record", "revenue"]
+labels = ["B-ORG",     "O", "B-TICKER", "O", "O",    "O",      "O"]
+
+encoded = tokenizer(words, is_split_into_words=True)
+word_ids = encoded.word_ids()
+
+aligned_labels = []
+for word_id in word_ids:
+    if word_id is None:
+        aligned_labels.append(-100)
+    else:
+        aligned_labels.append(label_to_id[labels[word_id]])   # BUG is here</code></pre>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>The bug:</strong> every sub-word piece of a split word gets the real label, with no distinction between a word's first piece and its continuations. "Snowflake" splits into multiple WordPieces and "SNOW" may split too, so several fragments each get stamped <code>B-TICKER</code> or <code>B-ORG</code>, inflating the loss per entity and corrupting entity-level scoring.</p>
+          <p><strong>The fix:</strong> track the previous <code>word_id</code> and only assign the real label to the first fragment of each word, masking every continuation with <code>-100</code> — the same pattern shown in Lesson 2 and Question 4:</p>
+          <pre><code>aligned_labels = []
+prev_word_id = None
+for word_id in word_ids:
+    if word_id is None:
+        aligned_labels.append(-100)
+    elif word_id != prev_word_id:
+        aligned_labels.append(label_to_id[labels[word_id]])
+    else:
+        aligned_labels.append(-100)
+    prev_word_id = word_id</code></pre>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A team few-shot prompts a GPT model for headline sentiment and finds accuracy drops 15 points when they simply reorder the same three examples in the prompt, with no other change. What does this best illustrate?</p>
+      <ol class="choices" type="A">
+        <li>The model is fundamentally incapable of sentiment classification.</li>
+        <li>Reordering pushed the prompt over the model's context-window limit.</li>
+        <li>In-context learning is sensitive to prompt format, not just prompt content.</li>
+        <li>The model requires fine-tuning before it can do any classification task.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> Prompt sensitivity — where order, wording, and formatting move accuracy independent of the underlying task difficulty — is a well-documented property of in-context learning, and it's exactly why prompts need testing like code.</p>
+          <p>A is contradicted by the fact that some ordering scored well. B is implausible for three short examples, far under typical context limits. D overreaches: the same model scored well under one ordering, so it clearly can do the task via prompting — fine-tuning is a separate cost/latency/consistency decision from Lesson 3, not a capability requirement here.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">An analyst wants one nuanced, well-written 150-word summary paragraph of today's biggest earnings surprise for a morning newsletter — produced once, not at scale. Which approach is required?</p>
+      <ol class="choices" type="A">
+        <li>A fine-tuned BERT sequence-classification head.</li>
+        <li>A fine-tuned BERT token-classification tagger.</li>
+        <li>A prompted GPT-class decoder model.</li>
+        <li>Either BERT or GPT, since both can generate text equally well.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> Producing novel, fluent prose is a generation task, and generation is structurally GPT's job — its causal decoder produces text one token at a time. It's also low-volume and one-off, so the API latency and cost that ruled GPT out in Question 1 aren't a concern here.</p>
+          <p>Options A and B are both understanding-task heads that output a label or a set of tags, never free text — neither has a mechanism to produce a paragraph. Option D repeats the Lesson 1 misconception directly: BERT's bidirectional encoder has no generation capability at all, regardless of scale.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">True / false</span></p>
+      <p class="q-stem">FinBERT-style domain-adaptive pretraining on financial text eliminates the need for any labeled data when fine-tuning for a downstream task like headline sentiment.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> Domain-adaptive pretraining continues the unsupervised MLM objective on unlabeled finance text, which adapts the model's vocabulary and word senses — it says nothing about a specific downstream decision boundary. You still need labeled examples to fine-tune the task head, exactly as in Lesson 2; domain-adaptive pretraining makes that fine-tuning more label-efficient, not label-free.</p>
+          <p>The confusion is understandable because both steps use unlabeled or lightly-labeled text, but they solve different problems: one teaches the model finance language, the other teaches it your specific classification task.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Text Processing (NLP) · Unit 5 of 8 — Next: Unit 6 goes deep on named entity recognition as its own task, beyond the ticker-tagging groundwork laid here.</p>
+</footer>
+</body>
+</html>

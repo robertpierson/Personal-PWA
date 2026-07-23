@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 4 · Language modeling with RNNs and LSTMs — Text Processing (NLP)</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Text Processing (NLP) · Unit 4 of 8</p>
+  <h1>Language modeling with RNNs and LSTMs</h1>
+  <p class="lede">The n-gram model from Unit 2 memorizes contexts; a phone keyboard needs one that generalizes to contexts it has never seen. This unit builds a neural language model on the LSTM cell from Course 1 Unit 7, tunes it for the brutal latency and memory budget of on-device autocomplete, and ships it as a streaming predictor that updates one keystroke at a time.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. Neural language modelling</a></li>
+      <li><a href="#lesson-2">2. Making it work: perplexity, tied weights, and the softmax bottleneck</a></li>
+      <li><a href="#lesson-3">3. Deploying an on-device LSTM</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>Neural language modelling</h2>
+    <p class="opening">Type "I'll call you when I get" on a phone keyboard trained with the smoothed trigram model from Unit 2, and the suggestion bar goes blank more often than you'd like. The trigram model only knows what it saw during training: it looks up the two preceding words, "get" and whatever came before it, in a giant count table, and if that exact pair never preceded a useful continuation in the training corpus, backoff kicks in and the model shrugs down to a unigram guess — "the", "a", frequency-ranked noise. A phone keyboard hits this wall constantly. Every user has idiosyncratic phrasing, contractions, names, and slang; every message is a slightly novel context. Vocabulary can be enormous, and a text this personal is exactly the setting where an n-gram model's context window — fixed at two or three prior words — is too short and too literal to help. "I get" is common; "when I get" is common; the specific chain "call you when I get" might appear zero times in a generic n-gram training set even though any human reader instantly expects "home," "there," or "back."</p>
+    <p>The fix is to stop counting exact contexts and instead learn a continuous representation of context that generalizes. This is exactly the machinery Course 1 Unit 7 built: an RNN or LSTM that carries a hidden state forward through a sequence, updating it token by token, so that "when I get" and "when I arrive" end up nearby in some internal representation even though they share no words. We are not re-deriving the LSTM cell here — the gates, the cell state, the vanishing-gradient fix are assumed knowledge. What's new in this lesson is wiring that cell into a full <span class="term">neural language model</span>: a system that reads a prefix of tokens and outputs a probability distribution over the entire vocabulary for what comes next.</p>
+    <h3>The architecture: embed, recur, project</h3>
+    <p>A word-level RNN language model has three stages stacked in sequence. First, an <span class="term">embedding layer</span> maps each input token — a word or subword piece, using the tokenizer from Course 3 Unit 1 — to a dense vector, typically 128 to 512 dimensions for a keyboard-scale model. This replaces the one-hot, vocabulary-sized sparse vector with something the network can do useful arithmetic on; "get" and "arrive" can live near each other in this space even though their spellings share nothing. Second, the embedding sequence feeds an LSTM (or a stack of one to two LSTM layers for capacity), which processes tokens one at a time and maintains a hidden state summarizing everything seen so far. Third, at every timestep the hidden state is projected through a linear layer up to vocabulary size and passed through softmax, producing a full probability distribution over "what word comes next." This projection layer is the part we'll spend Lesson 2 making cheaper, because vocabulary size on a keyboard easily reaches 30,000–50,000 subword pieces, and that final matrix multiply dominates both compute and parameter count on a phone.</p>
+    <p>Contrast this with the causal language modelling objective from Course 2 Unit 4: same idea — predict token <code>t+1</code> from tokens <code>1..t</code> — but there the sequence mixing was self-attention; here it's a recurrent cell. The training procedure is identical in spirit: <span class="term">teacher forcing</span>, where at every position the model is fed the true previous token from the training sequence (not its own prediction) as input, and the loss is cross-entropy between the predicted distribution and the actual next token, averaged over the sequence. Teacher forcing lets you train in parallel across all positions of a sequence (matmul across the batch and time dimension) rather than waiting for the model's own — possibly wrong — predictions to compound, which would make early training unstable. The mismatch this creates between training (always fed ground truth) and inference (fed its own guesses) is a known limitation, but it's a good trade for how much faster and more stable it makes learning; we don't dwell on it further here since Unit 6 revisits generation quality trade-offs in more depth.</p>
+    <h3>Forward pass and generation</h3>
+    <p>At training time, the model produces one full sequence of next-token logits per input sequence, one per position, and the loss sums cross-entropy across all of them. At inference time — the actual keyboard use case — there's no ground truth to feed forward, so the model must consume its own output token by token. This is where <span class="term">sampling strategy</span> becomes a product decision, not just a math detail. <span class="term">Greedy decoding</span> always picks the single highest-probability token; it's fast and deterministic but tends toward bland, repetitive completions and can get stuck in loops ("the the the"). <span class="term">Temperature sampling</span> rescales the logits before softmax by dividing by a temperature <code>T</code>: low T (below 1) sharpens the distribution toward greedy-like behavior, high T (above 1) flattens it toward more surprising, more diverse — and more error-prone — suggestions. <span class="term">Top-k sampling</span> restricts the candidate pool to the k highest-probability tokens before sampling, which prevents the long tail of implausible tokens from ever being drawn, a real risk on a 30k+ subword vocabulary where the tail is huge. <span class="term">Top-p (nucleus) sampling</span> instead takes the smallest set of tokens whose cumulative probability exceeds p (say 0.9), which adapts the candidate pool size to the shape of the distribution — narrow when the model is confident, wide when it's genuinely unsure.</p>
+    <p>For keyboard autocomplete specifically, the choice matters more than it might for open-ended text generation, because the user sees the top few suggestions directly and judges the product on them. Pure greedy decoding for the single "ghost text" completion shown inline is standard, since users expect the most likely continuation, not a creative one. But when the keyboard shows three ranked suggestion chips, those are effectively the top-k (k=3) candidates from a moderate temperature distribution — diverse enough to hedge against being wrong, plausible enough that none look absurd. Nucleus sampling is more common in generative chat assistants than in keyboards, precisely because it can occasionally surface a low-probability tail token that would look like a bizarre, trust-eroding suggestion inline.</p>
+    <pre><code>import numpy as np
+
+def rnn_lm_forward(token_ids, embed_W, lstm_step, proj_W, proj_b, h0, c0):
+    """One forward pass of a word-level RNN-LM.
+    token_ids: list of int, length T (a prefix typed so far)
+    embed_W:   (vocab_size, embed_dim)
+    lstm_step: function (x_t, h, c) -> (h_new, c_new)  — the Course 1 Unit 7 cell
+    proj_W:    (hidden_dim, vocab_size), proj_b: (vocab_size,)
+    Returns: logits for the NEXT token, shape (vocab_size,)
+    """
+    h, c = h0, c0
+    for tok in token_ids:
+        x_t = embed_W[tok]                 # (embed_dim,)
+        h, c = lstm_step(x_t, h, c)         # recur — mechanics assumed from Course 1
+    logits = h @ proj_W + proj_b            # (vocab_size,) — project to vocab
+    return logits, h, c
+
+def sample_next(logits, temperature=0.8, top_k=5):
+    logits = logits / temperature
+    top_idx = np.argpartition(logits, -top_k)[-top_k:]      # restrict candidate pool
+    top_logits = logits[top_idx]
+    probs = np.exp(top_logits - top_logits.max())
+    probs /= probs.sum()
+    choice = np.random.choice(top_idx, p=probs)
+    return choice, dict(zip(top_idx.tolist(), probs.tolist()))
+</code></pre>
+    <p class="caption">The forward pass loops the LSTM cell over the typed prefix and projects only the final hidden state to vocabulary logits; sampling then narrows to the top-k tokens before re-normalizing and drawing — the mechanism behind the ranked suggestion chips.</p>
+    <p>One structural advantage over n-grams is worth naming explicitly: an RNN-LM's "context window" is, in principle, unbounded — the hidden state is a fixed-size vector, but it's a function of the entire prefix seen so far, not a fixed lookback of two or three tokens. In practice, vanishing gradients (Course 1 Unit 7 again) limit how far back an LSTM can meaningfully "remember," but even a soft, decaying memory over 15–20 tokens beats a hard cutoff at 2. That's the generalization win: the model has learned a smooth function from context to next-word distribution, so a context it's never seen verbatim still produces a sensible answer, because it resembles contexts the model has seen in the learned embedding space.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Neural LMs generalize where n-grams memorize:</strong> a continuous hidden state lets similar-but-not-identical contexts produce similar predictions, which is exactly what personal, idiosyncratic keyboard text needs.</li>
+        <li><strong>Three-stage architecture:</strong> embedding lookup → LSTM recurrence (built on the Course 1 Unit 7 cell) → linear projection to vocabulary-sized logits, softmax for a distribution.</li>
+        <li><strong>Teacher forcing trains in parallel</strong> by feeding ground-truth previous tokens rather than the model's own predictions, trading a train/inference mismatch for much faster, more stable optimization.</li>
+        <li><strong>Sampling strategy is a UX decision:</strong> greedy for the single inline ghost-text suggestion, top-k/temperature for a ranked row of chips, nucleus sampling reserved for less literal, more generative contexts.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Making it work: perplexity, tied weights, and the softmax bottleneck</h2>
+    <p class="opening"><span class="term">Perplexity</span> is the standard evaluation metric for a language model: it is the exponentiated average negative log-likelihood the model assigns to held-out text, <code>PPL = exp(-1/N Σ log p(w_i | context))</code>. Read it as "the effective number of equally-likely choices the model is confused between at each position" — a perplexity of 1 means the model is certain and always right, a perplexity equal to the vocabulary size means it's guessing uniformly at random. Good keyboard LMs on everyday mobile text land in the 20–60 perplexity range depending on vocabulary size and how personalized the model is; a generic, non-personalized model on a broad corpus might sit around 60–100, while a well-personalized model on one user's own texting style can drop meaningfully below that, because that user's vocabulary and phrasing are far more constrained than the general population's. This lesson is about the engineering choices that get a model to a good perplexity number while staying inside a few megabytes and single-digit milliseconds — the real constraints of Lesson 3.</p>
+    <h3>Weight tying: one embedding matrix, not two</h3>
+    <p>Look again at the two big matrices in an RNN-LM: the embedding table (vocab_size × embed_dim) that turns tokens into vectors, and the projection layer (hidden_dim × vocab_size) that turns hidden states back into vocabulary logits. If embed_dim equals hidden_dim, these two matrices have the same shape, and <span class="term">weight tying</span> — using the transpose of the embedding matrix as the projection weights, first shown effective in "Using the Output Embedding to Improve Language Models" (Press & Wolf, 2017) — sets them equal and trains a single shared matrix instead of two independent ones. The intuition: a word's embedding, and the direction in hidden-state space that predicts that word, should be closely related, since both represent "what this word means in context." Practically, tying cuts total parameters roughly in half for models where the embedding/projection matrices dominate the parameter count, which is exactly the regime a keyboard LM lives in — with a 30k vocabulary and 256-dim embeddings, the embedding table alone is 7.7M parameters, easily the largest piece of a small on-device model. This is the same weight-sharing instinct as Course 2 Unit 3's tied encoder/decoder embeddings, applied here to a single-tower LM instead of a seq2seq pair. Weight tying helps most exactly where you have the least room to spare: small on-device models where every megabyte is a battery-life and download-size argument, and where duplicating a 7.7M-parameter matrix would nearly double the app's language-model footprint for no accuracy gain — tying frequently improves perplexity slightly too, since it acts as a regularizer that ties input and output representations together.</p>
+    <h3>The softmax bottleneck and its on-device fixes</h3>
+    <p>Even after tying, the projection step itself is expensive: at every single prediction, the model computes a dot product between the hidden state and every row of a 30,000+-row matrix, then a full softmax normalization over all 30,000 outputs. On a server GPU this is a fast, tolerable matmul. On a phone CPU running inline as the user types, this single operation can dominate the entire inference latency budget, because it scales linearly with vocabulary size regardless of how small the recurrent part is. This is the <span class="term">softmax bottleneck</span>, and mobile keyboards attack it in two main ways, both exploiting the fact that word frequency is Zipfian — a small number of words ("the", "you", "I'm") account for a huge share of usage, and a long tail of rare words each contribute almost nothing.</p>
+    <p><span class="term">Adaptive softmax</span> (Grave et al., 2017) splits the vocabulary into frequency-based clusters — a small "head" cluster of the few hundred most frequent words, and progressively larger "tail" clusters of rarer words. The head cluster gets computed at full hidden-dimension precision since it's checked on every single prediction; the tail clusters are projected through much smaller intermediate dimensions before their (larger but rarer-needed) final softmax, since correctly ranking among rare words matters less and happens less often. The net effect is that the expected cost per prediction — weighted by how often each cluster is actually needed — drops sharply, because the overwhelming majority of predictions never have to touch the expensive tail computation at all. <span class="term">Hierarchical softmax</span> takes this further with a binary-tree factorization of the vocabulary, turning one V-way softmax into a sequence of binary decisions down the tree (roughly log₂V of them), which trades a single big matmul for several tiny ones — good for CPU inference where a giant matrix multiply is disproportionately expensive relative to its FLOP count, though it complicates batching versus adaptive softmax's cleaner cluster structure. For a 30k-vocabulary keyboard LM, adaptive softmax with two or three frequency buckets is the more common industrial choice: simpler to implement, and the Zipfian skew of real text means the small head cluster resolves the overwhelming majority of predictions cheaply.</p>
+    <pre><code>import numpy as np
+
+class TiedAdaptiveLMHead:
+    """Weight-tied embeddings + a 2-bucket adaptive-softmax-style head.
+    head_vocab: the ~2,000 most frequent tokens, full-precision projection.
+    tail_vocab: everything else, projected through a smaller bottleneck first.
+    """
+    def __init__(self, embed_W, hidden_dim, head_size, tail_bottleneck_dim):
+        self.embed_W = embed_W                     # (vocab, hidden_dim) — SHARED, not duplicated
+        vocab = embed_W.shape[0]
+        self.head_size = head_size                 # e.g. 2000 most-frequent tokens
+        # tail projects hidden_dim -> small bottleneck -> tail vocab, saving params
+        self.tail_down = np.random.randn(hidden_dim, tail_bottleneck_dim) * 0.02
+        self.tail_up_scale = (vocab - head_size)
+
+    def logits(self, h):
+        # weight tying: reuse embed_W transposed instead of a second matrix
+        head_logits = h @ self.embed_W[:self.head_size].T          # (head_size,)
+        tail_hidden = h @ self.tail_down                            # (bottleneck_dim,)
+        tail_logits = tail_hidden @ self.embed_W[self.head_size:, :self.tail_down.shape[1]].T
+        return head_logits, tail_logits                             # concatenate, softmax per-bucket
+</code></pre>
+    <p class="caption">The embedding matrix is reused (not duplicated) for both buckets' projections; the tail bucket routes through a smaller bottleneck dimension first, cutting the parameter count and compute for the vast majority-rare tail of the vocabulary.</p>
+    <h3>Training stability: clipping, truncated BPTT, and locked dropout</h3>
+    <p>Three more techniques matter specifically for training an LSTM-LM well, all building on ground already covered. <span class="term">Gradient clipping</span> — capping the global gradient norm at a fixed threshold (commonly 0.25–5) before the optimizer step — is the direct practical answer to the exploding-gradient half of the problem introduced in Course 1 Unit 7; without it, an unlucky long dependency in a training sequence can produce a gradient spike that destroys the weights in one step. For streaming keyboard text, sequences are effectively unbounded (a user might type for minutes without a natural stopping point), so training uses <span class="term">truncated backpropagation through time</span>: the hidden state is carried forward across chunk boundaries (so the model still has long-range memory), but gradients are only backpropagated within each fixed-length chunk (say 35–70 tokens), keeping the backward pass affordable and gradient magnitudes bounded. Finally, ordinary dropout — zeroing different random units at every timestep — actually hurts recurrent models, because it injects fresh noise into the hidden state at every step, which an LSTM cell's memory then has to constantly fight to filter out. <span class="term">Variational (locked) dropout</span> fixes this by sampling one dropout mask per sequence and reusing that same mask at every timestep, so the recurrent connections see a consistent, if reduced, signal throughout the sequence rather than being battered by a new random pattern every step — this alone is one of the largest quality gains reported for regularizing LSTM language models (Merity, Keskar & Socher, "AWD-LSTM," 2017).</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Perplexity is the target metric</strong> — exponentiated average negative log-likelihood; keyboard LMs aim for roughly 20–60, lower for personalized models with narrower vocabulary.</li>
+        <li><strong>Weight tying shares the embedding and projection matrices,</strong> roughly halving parameters in embedding-dominated small models, with a side benefit of a slight regularizing effect on perplexity.</li>
+        <li><strong>Adaptive/hierarchical softmax exploit Zipfian word frequency</strong> to make the vocabulary-sized final layer cheap on average, since a small head cluster resolves most real predictions.</li>
+        <li><strong>Gradient clipping and truncated BPTT keep training stable and affordable</strong> on effectively unbounded streaming text; variational dropout regularizes without corrupting the recurrent memory the way per-timestep dropout does.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Deploying an on-device LSTM</h2>
+    <p class="opening">Think of the difference between a cloud kitchen and a food truck. A cloud kitchen can stock an entire pantry, run multiple ovens, and take ten minutes to plate an elaborate dish, because the customer isn't standing at the window watching the clock. A food truck has one small grill, a handful of ingredients that fit in the van, and has to hand over food in under a minute or the line stops moving and customers walk away. An on-device keyboard LM is the food truck version of the language models this course has been building: no GPU cluster, no gigabytes of RAM to spare, and a customer — the person mid-sentence — who will notice instantly if a suggestion takes longer than a keystroke to appear. The budget is roughly single-digit milliseconds of inference latency and a model that fits in a few megabytes total, because it ships inside the OS or keyboard app update, competes with dozens of other on-device features for RAM, and must run continuously without draining the battery.</p>
+    <h3>Quantization: the accuracy cost of shrinking the model</h3>
+    <p><span class="term">Quantization</span> — introduced as a general technique in Course 2 Unit 8 — maps the model's 32-bit floating-point weights down to lower precision, most commonly 8-bit integers, cutting the model's storage and memory footprint by roughly 4x and often speeding up inference on CPUs that have fast integer arithmetic paths. For a keyboard LM this is close to mandatory rather than optional: a 10M-parameter LSTM-LM at float32 is about 40 MB, which is already a meaningful chunk of an app's download size and RAM footprint; at int8 it drops to roughly 10 MB. The accuracy cost is real but usually survivable for language modelling specifically, because the softmax at the end is comparatively forgiving of small numerical error in the hidden state — a perplexity that degrades from, say, 35 to 37 after int8 quantization is a real but often acceptable trade for a 4x memory win and faster inference, especially since keyboard suggestions already tolerate some imprecision (the user always has the option to ignore a suggestion and keep typing). Where quantization bites harder is in the embedding and projection matrices, since these are the largest matrices and the ones weight tying already shrank — quantizing a tied matrix means the quantization error is shared between the "meaning" role and the "prediction" role, so per-tensor calibration and, where the runtime supports it, per-channel scales for the embedding rows matter more here than in a generic quantized classifier.</p>
+    <h3>Personalization and the privacy argument for federated learning</h3>
+    <p>A generic LM trained on public text will never predict someone's own name, their friends' names, their workplace jargon, or their particular verbal tics as well as a model that has actually seen that person type. <span class="term">On-device fine-tuning</span> — a few extra gradient steps on the user's own recent typing, run locally, updating only a small adapter or the last layer rather than the whole network — closes much of this gap without ever sending the user's text off the device. This matters commercially and legally: keystroke-level text is some of the most sensitive data a phone collects (it can contain passwords typed into the wrong field, medical details, financial information), so a design that keeps raw text on-device by construction is a real privacy and compliance advantage, not just a nice-to-have. <span class="term">Federated learning</span> extends this idea across a whole user population without centralizing raw text at all: each device computes a local model update from its own private data, only the update (a set of gradients or weight deltas, often itself further protected with techniques like differential privacy or secure aggregation) is sent to a coordinating server, the server averages updates from many devices into an improved shared model, and that improved model is pushed back down to everyone's device. No individual's raw keystrokes ever leave their phone; the server only ever sees aggregated, noised statistics about how the model should change. Google's Gboard keyboard is the most widely cited production example of this pattern. The trade-off is real: federated training is slower to converge, harder to debug (you can't inspect a training batch when there isn't a centralized one), and communication-constrained (updates travel over unreliable mobile networks, often only when a device is idle, charging, and on Wi-Fi) — but for a use case this privacy-sensitive, it's frequently judged worth the engineering cost.</p>
+    <h3>Cold start and the character-level fallback</h3>
+    <p>Every neural LM has a hard floor: it cannot predict a token that isn't in its vocabulary at all. A brand-new slang term, a friend's uncommon name the model has never encountered, a just-released product name — these are <span class="term">out-of-vocabulary</span> the moment they appear, and no amount of clever softmax engineering fixes a token the model was never given an embedding for. Subword tokenization (Course 3 Unit 1) already mitigates this somewhat by falling back to sub-word pieces, but a truly novel proper noun can still produce an awkward, unhelpful split. The practical fallback that keyboards ship is a secondary, much smaller <span class="term">character-level model</span> (or, more simply, a per-user n-gram count table updated online) that operates over the finite, fixed alphabet rather than an open-ended word vocabulary — since there is no "out of alphabet" problem, a name like "Xiomara" typed for the first time can still get reasonable next-character completions from character patterns the model has generalized across many other names, even with zero exposure to that specific name. In production, the two systems run side by side: the word-level LSTM handles the common case and produces the primary suggestions, while the character/n-gram fallback fires when the current partial word has low or zero probability under the word model, or once a user's personalization signal (they typed and accepted "Xiomara" once) promotes that word into a small personal cache that gets checked before falling all the way back to characters.</p>
+    <h3>Why LSTMs, not transformers, on-device</h3>
+    <p>By the time this course reaches Unit 5, transformers will have already won for cloud-scale language modelling, and it's worth being honest about why a small LSTM is still the right tool for the phone-keyboard case specifically rather than a stale one. Self-attention's cost scales with sequence length — every new token attends back over the whole context — which is fine when a server can batch and cache aggressively, but awkward for a stateless-per-request mobile inference call where you'd otherwise have to recompute or cache attention over the whole message every keystroke. An LSTM, by contrast, carries an O(1)-sized hidden state forward: appending one more character costs one more cell update, not a growing computation over the whole sequence so far, and that state is trivial to persist between keystrokes. That single property — streaming, constant per-step cost, constant memory regardless of how long the user has been typing — is exactly what a device with a few hundred milliwatts and a few megabytes of budget needs, and it's why small recurrent models held on in this corner of the industry years after transformers took over everywhere compute is abundant. (Transformer architecture and why it displaced RNNs at scale is Unit 5's subject — one sentence here is enough.)</p>
+    <pre><code>class KeyboardLMSession:
+    """Maintains recurrent state across keystrokes for one active text field.
+    Called once per keystroke; O(1) work per call regardless of message length.
+    """
+    def __init__(self, model, char_fallback):
+        self.model = model                  # tied-weight, quantized LSTM-LM
+        self.char_fallback = char_fallback   # small char-level model for OOV
+        self.h, self.c = model.init_state()  # persisted between calls
+        self.current_token_ids = []          # tokens of the word being typed
+
+    def on_keystroke(self, new_char, tokenizer):
+        self.current_token_ids = tokenizer.retokenize(self.current_token_ids, new_char)
+        last_tok = self.current_token_ids[-1]
+
+        if tokenizer.is_known(last_tok):
+            logits, self.h, self.c = self.model.step(last_tok, self.h, self.c)
+            return top_suggestions(logits, k=3)
+        else:
+            # cold start: novel/rare token — fall back, don't block on it
+            return self.char_fallback.predict(self.current_token_ids)
+
+    def on_word_committed(self, tokenizer):
+        # space/punctuation typed: fold committed word into recurrent state,
+        # reset the in-progress token buffer for the next word
+        self.current_token_ids = []
+</code></pre>
+    <p class="caption">The session object holds hidden state across the whole keystroke stream so each keystroke is O(1) work; an unknown token routes to the character-level fallback instead of stalling or crashing the suggestion bar.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>The phone budget is single-digit milliseconds and a few megabytes,</strong> forcing quantization (typically int8, ~4x smaller) as close to mandatory, with a modest, usually acceptable perplexity cost.</li>
+        <li><strong>On-device fine-tuning personalizes without exporting raw text;</strong> federated learning extends personalization across users by aggregating model updates, not messages, on a central server.</li>
+        <li><strong>Cold start on unseen words is unavoidable for any fixed-vocabulary model;</strong> a character-level or n-gram fallback and a small personal word cache cover the gap subword tokenization doesn't fully close.</li>
+        <li><strong>LSTMs persist on-device because of O(1) per-step state,</strong> not because they're more accurate than a transformer — streaming cost and memory footprint are the deciding factors here, not raw language-modelling quality.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 4 quiz</h2>
+    <p class="quiz-intro">Eight questions covering neural LM architecture, sampling, perplexity, weight tying, softmax cost, and on-device deployment — including one broken code snippet to fix.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A user has typed "Running late, be there in about" and the keyboard's word-level LSTM-LM has never seen this exact five-word sequence during training, yet it still suggests "10", "20", and "five" with reasonable confidence. What best explains this?</p>
+      <ol class="choices" type="A">
+        <li>The model memorized every possible five-word prefix during training and looked this one up.</li>
+        <li>The embedding and recurrent layers generalize from similar contexts seen during training, so a novel exact sequence still maps to a sensible region of hidden-state space.</li>
+        <li>The model falls back to a uniform random guess whenever it encounters an unseen context.</li>
+        <li>The vocabulary was restricted at training time to only contain numbers after "about".</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> This is the core generalization advantage over n-grams from Lesson 1: the continuous hidden state produced by the embedding + LSTM stack represents context, not an exact lookup key, so semantically similar contexts (any "be there in about ___" phrasing) produce similar predictions even without exact repetition.</p>
+          <p>A is the n-gram-style failure mode this unit explicitly moves away from — an RNN-LM has no lookup table of full contexts. C is wrong because a trained model's hidden state still encodes useful structure even for novel inputs; it doesn't collapse to uniform noise just because the exact string is new. D describes a hand-coded rule, not what a trained neural LM does.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Teacher forcing means that during training, at each timestep the model is fed its own predicted previous token as input, rather than the ground-truth token from the training sequence.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B, False.</strong> Teacher forcing is the opposite: the model is fed the ground-truth previous token at every position during training, which is what allows the whole sequence to be trained in parallel with stable gradients rather than compounding the model's own early mistakes.</p>
+          <p>The scenario described (feeding the model's own predictions forward) is closer to how the model actually behaves at inference time, which is precisely the train/inference mismatch this unit calls out as a known, accepted limitation of teacher forcing.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">The keyboard's inline "ghost text" completion — the single grey suggestion shown ahead of the cursor as the user types — should almost always use which sampling approach, and why?</p>
+      <ol class="choices" type="A">
+        <li>Nucleus (top-p) sampling with p=0.95, to maximize the diversity of possible completions shown.</li>
+        <li>Greedy decoding, because the user expects the single most likely continuation, and unpredictable variety would undermine trust in one specific inline suggestion.</li>
+        <li>Temperature sampling with T=2.0, to surface more surprising and creative completions.</li>
+        <li>Uniform random sampling over the full vocabulary, to give every word a fair chance of appearing.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> A single inline suggestion is judged harshly if it looks wrong or erratic, since there's no ranked list to hedge with — greedy decoding (always the top logit) is the safe, expected choice here, as Lesson 1 discusses for ghost-text specifically.</p>
+          <p>A and C both intentionally increase variety or surprise, which is useful for a ranked row of multiple chips but actively hurts a single, high-stakes inline suggestion. D would produce nonsense almost every time, since it ignores the model's learned probabilities entirely.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">A technique that reuses the embedding matrix as the transpose of the final projection layer, roughly halving the parameter count in embedding-dominated small models, is called <span class="blank">&nbsp;</span>.</p>
+      <ol class="choices" type="A">
+        <li>gradient clipping</li>
+        <li>weight tying</li>
+        <li>truncated BPTT</li>
+        <li>adaptive softmax</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B, weight tying.</strong> Lesson 2 covers this directly: since the embedding table and projection layer share shape when embed_dim equals hidden_dim, tying them into one shared matrix removes a duplicate large matrix from the model, which matters most in small on-device models.</p>
+          <p>Gradient clipping addresses exploding gradients during training, not parameter count. Truncated BPTT bounds the backward pass over long/streaming sequences. Adaptive softmax reduces the compute cost of the final projection, but it doesn't share the embedding matrix with it — it's a separate lever attacking a related but distinct cost.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Why does adaptive softmax reduce the average cost of the final vocabulary projection on a keyboard LM, given a 30,000-token vocabulary?</p>
+      <ol class="choices" type="A">
+        <li>It reduces the total vocabulary the model can ever predict from 30,000 down to a few hundred words.</li>
+        <li>It exploits the Zipfian frequency distribution of language: a small, cheaply-computed head cluster of frequent words resolves the vast majority of real predictions, so the expensive full computation over rare tail words is rarely needed.</li>
+        <li>It replaces softmax with a lookup table, eliminating normalization entirely.</li>
+        <li>It only works if the embedding and projection matrices are tied.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> As Lesson 2 explains, adaptive softmax buckets the vocabulary by frequency; because real text is Zipfian, the small head cluster of the most frequent words is checked at full cost on essentially every prediction, while the larger, cheaper-per-token tail clusters are only reached for the (much rarer) uncommon-word predictions — so the expected cost per prediction drops sharply.</p>
+          <p>A is wrong — the full vocabulary is still predictable, it's just organized into clusters of different computational cost, not truncated. C misdescribes the mechanism; softmax normalization still happens, just within smaller buckets. D is false: adaptive softmax and weight tying are independent techniques that happen to be commonly combined, but neither requires the other.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Federated learning, as used for keyboard personalization, works by uploading each user's raw typed text to a central server, which trains one improved shared model on the combined dataset.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B, False.</strong> The entire point of federated learning, as Lesson 3 describes, is that raw text never leaves the device — each device computes a local model update from its own private data, and only that update (not the underlying text) is sent to the server for aggregation into an improved shared model.</p>
+          <p>The scenario in the question describes ordinary centralized training on collected raw text, which is exactly what federated learning is designed to avoid for privacy-sensitive data like keystrokes.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">A teammate wrote this streaming keyboard-LM session handler, but users report that suggestions get slower and slower the longer they keep typing in a single text field (a long message eventually takes seconds per keystroke instead of milliseconds). Find the bug and explain the fix.</p>
+      <pre><code>class KeyboardLMSession:
+    def __init__(self, model):
+        self.model = model
+        self.typed_token_ids = []   # ALL tokens typed in this field so far
+
+    def on_keystroke(self, new_char, tokenizer):
+        self.typed_token_ids = tokenizer.retokenize(self.typed_token_ids, new_char)
+        h, c = self.model.init_state()
+        for tok in self.typed_token_ids:          # replay the whole message every keystroke
+            h, c = self.model.step(tok, h, c)
+        logits = self.model.project(h)
+        return top_suggestions(logits, k=3)
+</code></pre>
+      <ol class="choices" type="A">
+        <li>The bug is in <code>tokenizer.retokenize</code> — it should return a fixed-size array instead of a growing list.</li>
+        <li>The bug is that the hidden state <code>h, c</code> is reset and the entire typed history is replayed through the LSTM on every single keystroke, turning O(1) per-step work into O(message length) per keystroke; the fix is to persist <code>h, c</code> across calls and only step the newest token forward.</li>
+        <li>The bug is that <code>top_suggestions</code> is called with k=3 instead of k=1, which is slower.</li>
+        <li>The bug is that <code>self.model</code> should be re-initialized on every keystroke to avoid stale predictions.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Lesson 3's whole point about O(1) per-step state is violated here: <code>init_state()</code> plus a full replay loop means keystroke N does N steps of LSTM work, so a long message degrades quadratically overall (and linearly per keystroke) — exactly the slowdown users are reporting. The fix persists <code>self.h, self.c</code> as session state (as in the lesson's <code>KeyboardLMSession</code>) and calls <code>self.model.step</code> once per new keystroke on top of the carried-forward state, restoring true O(1) work per keystroke.</p>
+          <p>A is a red herring — the growing list itself isn't the expensive part, replaying it through the LSTM every time is. C would shave a small constant amount of ranking work but wouldn't fix the fundamental O(message length) replay cost. D is backwards: re-initializing the model discards exactly the persisted state that should be carried forward, and doesn't address the replay loop at all.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">A keyboard LM's word-level model returns <code>None</code> for a token because it's out-of-vocabulary (e.g., the user is typing a friend's name for the first time). Complete the missing line so the session falls back to the character-level model instead of returning no suggestions at all.</p>
+      <pre><code>def get_suggestions(session, new_char, tokenizer):
+    session.typed_token_ids = tokenizer.retokenize(session.typed_token_ids, new_char)
+    last_tok = session.typed_token_ids[-1]
+
+    if tokenizer.is_known(last_tok):
+        logits, session.h, session.c = session.model.step(last_tok, session.h, session.c)
+        return top_suggestions(logits, k=3)
+    else:
+        _______________________________________
+</code></pre>
+      <ol class="choices" type="A">
+        <li><code>return []</code></li>
+        <li><code>return session.char_fallback.predict(session.typed_token_ids)</code></li>
+        <li><code>raise ValueError("unknown token")</code></li>
+        <li><code>return top_suggestions(logits, k=3)</code> (reusing the previous logits)</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> This is exactly the cold-start handling from Lesson 3: an out-of-vocabulary token should route to the smaller character-level (or n-gram) fallback model, which operates over a fixed alphabet and so has no "unknown token" problem, keeping the suggestion bar populated instead of going blank.</p>
+          <p>A silently gives up and degrades the product experience for every novel word. C would crash the keyboard mid-sentence over an entirely expected, routine event (a new name is not an error condition). D reuses stale logits from a previous, different token, which would produce suggestions unrelated to what the user is currently typing.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Text Processing (NLP) · Unit 4 of 8 — Unit 5 leaves recurrence behind for self-attention and the transformer block that displaced it at scale.</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 8 · Building NLP applications: sentiment, chatbots, and RAG — Text Processing (NLP)</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Text Processing (NLP) · Unit 8 of 8</p>
+  <h1>Building NLP applications: sentiment, chatbots, and RAG</h1>
+  <p class="lede">The capstone unit: turn tokenizers, embeddings, and transformers from Units 1–7 into three production systems — aspect-level opinion mining, a task-oriented conversational assistant, and a retrieval-augmented generator that answers from a company's own documents instead of its own memorized guesses.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. Sentiment and aspect-based opinion mining</a></li>
+      <li><a href="#lesson-2">2. Conversational systems</a></li>
+      <li><a href="#lesson-3">3. Retrieval-augmented generation</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>Sentiment and aspect-based opinion mining</h2>
+    <p class="opening">A customer writes: "the battery is amazing but the screen cracked in a week." Feed that sentence into a document-level sentiment classifier — the kind you'd have built in Course 3 Unit 5 with a fine-tuned encoder and a softmax head — and it has to collapse two contradictory facts into one label. Average the polarity and you get "neutral," which is a lie: nothing about this review is neutral. Pick the majority clause and you get "negative," which throws away a genuinely useful positive signal about the battery. A product team reading a dashboard that says "37% of reviews this week were negative" cannot act on that number. They cannot tell if customers are complaining about battery life, shipping speed, customer support, or build quality, and they cannot tell whether last quarter's screen-durability fix actually helped. A single scalar per review is worse than useless here — it's actively misleading, because it looks precise while hiding the one thing the team needs, which part of the product is failing.</p>
+    <p>This is why real deployments — the kind that feed a support-operations dashboard at a consumer electronics company — almost never stop at document-level sentiment. There are three granularities worth distinguishing. <span class="term">Document-level sentiment</span> assigns one label to a whole review or ticket; it's cheap and it's what you get for free from a generic classifier, but it's blind to mixed opinions like the one above. <span class="term">Sentence-level sentiment</span> splits the document first and classifies each sentence independently, which helps when opinions cluster by sentence ("Battery is amazing." / "Screen cracked in a week.") but still fails inside a single sentence carrying two clauses, and it has no notion of what each sentence is actually about — you get "negative" attached to a sentence, not to "screen." <span class="term">Aspect-based sentiment analysis</span> (ABSA) is the granularity that actually answers the product team's question: it identifies the aspect terms — the specific product features or service dimensions being discussed (battery, screen, shipping, support agent, price) — and assigns a sentiment polarity to each one independently. The output for our example sentence isn't one label; it's a small structured record: {battery: positive, screen: negative}. That's a dashboard row a product manager can act on.</p>
+    <h3>Extracting aspects, then classifying sentiment</h3>
+    <p>ABSA decomposes into two subtasks that can be solved separately or jointly. <span class="term">Aspect term extraction</span> is a sequence-labeling problem, structurally identical to the NER tagging you built in Course 3 Unit 4 — instead of a BIO scheme over person/organization/location spans, you tag BIO over aspect-term spans: B-ASP, I-ASP, O. "The <b>battery</b> life is amazing but the <b>screen</b> cracked" tags "battery" and "screen" (or "battery life" as one span) as aspect terms and everything else as O. Given the extracted spans, <span class="term">aspect sentiment classification</span> is a per-span classification problem: for each aspect term, look at a window of surrounding context and predict positive / negative / neutral. The two-stage <span class="term">pipeline</span> approach trains an aspect extractor and a sentiment classifier separately and chains them at inference time — simple to build and debug, since you can inspect each stage's output, but it suffers error propagation: an aspect extractor that misses "screen" as a span means the sentiment classifier never gets a chance to score it, and there's no way for downstream sentiment information to correct an upstream extraction mistake.</p>
+    <p>The alternative is a <span class="term">joint model</span> that predicts aspect spans and their sentiment in a single forward pass, typically by extending the BIO tag set itself — instead of three tags (B-ASP, I-ASP, O) you use seven: B-POS, I-POS, B-NEG, I-NEG, B-NEU, I-NEU, O. Now "amazing" tagged near "battery" and the sentiment of "battery" get predicted together, conditioned on shared contextual embeddings from one encoder pass, which lets gradient signal from the sentiment objective shape how spans get extracted in the first place. Joint models generally outperform pipelines on public ABSA benchmarks (SemEval-2014 Task 4 and its successors) by a few F1 points, at the cost of a more complex label space and less interpretable intermediate output. For a support-ticket-mining system with tight latency budgets and a need to explain its outputs to a human reviewer, the pipeline's inspectability is often worth the accuracy trade — you can show an analyst "here's what we extracted as an aspect, here's what we scored it," which matters when someone disputes the dashboard.</p>
+    <h3>The hard cases</h3>
+    <p>ABSA's failure modes are exactly where naive sentiment analysis quietly gets things wrong, and a support-ticket pipeline has to handle all four. <span class="term">Negation scope</span> is the first: "the screen isn't as bad as I feared" is a positive statement about the screen, but a bag-of-words or shallow window model sees "bad" close to "screen" and flips it negative — the negator "isn't" and the concessive "as I feared" both have to be scoped correctly, and scope can extend across clause boundaries ("I don't think the battery life or the screen quality live up to the price" negates two aspects at once). <span class="term">Sarcasm</span> is worse because there's no local syntactic cue at all: "oh great, another firmware update that bricks the camera" is entirely negative despite "great" — resolving it requires either pretrained models with enough world knowledge to recognize the pattern (positive word + clearly bad outcome = irony) or explicit sarcasm-detection as an upstream gate, and even large language models still miss dry sarcasm without contextual hints. <span class="term">Comparatives</span> shift sentiment relative to a reference point rather than absolute: "the new model's screen is better than the old one's, but still worse than our competitor's" assigns positive sentiment relative to one anchor and negative relative to another, for the same aspect, in the same sentence — a system that only asks "positive or negative" has no slot for "compared to what." <span class="term">Implicit aspects</span> are the case where the aspect term is never written down at all: "it drains fast and gets warm in my pocket" is unambiguously about battery to a human reader, but there's no token span "battery" to extract — handling this requires either a closed aspect taxonomy learned from training data (mapping "drains," "warm," "pocket" to a battery category via classification rather than extraction) or a much richer world model than span-tagging provides.</p>
+    <p>Evaluation has its own trap: aspect and polarity classes are wildly imbalanced in real review data. "Shipping" and "battery" dominate an electronics review corpus while "packaging aesthetics" appears rarely; positive and neutral dominate while strongly negative reviews are a minority (until a bad firmware release spikes them). A single overall accuracy number will look great while the system silently fails on the rare-but-critical aspect ("safety," "fire," "recall") that actually matters most operationally. Honest evaluation reports per-aspect precision/recall/F1, not just a macro-average, and tracks aspect-extraction recall separately from sentiment-classification accuracy, since a system can nail sentiment on every aspect it finds while missing half the aspects that exist.</p>
+    <pre><code>import re
+
+# Toy aspect-sentiment extractor for a multi-aspect product review.
+# Real systems use a trained sequence tagger; this shows the *shape* of
+# pairing aspect terms with sentiment-bearing spans, including negation.
+
+ASPECTS = ["battery", "screen", "camera", "shipping", "price", "support"]
+NEGATORS = {"not", "isn't", "wasn't", "never", "n't", "hardly"}
+POS_WORDS = {"amazing", "great", "fast", "excellent", "reasonable", "solid"}
+NEG_WORDS = {"cracked", "slow", "terrible", "broken", "disappointing", "warm"}
+
+def extract_aspect_sentiment(review: str, window: int = 4):
+    tokens = re.findall(r"[a-z']+", review.lower())
+    results = {}
+    for i, tok in enumerate(tokens):
+        if tok not in ASPECTS:
+            continue
+        lo, hi = max(0, i - window), min(len(tokens), i + window + 1)
+        ctx = tokens[lo:hi]
+        negated = any(n in ctx for n in NEGATORS)
+        pos_hits = sum(1 for w in ctx if w in POS_WORDS)
+        neg_hits = sum(1 for w in ctx if w in NEG_WORDS)
+        if negated:
+            pos_hits, neg_hits = neg_hits, pos_hits  # crude negation flip
+        if pos_hits > neg_hits:
+            label = "positive"
+        elif neg_hits > pos_hits:
+            label = "negative"
+        else:
+            label = "neutral"
+        results[tok] = {"label": label, "context": " ".join(ctx)}
+    return results
+
+review = "the battery is amazing but the screen cracked in a week, " \
+         "and shipping wasn't slow at all this time"
+print(extract_aspect_sentiment(review))
+# {'battery': {'label': 'positive', ...},
+#  'screen':  {'label': 'negative', ...},
+#  'shipping':{'label': 'positive', ...}}   <- negation flip on "wasn't slow"
+</code></pre>
+    <p class="caption">A fixed window around each aspect term catches local sentiment words and applies a crude negation flip; notice it still can't handle sarcasm, cross-clause negation scope, or implicit aspects — a trained joint tagger closes those gaps, but the pairing logic (aspect term + local evidence + polarity) is the same shape a production model learns.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Document-level sentiment loses information a business needs</strong> whenever a review is mixed, which is common — aspect-level granularity is what turns raw text into an actionable signal.</li>
+        <li><strong>ABSA is two subtasks:</strong> aspect term extraction (sequence tagging, like NER) and per-aspect sentiment classification, solvable as a pipeline (simpler, error-propagates) or a joint model (better accuracy, extended BIO tag set: B-POS/I-POS/B-NEG/I-NEG/B-NEU/I-NEU/O).</li>
+        <li><strong>Negation scope, sarcasm, comparatives, and implicit aspects</strong> are the four recurring failure modes — each defeats a naive local-window or bag-of-words approach in a different way.</li>
+        <li><strong>Evaluate per-aspect, not overall</strong> — class imbalance across aspects and polarities means a high aggregate accuracy can hide total failure on the rare aspect that matters most (a safety complaint, a recall-triggering defect).</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Conversational systems</h2>
+    <p class="opening">In 1966, Joseph Weizenbaum built ELIZA at MIT — a program that played a Rogerian psychotherapist by matching patterns in the user's typed input against templates ("I am ___" triggers "Why do you say you are ___?") and reflecting the pattern back as a question. It had no model of meaning, no memory beyond the current line, and no idea what a "therapist" was doing. It also convinced some users they were talking to something that understood them, which alarmed Weizenbaum enough that he spent much of his later career warning against exactly the illusion his program created. ELIZA's descendants split into two lineages that still define the field. The <span class="term">task-oriented</span> lineage — airline booking systems, bank IVR menus, and their modern successors — gave up on open conversation and instead built systems that extract a caller's <em>intent</em> ("check order status," "reset password," "escalate to a human") and the <em>slots</em> that intent needs filled (an order number, an account email) from natural language, then execute a fixed backend action. The <span class="term">open-domain / retrieval-based</span> lineage tried to hold a general conversation by retrieving the best-matching canned response from a large corpus of prior conversations — no generation, just similarity search over what someone already said in a similar context. Neither lineage generates novel text; both trade flexibility for reliability. The current LLM-assistant era changes that trade by generating fluent, on-the-fly text — and inherits ELIZA's core problem in a new, more dangerous form: fluency has never implied correctness, and a system fluent enough to sound authoritative is exactly the system a support team can't afford to let hallucinate a return policy.</p>
+    <h3>Task-oriented architecture: intent, slots, and state</h3>
+    <p>A production support assistant that needs to actually do things — look up an order, issue a refund, escalate a ticket — still runs the task-oriented pipeline underneath, even when an LLM handles the natural-language surface. <span class="term">Intent classification</span> maps an utterance to one of a fixed set of supported actions using the same encoder-plus-classification-head architecture from Course 3 Unit 5 sentiment work: "where's my order" and "I never got my package" both route to <code>track_order</code>, while "this is unacceptable, get me a person" routes to <code>escalate</code>. <span class="term">Slot filling</span> is sequence labeling — BIO tags again, the same mechanism as ABSA's aspect extraction and Unit 4's NER — pulling out the arguments the intent handler needs: an order number, a product SKU, a date range. "Where's my order <b>#48213</b> from <b>last Tuesday</b>" tags <code>#48213</code> as B-ORDER_ID and "last Tuesday" as B-DATE I-DATE. <span class="term">Dialogue state tracking</span> is what makes this work across turns instead of one utterance at a time: the system maintains a running frame of slots filled so far, updated turn by turn, so that "actually make that the blue one" three turns later updates <code>color=blue</code> in the existing frame rather than starting a new one, and "what about the other one" resolves an implicit reference to something mentioned two turns back. Losing dialogue state is the single most common way task-oriented bots frustrate users — every "as I already told you" complaint traces back to a state update the system dropped.</p>
+    <p>Pure open-domain generation — an LLM simply asked to "be a helpful support assistant" with no retrieval or grounding — hallucinates company facts for a structural reason, not a training-quality one: a language model's parameters encode a compressed, lossy, frozen snapshot of whatever text it was trained on, and a company's actual return-window policy, current firmware version, or this-week's known-issue list was very likely never in that training data, or has since changed. Asked "what's your return policy," an ungrounded model produces the most statistically plausible-sounding return policy given everything it's seen about return policies in general — fluent, confident, and quite possibly wrong for this company. This is precisely the problem Lesson 3's retrieval-augmented generation exists to fix, and precisely why a serious support assistant is never pure generation: it needs either a task-oriented backend for actions, a retrieval layer for facts, or (in practice) both.</p>
+    <h3>Context budgeting, guardrails, and evaluation</h3>
+    <p>Multi-turn systems face a resource problem that single-turn classifiers never see: the transformer's context window (Course 2 Unit 8) is finite, and a long support conversation — plus a system prompt, plus retrieved documents, plus few-shot examples — can blow past it. <span class="term">Context-window budgeting</span> means deciding, turn by turn, what to keep verbatim (the last few turns, which carry the most immediate coreference load), what to summarize (older turns, compressed into a running abstract), and what to drop (small talk, resolved sub-threads). Get this wrong and either the model silently loses track of something the user said ten turns ago, or the system pays for and waits on thousands of wasted tokens of stale transcript on every single turn.</p>
+    <p>Guardrails apply on both sides of the exchange, and Course 2 Unit 8's safety-filtering mechanics (classifier-based input/output filters, refusal training, red-teaming) carry over directly here — the callback is not cosmetic, it's the same filtering architecture applied to a live product. <span class="term">Input guardrails</span> screen the user's message before it reaches the model: is this a jailbreak attempt, a request for something the assistant shouldn't do (process a real payment, delete an account without verification), or PII that shouldn't be logged verbatim. <span class="term">Output guardrails</span> screen what the model wants to say before it's shown to the customer: is it about to promise a refund policy it has no authority to promise, invent a tracking number, or leak a system prompt. A support assistant with only input filtering is still one confident hallucination away from telling a customer something the company has to honor.</p>
+    <p>Evaluating a multi-turn system can't reuse single-turn accuracy metrics cleanly. <span class="term">Task success rate</span> — did the conversation end with the user's actual goal achieved, across however many turns it took — is the outcome metric that matters, but it requires either human judges or a held-out set of scripted user simulators, since no automatic metric reliably detects "the user gave up and left." <span class="term">Turn-level metrics</span> (intent-classification accuracy, slot-F1) are cheaper to compute but can be perfect at every individual turn while the conversation overall fails, e.g. if dialogue state tracking drops a slot between turns. Good evaluation reports both: turn-level component accuracy tells you what to fix; task success rate tells you whether the fix mattered.</p>
+    <pre><code># Intent classification + slot filling -> a structured dialogue frame,
+# for a support utterance. In production the tagger is a trained model;
+# this shows the target *output structure* the model is trained to produce.
+
+INTENTS = {
+    "track_order":  ["where's my order", "order status", "track my package"],
+    "request_refund": ["refund", "money back", "return this"],
+    "escalate":     ["speak to a human", "unacceptable", "get me an agent"],
+}
+
+def classify_intent(utterance: str) -> str:
+    u = utterance.lower()
+    for intent, cues in INTENTS.items():
+        if any(cue in u for cue in cues):
+            return intent
+    return "fallback"
+
+def fill_slots(utterance: str) -> dict:
+    import re
+    slots = {}
+    order_id = re.search(r"#(\w+)", utterance)
+    if order_id:
+        slots["order_id"] = order_id.group(1)
+    date = re.search(r"(last \w+|yesterday|today|\d{1,2}/\d{1,2})", utterance.lower())
+    if date:
+        slots["date"] = date.group(1)
+    return slots
+
+def parse_turn(utterance: str, state: dict) -> dict:
+    intent = classify_intent(utterance)
+    new_slots = fill_slots(utterance)
+    state = {**state, **new_slots}          # merge into running dialogue state
+    return {"intent": intent, "slots": state, "raw": utterance}
+
+state = {}
+frame = parse_turn("where's my order #48213 from last Tuesday", state)
+print(frame)
+# {'intent': 'track_order',
+#  'slots': {'order_id': '48213', 'date': 'last tuesday'},
+#  'raw': "where's my order #48213 from last Tuesday"}
+</code></pre>
+    <p class="caption">The frame separates <em>what the user wants</em> (intent) from <em>the arguments the backend action needs</em> (slots), and slots merge into a persistent <code>state</code> dict across calls — that merge step is the entire mechanism of dialogue state tracking; drop it and the next turn's "actually, the one from Monday" has nothing to update.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>ELIZA (1966) through modern LLM assistants</strong> spans two lineages — task-oriented (intent + slots + fixed backend actions) and open-domain retrieval-based — that traded flexibility for reliability in opposite directions; LLMs generate novel text but reopen ELIZA's original problem: fluency without guaranteed correctness.</li>
+        <li><strong>Task-oriented systems decompose into intent classification, slot filling (BIO tagging, same mechanism as NER/ABSA), and dialogue state tracking</strong> — losing state across turns is the most common source of user-visible frustration.</li>
+        <li><strong>Pure generation hallucinates company facts structurally</strong>, because model parameters are a frozen, lossy snapshot of training data that likely never contained this company's current policy — grounding (Lesson 3) fixes this, ungrounded generation cannot.</li>
+        <li><strong>Guardrails apply on both input and output</strong>, reusing Course 2 Unit 8's filtering architecture — an assistant that only screens user input is still exposed to its own hallucinated promises.</li>
+        <li><strong>Evaluate task success rate separately from turn-level accuracy</strong> — perfect per-turn scores can still add up to a failed conversation if state tracking drops something between turns.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Retrieval-augmented generation</h2>
+    <p class="opening"><span class="term">Retrieval-augmented generation</span> (RAG) is an architecture that answers a query by first retrieving relevant passages from an external document store, then conditioning a generative model on those passages to produce the final answer — grounding the model's output in retrieved evidence rather than relying solely on facts baked into its parameters during training. That's the whole idea in one sentence; the rest of this lesson is about why every clause in it matters and how the pieces click together, because RAG is where this entire course converges. Chunking a document store draws on the tokenization and text-segmentation groundwork of Course 3 Unit 1. Embedding chunks into vectors is exactly the sentence-encoder machinery from Course 3 Unit 3 and the transformer representations of Course 2. Retrieval scoring reaches back to Unit 2's TF-IDF and inverted-index intuition for the keyword half of hybrid search. And the generation step is the decoder-based language modeling that's been this course's throughline since Unit 5. If Units 1–7 taught you the parts, this lesson is the assembly manual.</p>
+    <h3>The pipeline, end to end</h3>
+    <p>Start with a company's documentation — product manuals, known-issue trackers, return-policy pages, past resolved tickets. <span class="term">Chunking</span> splits each document into passages small enough to embed meaningfully and retrieve granularly, typically 200–500 tokens with some overlap (50–100 tokens) between consecutive chunks so a fact sitting at a chunk boundary isn't split across two pieces and lost to both. Chunk too large and a retrieved passage buries the one relevant sentence in irrelevant surrounding text, diluting the embedding and wasting prompt budget; chunk too small and you lose context a sentence needs to be understood (a returns-window number with no surrounding "for defective units" qualifier is actively misleading). <span class="term">Embedding</span> each chunk with a sentence encoder (Course 3 Unit 3's bi-encoder architecture, trained so semantically similar text lands near similar text in vector space) turns every chunk into a fixed-size dense vector, precomputed once and stored in a <span class="term">vector index</span> — a data structure (exact k-NN for a small store, approximate methods like HNSW or IVF for millions of chunks) built for fast nearest-neighbor lookup. At query time, the user's question is embedded with the same encoder, and the index returns the <span class="term">top-k</span> chunks by vector similarity (cosine similarity is standard, since sentence encoders are typically trained to make direction — not magnitude — carry the semantic signal).</p>
+    <p>Top-k retrieval is often followed by a <span class="term">reranker</span> — a heavier cross-encoder (Course 3 Unit 3 again) that looks at the query and each candidate chunk jointly rather than as separately-embedded vectors, and re-scores them for relevance. This two-stage retrieve-then-rerank pattern exists because the bi-encoder that makes fast top-k search possible is deliberately a cheaper approximation; a cross-encoder is far more accurate at judging query-passage relevance but too slow to run against every chunk in a large store, so you use the cheap encoder to narrow thousands of chunks down to, say, the top 50, then the expensive cross-encoder to rerank those 50 down to the top 3-5 that actually go in the prompt. The reranked chunks get <span class="term">stuffed into the prompt</span> — concatenated into a context block, usually with an instruction telling the model to answer only from the provided passages and to cite which passage supports each claim — and the generator produces an answer with <span class="term">citations</span> pointing back to source chunks, which is what lets a support agent (or the customer) verify the answer against the actual documentation rather than trusting the model's word for it.</p>
+    <h3>Why RAG beats the alternatives, and where it still breaks</h3>
+    <p>Pure <span class="term">parametric generation</span> — Lesson 2's ungrounded assistant — fails on the stale-docs problem structurally: the model's knowledge is frozen at training time, so a firmware update released last week, a policy change from yesterday, or a product recall issued this morning simply isn't in its parameters, and it will confidently generate the old, wrong answer. Pure <span class="term">keyword retrieval</span> (Unit 2's TF-IDF / BM25) fails differently — it fails on paraphrase. A customer asking "can I send this back if it doesn't work" won't keyword-match a document that says "defective units are eligible for return within 30 days" because there's no lexical overlap on the important words, only on function words. RAG's dense-retrieval half catches semantic matches keyword search misses, and updating the document store — re-embedding one new or changed document — is far cheaper than re-training a language model, which directly solves the stale-docs problem: fix the doc, re-index it, and the very next query sees the update.</p>
+    <p>In practice, the strongest retrieval layer is <span class="term">hybrid</span>: BM25 (Unit 2) alongside dense embedding search, with scores combined (commonly a weighted sum or reciprocal rank fusion). Dense retrieval is strong on semantic paraphrase but can miss exact-match needs — a product SKU, an error code, a part number — that are short, out-of-vocabulary for the encoder's training distribution, and lexically unambiguous; BM25 nails those instantly by exact term match, since "part number A7-2291" needs an exact string hit, not a semantic neighborhood. Combining both retrieval signals covers each one's blind spot.</p>
+    <p>RAG's failure modes are distinct from either pure approach's failures, and a mature system monitors for all four. <span class="term">Retrieval misses</span>: the right chunk exists in the store but doesn't surface in top-k, because the chunking split the fact awkwardly, or the query's phrasing is too far from the document's in embedding space. <span class="term">The model ignoring retrieved context</span>: the right chunk is right there in the prompt, but the generator answers from its own parametric knowledge anyway — a well-documented failure mode particularly visible when retrieved context contradicts what's statistically most probable in training data. <span class="term">Contradictory chunks</span>: two retrieved passages disagree, e.g. an old policy page and a new one both got indexed, and the generator has to pick a side (ideally, it should surface the conflict rather than silently pick one). <span class="term">Citation faithfulness</span> failures: the model generates a citation pointing to a real passage that doesn't actually support the claim attached to it — worse than no citation at all, because it looks verified while being fabricated.</p>
+    <p>These distinct failure modes demand two separate evaluation axes, and conflating them hides which half of the system is broken. <span class="term">Retrieval recall@k</span> measures whether the relevant chunk was retrieved in the top k results at all, independent of what the generator did with it — a standard information-retrieval metric, computed against a labeled set of (query, relevant-chunk) pairs. <span class="term">Answer faithfulness</span> measures whether the generated answer is actually supported by the retrieved chunks, independent of whether the right chunks were retrieved in the first place — typically judged by a separate model or human checking each claim in the answer against the cited source. A system can have perfect retrieval recall and still produce unfaithful answers (the model ignores good context), or terrible recall and accidentally-correct answers (the model's own parametric knowledge happens to be right this time, which is not something to rely on). Report both, always — a single end-to-end "was the answer correct" score can't tell you whether to fix the retriever or the generator.</p>
+    <pre><code>import numpy as np
+
+# Minimal RAG: embed query, cosine top-k over a small doc store,
+# assemble a grounded prompt with citations. Embeddings here are toy
+# bag-of-words vectors standing in for a real sentence encoder.
+
+DOCS = [
+    ("doc1", "Defective units may be returned within 30 days of delivery for a full refund."),
+    ("doc2", "Non-defective returns are accepted within 14 days and incur a 10% restocking fee."),
+    ("doc3", "Battery replacement is covered under warranty for 12 months from purchase."),
+]
+
+VOCAB = sorted({w for _, t in DOCS for w in t.lower().split()})
+
+def embed(text: str) -> np.ndarray:
+    words = text.lower().split()
+    return np.array([words.count(w) for w in VOCAB], dtype=float)
+
+def cosine(a: np.ndarray, b: np.ndarray) -> float:
+    denom = (np.linalg.norm(a) * np.linalg.norm(b)) or 1e-9
+    return float(np.dot(a, b) / denom)
+
+doc_vecs = [(doc_id, text, embed(text)) for doc_id, text in DOCS]
+
+def retrieve(query: str, k: int = 2):
+    q_vec = embed(query)
+    scored = [(doc_id, text, cosine(q_vec, v)) for doc_id, text, v in doc_vecs]
+    return sorted(scored, key=lambda x: x[2], reverse=True)[:k]
+
+def build_prompt(query: str, k: int = 2) -> str:
+    top = retrieve(query, k)
+    context = "\n".join(f"[{doc_id}] {text}" for doc_id, text, _ in top)
+    return (
+        f"Answer using only the passages below. Cite the doc id for each claim.\n\n"
+        f"{context}\n\nQuestion: {query}\nAnswer:"
+    )
+
+print(build_prompt("can I send back a broken unit for a refund"))
+# Answer using only the passages below. Cite the doc id for each claim.
+#
+# [doc1] Defective units may be returned within 30 days ...
+# [doc2] Non-defective returns are accepted within 14 days ...
+#
+# Question: can I send back a broken unit for a refund
+# Answer:
+</code></pre>
+    <p class="caption">This is the whole pipeline compressed to essentials: embed, score by cosine similarity, take top-k, assemble a prompt that forces citation — swap the toy bag-of-words <code>embed()</code> for a trained sentence encoder and the flat list for a real vector index, and the shape doesn't change.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>RAG's pipeline is chunk → embed → index → retrieve top-k → rerank → stuff into prompt → generate with citations</strong> — every stage reuses a mechanism taught earlier in this course, which is why this is the capstone lesson.</li>
+        <li><strong>RAG beats pure parametric generation on stale facts</strong> (re-index a changed doc instead of re-training a model) <strong>and beats pure keyword search on paraphrase</strong> (dense embeddings catch semantic matches BM25 misses) — hybrid retrieval (BM25 + dense) covers both approaches' blind spots, especially exact-match needs like SKUs and error codes.</li>
+        <li><strong>Chunk size is a trade-off, not a solved parameter</strong> — too large dilutes relevance and wastes prompt budget, too small strips away needed context; overlap between chunks prevents facts from being split at a boundary.</li>
+        <li><strong>Four distinct failure modes</strong> — retrieval misses, the model ignoring good context, contradictory chunks, and unfaithful citations — each need different fixes, and none of them is caught by a single end-to-end accuracy score.</li>
+        <li><strong>Evaluate retrieval recall@k and answer faithfulness separately</strong> — they diagnose different halves of the system, and a system can score well on one while failing the other.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 8 quiz</h2>
+    <p class="quiz-intro">8 questions spanning aspect-based sentiment, conversational architecture, and RAG — including one that combines dialogue systems with RAG grounding.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A review reads: "Support was rude, but they refunded me the same day." A document-level sentiment classifier labels this "neutral." What is the most accurate diagnosis of the problem?</p>
+      <ol class="choices" type="A">
+        <li>The classifier's training data was too small.</li>
+        <li>Averaging two contradictory clause-level sentiments into one label discards actionable information about which specific aspects (support manner vs. refund process) are failing or succeeding.</li>
+        <li>The word "neutral" should never appear in a sentiment model's output space.</li>
+        <li>The sentence needs to be translated before classification.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> This is the core ABSA motivation: document-level labels can be technically defensible (the clauses do roughly cancel) while being operationally useless, because they hide which aspect is the problem. A product team can't fix "neutral."</p>
+          <p>A (training data size) is a plausible-sounding but wrong diagnosis — the issue isn't model capacity, it's that the label space itself (one scalar per document) can't represent two independent facts. C is too strong; neutral is a legitimate label for genuinely neutral text, just not for mixed text. D is irrelevant to the scenario.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">A joint ABSA model that tags tokens with an extended BIO scheme (B-POS, I-POS, B-NEG, I-NEG, B-NEU, I-NEU, O) always outperforms a two-stage pipeline (separate aspect extractor + sentiment classifier) on every deployment metric that matters.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> Joint models typically win on F1 by avoiding error propagation, but a pipeline offers better interpretability — you can inspect the aspect-extraction stage independently from the sentiment stage, which matters when an analyst needs to audit or dispute a dashboard number. For a system with a human-review requirement, that inspectability can outweigh a few points of F1.</p>
+          <p>The tempting error is treating "generally higher F1 on benchmarks" as "always better for deployment" — deployment metrics include debuggability, latency, and auditability, not just accuracy.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">"The camera used to be great but this update ruined it" is hard for a sentiment model because the positive word ("great") and negative word ("ruined") both attach to the same aspect, and only <span class="blank">&nbsp;</span> context resolves which one describes the *current* state versus the past.</p>
+      <ol class="choices" type="A">
+        <li>tense/temporal</li>
+        <li>syntactic</li>
+        <li>phonetic</li>
+        <li>positional</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: A, tense/temporal.</strong> "Used to be" signals past state, "ruined it" signals a change to the present state — resolving this needs the model to track that the sentence describes a state transition, not two coexisting facts. This is a variant of the comparative-sentiment problem: sentiment relative to a reference point (here, a *time* reference rather than another product).</p>
+          <p>Phonetic context is irrelevant to text. Positional context (word order) matters but isn't the discriminating factor here — you could reorder the clauses and the temporal contrast would remain the hard part. Syntactic context is close but too general; the specific cue is the tense/temporal marker "used to."</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Which historical conversational-system lineage does a modern bank IVR menu ("say 'balance' or 'transfer'") most directly descend from?</p>
+      <ol class="choices" type="A">
+        <li>ELIZA's pattern-matching reflection</li>
+        <li>Retrieval-based open-domain chat</li>
+        <li>Task-oriented systems (intent + slot filling + fixed backend actions)</li>
+        <li>Pure LLM generation</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> An IVR menu maps a limited set of recognized utterances to a fixed set of backend actions with required arguments (account number, transfer amount) — exactly the intent-classification-plus-slot-filling structure, just with a much more constrained recognition surface (menu options) than a modern NLU-based system.</p>
+          <p>ELIZA reflected input back as questions with no backend action at all, which is the opposite of an IVR's job. Retrieval-based chat selects from prior conversation turns, not fixed actions. Pure LLM generation is the newest lineage and wasn't available when IVR systems were designed.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">This dialogue-state update is called on every turn of a multi-turn support conversation. A tester reports: "I told it my order number in turn 1, then in turn 3 I said 'actually make it express shipping' and it forgot my order number entirely." Find the bug.</p>
+      <pre><code>def parse_turn(utterance, state):
+    intent = classify_intent(utterance)
+    new_slots = fill_slots(utterance)
+    state = new_slots          # replace with this turn's slots
+    return {"intent": intent, "slots": state, "raw": utterance}</code></pre>
+      <ol class="choices" type="A">
+        <li><code>classify_intent</code> is being called before <code>fill_slots</code>.</li>
+        <li><code>state = new_slots</code> overwrites the entire dialogue state with only the current turn's slots instead of merging, so any slot not mentioned in the current utterance (like an order number from an earlier turn) is dropped.</li>
+        <li>The function is missing a call to a sentiment classifier.</li>
+        <li><code>utterance</code> should be lowercased before parsing.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Dialogue state has to accumulate across turns — the fix is <code>state = {**state, **new_slots}</code>, merging new slots into the existing frame so slots filled earlier persist unless explicitly overwritten. This is precisely the "as I already told you" failure named in Lesson 2: losing accumulated state is the most common source of multi-turn frustration.</p>
+          <p>The order of intent classification vs. slot filling (A) doesn't matter here since they're independent computations on the same utterance. Sentiment classification (C) is unrelated to this bug — it's about opinion mining, not dialogue state. Lowercasing (D) might matter for robustness elsewhere but doesn't explain the reported symptom of a dropped slot.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A support assistant is asked "what's the current firmware version for the X200?" The assistant, running as pure parametric generation with no retrieval, answers confidently with a version number that was correct eight months ago but is now two releases out of date. What is the most precise explanation for this failure?</p>
+      <ol class="choices" type="A">
+        <li>The model wasn't fine-tuned on enough firmware-related examples.</li>
+        <li>The model's parameters encode a frozen snapshot of its training data, so facts that changed after training (or were never in it) can't be reflected without external grounding.</li>
+        <li>The temperature setting was too high during generation.</li>
+        <li>The tokenizer failed to recognize "X200" as a product name.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> This is the structural argument from Lesson 2: no amount of fine-tuning quality fixes a fact that postdates the training cutoff, because the model has no mechanism to know time has passed. Only retrieval (Lesson 3) or re-training closes that gap, and re-training is far more expensive than re-indexing a document.</p>
+          <p>More fine-tuning examples (A) would help the model phrase firmware-version answers more fluently but can't inject information that didn't exist at training time. Temperature (C) affects randomness in word choice, not factual grounding — even temperature 0 would confidently produce the same stale answer. Tokenization (D) is unrelated; the model clearly recognized "X200" well enough to answer fluently, just with stale information.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">A customer asks "can I get money back if the thing I bought is broken" and a keyword-only BM25 retriever fails to surface the policy document phrased "defective units are eligible for a refund," because there's almost no lexical overlap between the query and the document. This is exactly the gap that <span class="blank">&nbsp;</span> retrieval closes, by matching on meaning rather than shared terms.</p>
+      <ol class="choices" type="A">
+        <li>dense (embedding-based)</li>
+        <li>inverted-index</li>
+        <li>alphabetical</li>
+        <li>rule-based</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: A, dense retrieval.</strong> Sentence embeddings place "money back" and "refund," or "broken" and "defective," near each other in vector space even with zero shared vocabulary, which is exactly what BM25's term-overlap scoring cannot do. This is why production RAG systems typically hybridize BM25 with dense retrieval rather than picking one.</p>
+          <p>"Inverted-index" (B) names BM25's underlying data structure, not a fix for its blind spot — it's the mechanism that's failing here, not the solution. C and D aren't real retrieval methods in this context.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Combining ideas from Lesson 2 and Lesson 3: a company builds a support assistant with an intent classifier, slot filling, and dialogue state tracking, and connects its "answer a factual question" intent to a RAG pipeline over the product docs. During evaluation, the assistant correctly classifies intent and fills slots on every turn, retrieval recall@5 is measured at 95%, yet the task success rate (user's actual goal achieved) is only 60%. Which explanation is most consistent with all three numbers?</p>
+      <ol class="choices" type="A">
+        <li>The intent classifier is broken and needs retraining.</li>
+        <li>Retrieval is finding the right documents nearly every time, and slots/intent are being extracted correctly, so the gap is most likely downstream — the generator ignoring retrieved context, an answer-faithfulness failure, or a dialogue-state issue across multiple turns that these single-turn/single-stage metrics don't capture.</li>
+        <li>The vector index needs to be rebuilt with more chunks.</li>
+        <li>BM25 should be removed from the hybrid retriever since dense retrieval is doing all the work.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> This question chains Lesson 2's turn-level-vs-task-success distinction with Lesson 3's retrieval-recall-vs-faithfulness distinction. High intent/slot accuracy rules out the dialogue-parsing stage; high recall@5 rules out retrieval as the bottleneck. What's left is exactly the gap those metrics are designed to expose: the generator may be ignoring good context, producing unfaithful answers, or losing task-relevant state across turns in a way no single per-turn or per-retrieval metric catches — which is why both lessons insist on measuring outcome-level task success separately from component-level accuracy.</p>
+          <p>A is contradicted by the stated 100%-consistent intent/slot performance. C is a plausible-sounding fix but nothing in the numbers points at retrieval — recall@5 is already high, so adding more chunks wouldn't address a generation-stage or state-tracking problem. D inverts the lesson: recall@5 being high doesn't tell you which retrieval channel (BM25 or dense) contributed the hits, and removing one arbitrarily could easily lower recall on exact-match queries like SKUs.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Text Processing (NLP) · Unit 8 of 8 — Course complete. Next: Course 4, Computer Vision — trading tokens and sequences for pixels and spatial structure.</p>
+</footer>
+</body>
+</html>

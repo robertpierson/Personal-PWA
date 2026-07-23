@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 6 · Named entity recognition and text classification — Text Processing (NLP)</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Text Processing (NLP) · Unit 6 of 8</p>
+  <h1>Named entity recognition and text classification</h1>
+  <p class="lede">Pulling drugs, dosages, diagnoses, and adverse events out of raw clinical notes, and routing those notes to the right specialty queue — where a missed entity or a misleading accuracy score has real clinical cost.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. Sequence labelling and tagging schemes</a></li>
+      <li><a href="#lesson-2">2. Models for NER: from CRF to BERT</a></li>
+      <li><a href="#lesson-3">3. Text classification and evaluation done right</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>Sequence labelling and tagging schemes</h2>
+    <p class="opening"><span class="term">Named entity recognition</span> (NER) is the task of finding spans of text that refer to a category of real-world thing — a drug, a dose, a disease, a symptom — and labelling each span with its type. The standard way to make this trainable is to turn it into <span class="term">sequence labelling</span>: a per-token classification problem, where every sub-word token in a note gets exactly one label from a fixed tag set, and a fine-tuned encoder (recall the token-classification head from Course 3 Unit 5) predicts that label independently for each position in the sequence.</p>
+    <p>Take a fragment of a real clinical note: <em>"Patient started on metformin 500 mg twice daily for type 2 diabetes; reports new-onset lactic acidosis."</em> A human annotator reading this sees four things worth tagging: a drug (<em>metformin</em>), a dosage (<em>500 mg twice daily</em>), a disease (<em>type 2 diabetes</em>), and — critically — an adverse event (<em>lactic acidosis</em>). The job of NER is to recover exactly those four spans, with the right boundaries and the right type, from nothing but the token sequence.</p>
+    <h3>BIO / IOB2: the workhorse scheme</h3>
+    <p>The dominant scheme for turning "these words form a span of type DRUG" into per-token labels is <span class="term">BIO</span> (also called IOB2). Every token gets one of three tag families: <code>B-TYPE</code> marks the first token of an entity of that type, <code>I-TYPE</code> marks every subsequent token inside the same entity, and <code>O</code> marks a token outside any entity. The dash-prefixed type (DRUG, DOSE, DISEASE, ADE for adverse drug event) is what makes BIO carry both boundary information and category information in one tag.</p>
+    <p>The rule that makes BIO strict is this: an <code>I-TYPE</code> tag is only valid immediately following a <code>B-TYPE</code> or another <code>I-TYPE</code> of the <em>same</em> type. A bare <code>I-DRUG</code> opening a sentence, or an <code>I-DISEASE</code> following an <code>I-DRUG</code>, is an illegal transition — there is no such thing as "continuing" an entity that never started, or continuing one entity as if it were another. This constraint sounds pedantic until Lesson 2, where it becomes the entire reason CRFs exist.</p>
+    <h3>BIOES / BILOU: sharper boundaries</h3>
+    <p>BIO conflates two different situations under <code>B-</code>: "this is a single-token entity" and "this is the first token of a multi-token entity" look identical from the tag alone unless the tagger also inspects the following token. <span class="term">BIOES</span> (or equivalently <span class="term">BILOU</span>: Begin, Inside, Last/End, Outside, Unit) splits this apart with two extra tags: <code>E-TYPE</code> (or <code>L-</code>) explicitly marks the last token of a multi-token entity, and <code>S-TYPE</code> (or <code>U-</code>) marks a single-token entity in its own right. For "500 mg twice daily" that's <code>B-DOSE I-DOSE I-DOSE E-DOSE</code>; for the single token "metformin" it's <code>S-DRUG</code> rather than BIO's plain <code>B-DRUG</code>.</p>
+    <p>The empirical payoff, documented across multiple NER benchmarks including clinical corpora like i2b2 and n2c2, is a measurable F1 bump — typically one to two points — because the model gets an explicit, learnable signal for "this span ends here," which matters enormously for dosage strings and multi-word disease names where getting the last token right (mg vs mg/day, "diabetes" vs "diabetes mellitus") is the difference between a usable extraction and a truncated one. The cost is a larger tag set (roughly double, since B/I/E/S all need per-type variants) and correspondingly more parameters in the final classification layer — usually a good trade for clinical text where boundary errors are expensive.</p>
+    <h3>Span-based tagging as an alternative</h3>
+    <p>An entirely different family skips per-token tags and instead scores <em>spans</em> directly: enumerate candidate start/end index pairs up to some maximum length, run each candidate span's pooled representation through a classifier that outputs an entity type or "not an entity," and keep the high-scoring, non-overlapping ones. This <span class="term">span-based</span> approach costs more compute (candidate spans grow quadratically with sentence length) but sidesteps BIO's biggest structural weakness, which brings us to the reason clinical text specifically forces this conversation.</p>
+    <h3>Nested and overlapping entities</h3>
+    <p>Consider the phrase <em>"stage II breast cancer."</em> A clinician reading this note wants two overlapping facts extracted: that "breast cancer" is a disease entity, and that "stage II breast cancer" (or "stage II" as a modifier of the disease span) is itself a clinically meaningful staging entity. Under flat BIO, every token gets exactly one tag — there is no way to say that "breast" and "cancer" belong simultaneously to a DISEASE span and to a larger STAGE_DISEASE span, because BIO's data structure is a single label sequence, not a set of possibly-overlapping intervals. You could tag <code>B-DISEASE I-DISEASE</code> over "breast cancer" and lose the staging relationship, or invent a composite tag like <code>B-STAGED_DISEASE</code> and lose the fact that "breast cancer" alone is also a valid, separately-useful disease mention elsewhere in the same note. Neither captures both truths at once.</p>
+    <p>This is exactly the case where flat BIO fails and where practical systems reach for one of two escapes: run two independent flat taggers (one for diseases, one for stage/qualifier spans) and merge their outputs downstream, or move to a genuinely nested-NER architecture — span-based models are the natural fit here, since nothing stops two overlapping spans from both scoring above threshold, or a stack of BIO layers, one per nesting depth. Nested entities are common enough in biomedical text — "stage II breast cancer," "family history of type 2 diabetes," "suspected drug-induced lactic acidosis" — that clinical NLP pipelines budget for this from the start rather than treating it as an edge case.</p>
+    <h3>The label-imbalance reality</h3>
+    <p>One more property of sequence labelling that shapes everything downstream: in a typical clinical note, the overwhelming majority of tokens are <code>O</code>. A discharge summary might run 400 tokens and contain six entities spanning 20 of them — a 95%-<code>O</code> label distribution is normal, not pathological. A model can hit high token-level accuracy by essentially always predicting <code>O</code>, which is precisely why accuracy is the wrong metric here (Lesson 3 develops this in full) and why training typically down-weights or reweights the <code>O</code> class, or evaluates strictly on entity-level F1 rather than raw per-token accuracy.</p>
+    <pre><code>sentence = ["Patient", "started", "on", "metformin", "500", "mg",
+            "twice", "daily", "for", "type", "2", "diabetes", "."]
+
+entities = [
+    (3, 3, "DRUG"),      # metformin
+    (4, 7, "DOSE"),      # 500 mg twice daily
+    (9, 11, "DISEASE"),  # type 2 diabetes
+]
+
+def to_bio(tokens, entities):
+    tags = ["O"] * len(tokens)
+    for start, end, etype in entities:
+        tags[start] = f"B-{etype}"
+        for i in range(start + 1, end + 1):
+            tags[i] = f"I-{etype}"
+    return tags
+
+def bio_to_spans(tags):
+    spans, cur = [], None
+    for i, tag in enumerate(tags):
+        if tag.startswith("B-"):
+            if cur: spans.append(cur)
+            cur = [i, i, tag[2:]]
+        elif tag.startswith("I-") and cur and tag[2:] == cur[2]:
+            cur[1] = i
+        else:
+            if cur: spans.append(cur); cur = None
+    if cur: spans.append(cur)
+    return spans
+
+tags = to_bio(sentence, entities)
+print(list(zip(sentence, tags)))
+print(bio_to_spans(tags))          # round-trips back to (3,3,'DRUG') etc.
+
+# What BIO CANNOT represent: overlapping spans on the same tokens.
+# "stage II breast cancer" needs BOTH:
+#   breast, cancer          -> DISEASE
+#   stage, II, breast, cancer -> STAGED_CONDITION
+# A single flat tag sequence can only assign one label per token,
+# so one of these two true spans must be dropped or merged.</code></pre>
+    <p class="caption">The round trip (tags → spans → tags) works cleanly for flat, non-overlapping entities; the commented-out case shows the exact structural limit BIO hits on nested clinical mentions.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>BIO/IOB2</strong> encodes both boundary (B vs I vs O) and type in one tag per token, with the hard constraint that I-TYPE must follow B-TYPE or I-TYPE of the same type.</li>
+        <li><strong>BIOES/BILOU</strong> adds explicit end (E/L) and single-token (S/U) tags, typically buying 1–2 F1 points by giving the model a direct signal for span boundaries — at the cost of a larger tag set.</li>
+        <li>Flat tagging schemes assign exactly one label per token, so they <strong>structurally cannot represent nested or overlapping entities</strong> like "stage II breast cancer" without dropping one of the two true spans.</li>
+        <li>Span-based tagging (score candidate start/end pairs directly) trades higher compute for the ability to keep overlapping spans, and is the standard escape hatch for nested biomedical entities.</li>
+        <li>Clinical notes are dominated by <code>O</code> tokens (often 90%+), which makes token-level accuracy a misleading training and evaluation signal from the very first lesson of this unit.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Models for NER: from CRF to BERT</h2>
+    <p class="opening">Before transformers, extracting drugs and diagnoses from clinical text was a decade-long arms race against one specific failure mode: models that scored each token independently would happily emit <code>O I-DRUG O</code> or <code>B-DISEASE I-DRUG</code> — tag sequences that are locally plausible token-by-token but globally nonsensical, because nothing enforced the BIO grammar from Lesson 1 across positions. The history of NER modelling is largely the history of fixing that one problem, with increasingly powerful feature extractors bolted on top.</p>
+    <h3>HMMs and the independence problem</h3>
+    <p>The earliest statistical approach to clinical NER used <span class="term">Hidden Markov Models</span> (HMMs): treat the tag sequence as a Markov chain, where each tag depends on the previous tag, and each observed token depends only on its own tag. HMMs got the sequential dependency right in principle but were weak feature extractors — they modelled <code>P(token | tag)</code> generatively, which made it awkward to use the rich, overlapping features that actually help in clinical text: capitalization ("Metformin" at a sentence start vs mid-sentence), suffix patterns (drug names ending in <em>-mab</em>, <em>-nib</em>, <em>-statin</em>), and neighboring tokens like "mg" or "daily" that signal a dosage is nearby. That weakness pushed the field toward discriminative models.</p>
+    <h3>Linear-chain CRFs: modelling transitions explicitly</h3>
+    <p>The <span class="term">linear-chain Conditional Random Field</span> (CRF), dominant from roughly 2005 through the mid-2010s, fixed the independence problem directly. Instead of predicting each tag from local features alone, a CRF scores an <em>entire</em> tag sequence <code>y</code> given the input <code>x</code> using two kinds of learned scores: <span class="term">emission scores</span> (how well tag <code>y_i</code> fits token <code>x_i</code>, from hand-engineered or embedding features) and <span class="term">transition scores</span> (how well tag <code>y_i</code> follows tag <code>y_{i-1}</code>, learned as a small matrix over the tag set). Critically, the transition matrix can learn that the score for "<code>I-DRUG</code> follows <code>O</code>" should be effectively <code>-∞</code>, ruling out illegal BIO sequences by construction rather than hoping the model learns to avoid them.</p>
+    <p class="math">score(x, y) = Σᵢ emission(yᵢ, xᵢ) + Σᵢ transition(yᵢ₋₁, yᵢ)</p>
+    <p>Finding the highest-scoring legal tag sequence out of the exponentially many possible sequences is done with <span class="term">Viterbi decoding</span>, a dynamic-programming algorithm that reuses partial best-paths instead of enumerating every sequence. This is the same core idea as Viterbi decoding in speech recognition and in the forward-backward algorithm for HMMs, adapted here to maximize a discriminative score rather than a generative likelihood.</p>
+    <h3>BiLSTM-CRF: 2015–2018's dominant architecture</h3>
+    <p>Feature-engineered CRFs required a human to hand-craft the suffix rules, capitalization patterns, and dictionary-lookup features that fed the emission scores. The <span class="term">BiLSTM-CRF</span> architecture (Lample et al. 2016, Huang et al. 2015) removed that manual step: a bidirectional LSTM reads the token sequence (often over word embeddings plus a character-level CNN or LSTM to capture morphology — useful for drug suffixes and dosage-unit tokens like "mg" or "mcg"), and its hidden states become the emission scores fed into the same CRF layer with its learned transition matrix. This combination — neural feature extraction, symbolic-style transition constraints — dominated clinical and biomedical NER benchmarks (i2b2, n2c2, BC5CDR) from roughly 2015 to 2018 and is still a reasonable baseline to cite today.</p>
+    <h3>BERT token classification, with or without a CRF</h3>
+    <p>Course 3 Unit 5 covered fine-tuning BERT for token classification: a linear head over each sub-word's final hidden state, trained with per-token cross-entropy. That setup is exactly the "independent per-token softmax" problem this lesson opened with — nothing stops it from predicting <code>I-DRUG</code> at the start of a sentence. In practice, BERT's contextual representations are so much stronger than an LSTM's that the model rarely makes egregious illegal-transition errors — it has implicitly learned the BIO grammar from data — and plain BERT token classification now matches or beats BiLSTM-CRF on most clinical NER benchmarks without an explicit transition matrix at all.</p>
+    <p>Adding a CRF layer on top of BERT (<span class="term">BERT-CRF</span>) still buys a small, consistent F1 improvement in adverse-event and drug-dosage extraction tasks specifically, because these entities are short, formulaic, and boundary-sensitive ("500 mg" vs "500 mg twice daily"), and a hard transition constraint squeezes out the last few illegal-sequence errors a purely local softmax occasionally still makes. Whether the added training complexity — the CRF layer needs its own forward-backward pass during training and Viterbi at inference, both slower than a plain softmax — is worth a half-point to one-point F1 gain is a real engineering trade-off, not an automatic yes.</p>
+    <h3>Constrained decoding: the lightweight alternative</h3>
+    <p>A cheaper middle ground is <span class="term">constrained decoding</span>: keep the plain per-token softmax from BERT, but at inference time mask out illegal transitions directly in the decoding loop — if the previous tag was <code>O</code>, zero out the probability of every <code>I-*</code> tag before taking the argmax (or before a lightweight beam search). This gets the "no illegal sequences" guarantee of a CRF's transition matrix without learning a transition matrix at all — the constraint is a fixed rule derived from the tagging scheme's grammar (Lesson 1's B/I/O rules), not a learned parameter. It adds no training cost and only a few lines of post-processing, which is why many production clinical-NLP pipelines use constrained decoding over a plain BERT tagger instead of paying for a full CRF layer.</p>
+    <h3>Choosing between the four in practice</h3>
+    <p>For a clinical NLP team scoping a new extraction pipeline today, the decision usually comes down to how much labelled data exists and how boundary-sensitive the entities are. A BiLSTM-CRF is rarely the first choice from scratch anymore — it needs more labelled examples to reach the same F1 a fine-tuned BERT model hits with a fraction of the data, because BERT arrives pretrained on enormous general and (with models like BioBERT or ClinicalBERT) biomedical-domain text, while a BiLSTM starts from either random weights or generic word embeddings. Where a BiLSTM-CRF still earns its place is in latency-constrained settings — an LSTM forward pass is cheaper than a transformer's, which matters if a hospital system needs to tag thousands of notes per minute on modest hardware. For dosage and adverse-event extraction specifically, where getting the exact right-hand boundary of a span wrong turns "500 mg twice daily" into a silently truncated and clinically wrong fact, teams lean toward BERT-CRF or at minimum constrained decoding rather than trusting a plain softmax to have fully internalized the BIO grammar on every rare or unusual phrasing. The safest default for a new project without a strong latency constraint is plain fine-tuned BERT token classification with constrained decoding bolted on at inference — nearly all of a CRF's benefit, none of its training overhead.</p>
+    <pre><code>import numpy as np
+
+tags = ["O", "B-DRUG", "I-DRUG", "B-DOSE"]
+n = len(tags)
+
+# emissions[t][k] = model's raw score for tag k at position t
+emissions = np.array([
+    [3.0, 0.5, -1.0, 0.2],   # "Patient"
+    [0.1, 2.8,  1.0, 0.3],   # "metformin"
+    [-2.0, -1.0, 3.5, 0.0],  # continuation piece (sub-word)
+])
+
+# transitions[i][j] = learned score for moving from tag i to tag j
+transitions = np.array([
+    [ 1.0, 0.8, -5.0, 0.6],   # from O
+    [-5.0, 0.2,  2.5, 0.4],   # from B-DRUG
+    [-5.0, 0.1,  1.8, 0.3],   # from I-DRUG (I-DRUG->I-DRUG stays high)
+    [ 0.5, 0.4, -5.0, 0.2],   # from B-DOSE
+])
+# note: transitions into I-DRUG from O/B-DOSE are -5.0 -- effectively illegal
+
+def viterbi(emissions, transitions):
+    T, K = emissions.shape
+    dp = np.full((T, K), -np.inf)
+    back = np.zeros((T, K), dtype=int)
+    dp[0] = emissions[0]                       # no incoming transition at t=0
+    for t in range(1, T):
+        for k in range(K):
+            scores = dp[t-1] + transitions[:, k] + emissions[t, k]
+            back[t, k] = np.argmax(scores)
+            dp[t, k] = scores[back[t, k]]
+    path = [np.argmax(dp[-1])]
+    for t in range(T-1, 0, -1):
+        path.append(back[t, path[-1]])
+    path.reverse()
+    return [tags[i] for i in path], dp[-1].max()
+
+best_path, score = viterbi(emissions, transitions)
+print(best_path)   # ['O', 'B-DRUG', 'I-DRUG'] -- legal, not ['O','B-DRUG','B-DOSE']</code></pre>
+    <p class="caption">The heavily-penalized transitions (-5.0) into <code>I-DRUG</code> from anything but <code>B-DRUG</code>/<code>I-DRUG</code> are exactly the CRF's learned analogue of the BIO grammar rule; Viterbi's dynamic program finds the best legal path without ever enumerating all 4³ sequences.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li>Independent per-token softmax (plain HMM emissions or a naive classification head) can emit illegal BIO sequences like an <code>I-DRUG</code> with no preceding <code>B-DRUG</code> — nothing in the model architecture forbids it.</li>
+        <li>A <strong>linear-chain CRF</strong> fixes this by scoring whole tag sequences with emission + transition scores, and <strong>Viterbi decoding</strong> finds the best legal sequence in polynomial time via dynamic programming.</li>
+        <li><strong>BiLSTM-CRF</strong> (2015–2018) paired neural feature extraction with a CRF's transition constraints and was the dominant clinical NER architecture before BERT.</li>
+        <li>Plain fine-tuned BERT token classification now matches or beats BiLSTM-CRF on most benchmarks because its contextual representations implicitly learn the BIO grammar; <strong>BERT-CRF</strong> still adds a small, real gain on boundary-sensitive entities like dosages.</li>
+        <li><strong>Constrained decoding</strong> — masking illegal transitions at inference time without learning a transition matrix — gets most of a CRF's benefit at a fraction of the training cost.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Text classification and evaluation done right</h2>
+    <p class="opening">A team builds a classifier to flag clinical notes that mention an adverse drug event, reports 96% accuracy on the held-out test set, and ships it. Three months later a pharmacovigilance auditor discovers the model missed a documented case of drug-induced lactic acidosis that led to a hospital readmission — the note was sitting in the "no adverse event" bucket the entire time. Nobody lied about the 96%; the number was just measuring the wrong thing. If 96% of clinical notes in the dataset mention no adverse event at all, a classifier that outputs "no adverse event" unconditionally, never looking at the text, scores 96% accuracy and catches zero real cases. This is the single most common way a text classification project fails in a clinical setting, and it is entirely avoidable once you stop trusting accuracy on imbalanced data.</p>
+    <h3>Multi-class vs multi-label</h3>
+    <p>Before evaluation, get the problem framing right. <span class="term">Multi-class</span> classification assumes each note gets exactly one label from a set — useful for something like "which single specialty authored this note" when that's genuinely mutually exclusive. But a real clinical note routed to a triage queue is often legitimately about more than one thing: a note describing a diabetic patient with new cardiac symptoms is both <em>endocrinology</em> and <em>cardiology</em> relevant, and forcing a single label throws away information the downstream routing system needs. That's a <span class="term">multi-label</span> problem — each note gets a subset of labels, scored with independent sigmoid outputs per label rather than one softmax over all labels, and evaluated per-label rather than assuming labels compete with each other.</p>
+    <h3>The class-imbalance trap</h3>
+    <p>Adverse-event detection, rare-disease flagging, and most safety-relevant clinical classification tasks share the same shape: the positive class is rare (often single-digit percentages) and the negative class dominates. Accuracy weights both classes' errors identically per example, which means it is dominated by whichever class has more examples — exactly backwards from what a safety-critical task needs, since a missed adverse event (a false negative) is far costlier than a false alarm (a false positive) that a human reviewer dismisses in ten seconds. Any time someone reports a bare accuracy number on a clinical classification task without stating the class balance, treat the number as meaningless until you can see the confusion matrix.</p>
+    <h3>Precision, recall, F1, and the safety-critical trade</h3>
+    <p><span class="term">Precision</span> is, of the notes the model flagged as containing an adverse event, what fraction actually did — it answers "when the model raises an alarm, can I trust it?" <span class="term">Recall</span> is, of the notes that actually contained an adverse event, what fraction the model caught — it answers "of the real problems out there, how many did I miss?" <span class="term">F1</span> is their harmonic mean, a single number balancing both, useful for model comparison but not for setting the actual operating point of a deployed system.</p>
+    <p class="math">precision = TP / (TP + FP)     recall = TP / (TP + FN)     F1 = 2 · precision · recall / (precision + recall)</p>
+    <p>For adverse-event detection specifically, the clinical stakes push hard toward prioritizing recall: missing a true adverse event (false negative) can mean a preventable readmission or worse, while a false positive just costs a reviewer a few minutes reading a flagged note that turns out benign. Most deployed clinical-safety classifiers are tuned to a target recall (say, 95%) and accept whatever precision comes with it, rather than optimizing F1 in the abstract — this is a deliberate business/clinical decision about which error type is tolerable, not a purely statistical one.</p>
+    <h3>Micro, macro, and weighted averaging</h3>
+    <p>When there are multiple classes or labels — say, seven clinical specialties for note routing — a single precision/recall/F1 number requires choosing how to average across classes, and the three standard choices tell different stories. <span class="term">Micro-averaging</span> pools every true positive, false positive, and false negative across all classes before computing one precision/recall/F1 — this is dominated by frequent classes, so if 60% of notes are internal-medicine, micro-F1 mostly reflects performance on internal medicine. <span class="term">Macro-averaging</span> computes precision/recall/F1 per class independently, then takes the unweighted mean across classes — every class counts equally regardless of frequency, so a rare specialty like <em>rheumatology</em> influences the score exactly as much as the dominant one, which is usually the honest choice when rare classes matter clinically (a rare-disease flag that the model handles poorly shouldn't be masked by strong performance on common categories). <span class="term">Weighted-averaging</span> is macro's per-class scores weighted by each class's support (how many true examples it has) — a middle ground that reflects real-world class frequency without letting one dominant class fully define the number.</p>
+    <table class="tbl">
+      <tr><th>Averaging</th><th>How it's computed</th><th>When it's the honest choice</th></tr>
+      <tr><td>Micro</td><td>Pool TP/FP/FN across all classes, then one P/R/F1</td><td>Overall system throughput matters more than per-class fairness</td></tr>
+      <tr><td>Macro</td><td>Per-class P/R/F1, then unweighted mean</td><td>Rare classes (rare diseases, rare adverse events) must not be masked by common ones</td></tr>
+      <tr><td>Weighted</td><td>Per-class P/R/F1, weighted by class support</td><td>You want a single number reflecting true class frequency, not an equal vote per class</td></tr>
+    </table>
+    <h3>Entity-level vs token-level F1 for NER</h3>
+    <p>Lesson 1 and 2's NER models need their own evaluation subtlety: <span class="term">token-level F1</span> scores every individual token's tag prediction, while <span class="term">entity-level F1</span> (the standard for NER leaderboards, following the CoNLL evaluation convention) counts a predicted entity as correct only if its full span boundaries and type exactly match the gold entity — get "500 mg twice daily" tagged as just "500 mg" and entity-level scoring counts that as a complete miss (a false negative for the true span plus a false positive for the wrong one) even though most of the tokens were tagged correctly. Some evaluation setups relax this to <span class="term">partial-match</span> scoring, giving partial credit for overlapping-but-not-identical spans — useful diagnostically, but the strict exact-match entity-level F1 remains the standard reported number because a clinician reading "500 mg" when the actual dose was "500 mg twice daily" has been given a genuinely wrong, actionable fact, not a nearly-right one.</p>
+    <h3>Threshold tuning</h3>
+    <p>A classifier's sigmoid or softmax output is a probability, not a decision — the 0.5 default cutoff is an arbitrary convention, not a law. Sliding that decision threshold trades precision against recall along a single trained model's precision-recall curve: lowering the threshold for the adverse-event class catches more true cases (higher recall) at the cost of more false alarms (lower precision). Given a clinical recall target — "we must catch at least 95% of true adverse-event mentions" — the right workflow is to pick the lowest threshold that still hits that recall on a validation set, then report the precision that comes with it, rather than accepting whatever the default threshold happens to produce.</p>
+    <pre><code>import numpy as np
+
+# Confusion matrix for 3 note-routing classes on 500 imbalanced notes.
+# Rows = true label, columns = predicted label.
+classes = ["cardiology", "endocrinology", "rheumatology"]
+cm = np.array([
+    [300,  15,   5],   # true cardiology   (320 total)
+    [ 10, 140,   5],   # true endocrinology (155 total)
+    [  2,   3,  20],   # true rheumatology  (25 total, the rare class)
+])
+
+def per_class_prf(cm):
+    n = len(cm)
+    out = []
+    for i in range(n):
+        tp = cm[i, i]
+        fp = cm[:, i].sum() - tp
+        fn = cm[i, :].sum() - tp
+        p = tp / (tp + fp) if (tp + fp) else 0.0
+        r = tp / (tp + fn) if (tp + fn) else 0.0
+        f1 = 2 * p * r / (p + r) if (p + r) else 0.0
+        out.append((p, r, f1, cm[i, :].sum()))
+    return out
+
+scores = per_class_prf(cm)
+for cls, (p, r, f1, support) in zip(classes, scores):
+    print(f"{cls:14s} P={p:.2f} R={r:.2f} F1={f1:.2f} (n={support})")
+
+macro_f1 = np.mean([s[2] for s in scores])
+weighted_f1 = np.sum([s[2] * s[3] for s in scores]) / cm.sum()
+print(f"macro-F1={macro_f1:.3f}  weighted-F1={weighted_f1:.3f}")
+# rheumatology's weak F1 (~0.74) drags macro-F1 down noticeably;
+# weighted-F1 barely moves because rheumatology is only 25 of 500 notes.</code></pre>
+    <p class="caption">Macro-F1 exposes the rare rheumatology class's weaker performance; weighted-F1 nearly hides it because the class has so little support — exactly the gap that makes averaging choice a clinical, not just statistical, decision.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li>High accuracy on an imbalanced clinical dataset is easy to achieve and easy to be meaningless — always check class balance before trusting an accuracy number.</li>
+        <li>A note can belong to multiple specialties at once, making note-routing a <strong>multi-label</strong> problem (independent per-label sigmoids), not a multi-class one forcing a single label.</li>
+        <li><strong>Recall</strong> should usually be prioritized over precision for adverse-event detection, since a missed event is far costlier than a false alarm a reviewer dismisses quickly.</li>
+        <li><strong>Macro-averaging</strong> is the honest choice when rare classes (rare diseases, rare adverse events) must not be masked by common ones; <strong>micro</strong> and <strong>weighted</strong> averaging both let frequent classes dominate the number to varying degrees.</li>
+        <li><strong>Entity-level F1</strong> for NER requires an exact span-and-type match — a partially correct dosage span counts as a full miss, matching the real clinical cost of a truncated fact.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 6 quiz</h2>
+    <p class="quiz-intro">Seven questions covering tagging schemes, CRF/Viterbi mechanics, and classification evaluation — mixing multiple choice, true/false, fill-in-the-blank, a bug fix, and a code-completion.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A clinical note contains the phrase "stage II breast cancer," and your annotation guidelines want both "breast cancer" tagged as DISEASE and "stage II breast cancer" tagged as a separate STAGED_CONDITION span. Which statement about representing this with flat BIO tagging is correct?</p>
+      <ol class="choices" type="A">
+        <li>Flat BIO handles this fine as long as you use BIOES instead of plain BIO.</li>
+        <li>Flat BIO cannot represent both spans simultaneously, because each token gets exactly one tag; you'd need to drop one span, merge them into a composite tag, or move to span-based/nested tagging.</li>
+        <li>Flat BIO handles this by tagging "II" as O and the rest as normal DISEASE tokens.</li>
+        <li>This is only a problem for BILOU, not for BIO/IOB2.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> BIO's data structure is a single label per token, so two overlapping spans covering the same tokens with different types cannot both be represented without losing information about one of them.</p>
+          <p>Option A is wrong because BIOES also assigns exactly one tag per token — adding E/S tags sharpens boundaries within a single flat sequence but does nothing to enable overlapping spans. This is a structural limit of flat tagging in general, not something a richer tag vocabulary fixes.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">In a linear-chain CRF, the algorithm used to find the highest-scoring legal tag sequence out of exponentially many candidates, using dynamic programming over emission and transition scores, is called <span class="blank">&nbsp;</span> decoding.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: Viterbi.</strong> It builds up the best partial-path score for each tag at each position, reusing previous positions' best scores rather than re-scoring every possible full sequence from scratch.</p>
+          <p>A tempting but wrong answer here is "beam search" — beam search is an approximate, general-purpose search heuristic used in many sequence-generation settings, but Viterbi specifically is the exact dynamic-programming solution for chain-structured scoring like a CRF's, and it's guaranteed optimal, not approximate.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">True / false</span></p>
+      <p class="q-stem">A model that classifies clinical notes for the presence of a rare adverse drug event reports 97% accuracy on a test set where only 3% of notes contain a true adverse event. This accuracy figure, by itself, is strong evidence the model is clinically useful.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: False.</strong> A model that always predicts "no adverse event" would also score 97% accuracy on this data while catching zero real cases — accuracy on an imbalanced dataset is dominated by the majority class and says nothing about recall on the rare, clinically important class.</p>
+          <p>The fix is to report recall (and precision) on the adverse-event class specifically, or at minimum a confusion matrix, rather than a single pooled accuracy number.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">A colleague wrote this BIO-to-span converter for extracting drug/dose/disease entities from tagged clinical tokens. It works on simple cases but silently merges two adjacent, different-type entities that happen to sit next to each other with no O token between them (e.g., a DRUG entity immediately followed by a DOSE entity, tagged <code>B-DRUG I-DOSE</code> because the annotator started a new entity without emitting a fresh B- tag). What is the root-cause bug, and how should it be fixed?</p>
+      <pre><code>def bio_to_spans(tags):
+    spans, cur = [], None
+    for i, tag in enumerate(tags):
+        if tag.startswith("B-"):
+            if cur: spans.append(cur)
+            cur = [i, i, tag[2:]]
+        elif tag.startswith("I-"):
+            # BUG: extends the current span whenever it sees ANY I- tag,
+            # even if its type doesn't match the current span's type
+            if cur:
+                cur[1] = i
+        else:
+            if cur: spans.append(cur); cur = None
+    if cur: spans.append(cur)
+    return spans</code></pre>
+      <ol class="choices" type="A">
+        <li>The bug is in the <code>B-</code> branch — it should never close the current span, so remove the <code>if cur: spans.append(cur)</code> line.</li>
+        <li>The bug is in the <code>I-</code> branch — it extends <code>cur</code> for any <code>I-</code> tag without checking that <code>tag[2:]</code> matches <code>cur[2]</code> (the current span's type); an <code>I-</code> tag of a different type than the open span is illegal per the BIO grammar and should close the current span instead of extending it.</li>
+        <li>The bug is that the function should track spans in a dictionary instead of a list.</li>
+        <li>There is no bug; this is expected BIO behavior for adjacent entities.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Per the BIO grammar from Lesson 1, an <code>I-TYPE</code> tag is only a legal continuation of a <code>B-TYPE</code>/<code>I-TYPE</code> of the <em>same</em> type. The buggy code extends <code>cur</code>'s span (and silently keeps its original type) whenever it sees any <code>I-</code> tag, so a malformed or model-predicted <code>I-DOSE</code> right after an open DRUG span gets absorbed into the DRUG entity instead of being treated as a boundary violation. The fix adds a type check: <code>elif tag.startswith("I-") and cur and tag[2:] == cur[2]: cur[1] = i</code>, else treat it as closing the current span (and optionally flag the illegal transition).</p>
+          <p>Option A is wrong because closing the previous span on a new <code>B-</code> is correct BIO behavior, not the bug. Option C doesn't address the actual defect — a dict wouldn't stop the type-mismatch merge. Option D is wrong because this exact scenario (a stray or mispredicted <code>I-</code> tag of a different type) is a known, documented failure mode of naive BIO decoders, especially with per-token model predictions that haven't learned the grammar perfectly.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">Your team is choosing an averaging method for reporting F1 across seven note-routing specialty classes. Rheumatology makes up only 2% of notes, but a missed rheumatology-relevant note has serious clinical consequences and your team wants the reported metric to reflect the model's weakness on that class rather than let it hide behind strong performance on common specialties like internal medicine. Which averaging method should you report?</p>
+      <ol class="choices" type="A">
+        <li>Micro-averaged F1, because it reflects overall system throughput.</li>
+        <li>Weighted-averaged F1, because it accounts for how rare rheumatology notes actually are.</li>
+        <li>Macro-averaged F1, because it weights every class equally regardless of frequency, so rheumatology's score isn't diluted by common classes.</li>
+        <li>Accuracy, since it's the simplest metric to communicate to stakeholders.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C.</strong> Macro-averaging computes each class's F1 independently and takes an unweighted mean, so rheumatology's F1 counts exactly as much as internal medicine's, surfacing a weak rare class instead of letting it get outvoted.</p>
+          <p>Weighted averaging (B) would weight rheumatology's contribution by its 2% support, meaning a rheumatology failure barely moves the number — the opposite of what the team wants. Micro-averaging (A) pools raw counts across classes, so it's dominated by whichever class has the most notes. Accuracy (D) doesn't even decompose per class and inherits the same imbalance problems covered in Lesson 3.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">For a note-routing system where a single clinical note can genuinely belong to more than one specialty at the same time (e.g., both cardiology and endocrinology), the correct problem framing is <span class="blank">&nbsp;</span> classification, scored with independent per-label sigmoid outputs rather than one softmax over all labels.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: multi-label.</strong> Multi-label classification allows each example to receive any subset of the label set, which is exactly the case when a note can be relevant to multiple specialties simultaneously.</p>
+          <p>Multi-class classification would be the wrong framing here — it assumes labels are mutually exclusive (each note gets exactly one), which would force the router to arbitrarily pick a single specialty and throw away a real second signal that a downstream queue needs.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">Given the emission and transition score arrays below (same convention as Lesson 2's Viterbi walkthrough: <code>transitions[i][j]</code> is the score of moving from tag <code>i</code> to tag <code>j</code>), fill in the missing line inside the Viterbi recurrence so that <code>dp[t, k]</code> correctly holds the best cumulative score of any legal path ending in tag <code>k</code> at position <code>t</code>.</p>
+      <pre><code>for t in range(1, T):
+    for k in range(K):
+        scores = ______________________________
+        back[t, k] = np.argmax(scores)
+        dp[t, k] = scores[back[t, k]]</code></pre>
+      <ol class="choices" type="A">
+        <li><code>emissions[t, k] + transitions[:, k]</code></li>
+        <li><code>dp[t-1] + transitions[:, k] + emissions[t, k]</code></li>
+        <li><code>dp[t-1] * transitions[:, k]</code></li>
+        <li><code>emissions[t, k]</code> alone, since transitions only matter at decode time for tie-breaking</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Each candidate score is the best cumulative score of a legal path ending in every possible previous tag (<code>dp[t-1]</code>, a vector over all previous tags) plus the transition score into tag <code>k</code> from each of those previous tags (<code>transitions[:, k]</code>), plus the flat emission score for tag <code>k</code> at position <code>t</code> (<code>emissions[t, k]</code>, a scalar broadcast over the vector). Taking the argmax over that combined vector picks the best previous tag, and taking the max gives <code>dp[t, k]</code>.</p>
+          <p>Option A drops <code>dp[t-1]</code> entirely, so it ignores everything about the path so far and only optimizes the current step. Option C multiplies instead of adding, which is the generative-probability convention (a CRF works in additive log-space, matching the earlier Course's log-likelihood framing), and would give the wrong scale as scores compound across a sequence. Option D removes transitions altogether, which is precisely the "independent per-token softmax" failure mode this lesson opened with — dropping transitions is what lets illegal BIO sequences through in the first place.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Text Processing (NLP) · Unit 6 of 8 — Next: Unit 7 turns from classification and extraction to generation, covering machine translation and summarization.</p>
+</footer>
+</body>
+</html>

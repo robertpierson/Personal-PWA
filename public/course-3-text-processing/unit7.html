@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 7 · Sequence-to-sequence: machine translation and summarization — Text Processing (NLP)</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Text Processing (NLP) · Unit 7 of 8</p>
+  <h1>Sequence-to-sequence: machine translation and summarization</h1>
+  <p class="lede">Encoder-decoder models turn one sequence into another — a Haitian Creole field report into English, a stack of incident reports into a one-paragraph briefing. This unit covers how they decode, how (and how badly) we measure whether they got it right, and what breaks when the language is low-resource and the stakes are a rescue team's next move.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. The encoder-decoder framework and decoding</a></li>
+      <li><a href="#lesson-2">2. Evaluation and the faithfulness problem</a></li>
+      <li><a href="#lesson-3">3. Low-resource and production realities</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>The encoder-decoder framework and decoding</h2>
+    <p class="opening">At 4:12 a.m., six hours after an earthquake, a community health worker in Léogâne sends a WhatsApp voice note in Haitian Creole: "gen moun anba bilding lan bò mache a, nou bezwen èd kounye a" — there are people under the building near the market, we need help now. A translation pipeline turns this into English for the dispatch team deciding where to send a search-and-rescue crew. If the model outputs "there are people near a building, we need help" — fluent, grammatical, and missing the single word <em>anba</em>, "under" — the sentence still reads as a complete, urgent request. Nothing about it looks broken. A crew gets sent to stand near a building instead of dig under one. This is the central hazard of sequence-to-sequence generation: fluency is cheap to fake and faithfulness is not, and the two can diverge without any visible symptom in the output.</p>
+    <p>The models behind both translation and summarization share one architecture: the <span class="term">encoder-decoder</span> framework. An encoder reads the entire source sequence — the Creole sentence, or a whole incident report — and produces a set of contextualized vector representations, one per input token, that capture what each token means given everything around it. A decoder then generates the target sequence one token at a time, conditioning at each step on two things: everything it has generated so far, and the full set of encoder representations. Translation and summarization are the same computational shape wearing different clothes — one maps source-language tokens to target-language tokens, the other maps a long document's tokens to a short digest's tokens. Everything in this lesson about decoding mechanics applies equally to both.</p>
+    <h3>Cross-attention: how the decoder looks back at the source</h3>
+    <p>The mechanism that binds decoder output to encoder input is <span class="term">cross-attention</span>, introduced in Course 2 Unit 2 as part of the transformer block. At every decoder step, the current decoder state issues a query against the full set of encoder key and value vectors, producing a weighted mixture over all source positions — not just the ones near the current point in decoding, all of them, every step. This is the literal mechanism that lets the decoder, while generating the English word "under," reach back and place high attention weight on the encoder representation of <em>anba</em>. When cross-attention gets this right, the fact travels intact. When it doesn't — because <em>anba</em> is a low-frequency subword in a model that saw little Creole during pretraining, or because two content words compete for the same attention budget — the fact quietly disappears, and nothing downstream flags it, because the decoder is still producing valid, fluent English about a building and a market.</p>
+    <h3>Autoregressive decoding and the greedy trap</h3>
+    <p>Generation is <span class="term">autoregressive</span>: the decoder produces one token, appends it to its own output, and feeds that extended sequence back in to produce the next token, repeating until it emits an end-of-sequence marker. At inference time there is no gold answer to lean on — only the model's own prior guesses. The simplest decoding strategy, <span class="term">greedy decoding</span>, picks the single highest-probability token at every step and never looks back. It's fast and it's often fine, but it is myopic: a locally optimal choice can lock in a globally wrong sentence. Suppose the model must decide early whether "moun" (people) is singular or plural before it has processed enough of the sentence to know for certain; greedy decoding commits to "a person" instead of "people," and every subsequent token has to agree with that wrong commitment, because the decoder conditions on its own past output. There is no mechanism for the model to say "actually, back up."</p>
+    <h3>Beam search and the length-normalization fix</h3>
+    <p><span class="term">Beam search</span> hedges against this by tracking several candidate sequences at once instead of one. At each step, every one of the <code>k</code> current hypotheses (the beam width) is expanded with every possible next token, all resulting sequences are scored by cumulative log-probability, and only the top <code>k</code> survive into the next step. This keeps a "people" hypothesis and an "a person" hypothesis both alive long enough for later context — a plural verb ending, a plural pronoun — to settle the question correctly, rather than betting everything on the first guess.</p>
+    <p>Beam search has a well-known defect: raw cumulative log-probability is a sum of negative numbers (every token probability is less than 1, so its log is negative), so every additional token makes the score more negative. Left uncorrected, beam search systematically favors shorter sequences, because stopping early avoids accumulating more negative terms — even when the reference translation needs more words. For a dispatch translation, this is not a cosmetic quirk: a beam search that has learned to prefer short outputs can end the sentence right after "there are people near a building," having found that continuing on to add "under it, we need help now" scores worse purely because it is longer, never mind that it's true. The fix is <span class="term">length normalization</span>: divide the cumulative log-probability by the sequence length raised to a tunable exponent, <code>length^alpha</code>, with alpha typically around 0.6–0.7 (the scheme popularized by Google's neural machine translation system, Wu et al. 2016). This makes the score roughly length-invariant, so beam search stops comparing "short and probable" against "long and probable" unfairly and instead compares hypotheses on translation quality.</p>
+    <h3>Exposure bias: the training/inference mismatch</h3>
+    <p>During training, the decoder is fed the true, gold-standard prefix of the target sentence at every step — a technique called <span class="term">teacher forcing</span> — so it always conditions on correct history, even while learning to predict the next token. At inference, there is no gold prefix; the decoder conditions on its own, possibly wrong, previous outputs. This mismatch is called <span class="term">exposure bias</span>: the model is never exposed, during training, to the situation of recovering from its own mistake, because training never lets it make one. In practice this means errors compound. If the decoder mistranslates a place name early in a sentence, it hasn't just gotten one word wrong — every later token is now conditioning on an incorrect history, and the decoder, having no training signal for "recover from an inconsistent prefix," tends to generate a fluent continuation that stays consistent with its own error rather than corrects it. For high-stakes text this is dangerous precisely because the failure mode is self-reinforcing fluency: the sentence keeps making internal sense while drifting further from the source.</p>
+    <h3>Coverage: catching under- and over-translation</h3>
+    <p>A related but distinct failure is <span class="term">coverage</span>: across all decoding steps, the attention distribution should collectively touch every source token roughly once. <span class="term">Under-translation</span> happens when some source content — a clause, a location, a number — never receives meaningful attention weight at any decoding step and simply never makes it into the output, exactly as with the dropped <em>anba</em>. <span class="term">Over-translation</span> is the mirror problem: attention repeatedly locks onto the same already-generated source content, producing a repeated or looping phrase. The standard countermeasure is a coverage vector that accumulates attention weights across steps and penalizes decoding choices that either re-attend heavily to already-covered source positions or leave positions with near-zero accumulated attention (introduced for summarization by See et al. 2017's pointer-generator networks, and for NMT by Tu et al. 2016). For a disaster-response pipeline, a coverage check is one of the cheapest safety nets available: if the accumulated attention mass over the token for <em>anba</em> never clears a minimum threshold, that is a concrete, checkable signal that a fact may have been dropped — worth flagging for human review before the translation reaches a dispatcher.</p>
+    <pre><code>import math
+
+def beam_search_step(beams, next_token_logprobs, beam_width, alpha=0.7):
+    """One expansion step of beam search with length normalization.
+
+    beams: list of (tokens, cumulative_logprob) — current hypotheses
+    next_token_logprobs: fn(tokens) -&gt; dict{token: logprob} for next-token
+    Returns the top `beam_width` hypotheses scored by length-normalized score.
+    """
+    candidates = []
+    for tokens, cum_logprob in beams:
+        for token, logprob in next_token_logprobs(tokens).items():
+            new_tokens = tokens + [token]
+            new_cum = cum_logprob + logprob
+            candidates.append((new_tokens, new_cum))
+
+    def normalized_score(tokens, cum_logprob):
+        length = len(tokens)
+        return cum_logprob / (length ** alpha)
+
+    candidates.sort(key=lambda c: normalized_score(*c), reverse=True)
+    return candidates[:beam_width]
+
+# Toy example: translating "anba" (under) — three partial hypotheses
+# competing to extend "there are people ..."
+toy_beams = [
+    (["there", "are", "people", "near"],  -3.1),
+    (["there", "are", "people", "under"], -3.6),
+    (["there", "are", "people"],          -1.4),  # shorter, tempting on raw logprob
+]
+for tokens, lp in toy_beams:
+    print(tokens, "raw:", round(lp, 2),
+          "normalized:", round(lp / (len(tokens) ** 0.7), 2))</code></pre>
+    <p class="caption">The three-word hypothesis has the least negative raw log-probability and would win under plain beam search — length normalization brings the fair comparison back, letting the correct four-word continuation with "under" compete on equal footing instead of losing for being longer.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Cross-attention is the fact-transfer channel.</strong> Every decoding step queries the full encoder output; a fact that never gets attention weight never reaches the translation, with no visible symptom in the fluent output.</li>
+        <li><strong>Greedy decoding commits early and can't undo commitments</strong> — beam search keeps multiple hypotheses alive so later context can resolve ambiguity greedy decoding would have locked in wrong.</li>
+        <li><strong>Raw beam scores favor short sequences</strong> because every token multiplies in a probability less than one; length normalization (<code>score / length^alpha</code>) restores a fair comparison across hypothesis lengths.</li>
+        <li><strong>Exposure bias comes from teacher forcing</strong>: training never lets the model recover from its own error, so at inference one early wrong token can produce a fluent, self-consistent, but increasingly incorrect continuation.</li>
+        <li><strong>Coverage tracking</strong> — accumulated attention mass per source token — is a cheap, checkable signal for under- or over-translation, useful as an automated flag before high-stakes output reaches a human.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>Evaluation and the faithfulness problem</h2>
+    <p class="opening">An evaluation metric for text generation takes a generated hypothesis and one or more human reference texts and returns a single number meant to correlate with human judgment of quality. The oldest and still most widely reported such metric for translation is <span class="term">BLEU</span> (Bilingual Evaluation Understudy, Papineni et al. 2002): the geometric mean of n-gram precision — what fraction of the hypothesis's unigrams, bigrams, trigrams, and 4-grams also appear in the reference — multiplied by a <span class="term">brevity penalty</span> that punishes hypotheses shorter than the reference (to stop a system from gaming precision by outputting only a few very safe words). BLEU produces a single score between 0 and 1, almost always reported as 0–100.</p>
+    <p>A worked example makes the mechanics concrete. Take reference "the building collapsed near the market" against hypothesis "the building fell near the market" — a faithful paraphrase a bilingual reviewer would accept without hesitation. Unigram precision is high: five of six hypothesis words ("the," "building," "near," "the," "market") appear in the reference, only "fell" doesn't match "collapsed." But bigram precision collapses: "building fell," "fell near" share no match with the reference's "building collapsed," "collapsed near." By the time BLEU reaches 4-grams, overlap is near zero, and the geometric mean — which multiplies all four n-gram precisions together — is dragged down hard by the near-zero higher-order terms. A single word substitution that changes nothing about meaning can crater a BLEU score, because BLEU has no notion of synonymy: it only counts exact string matches.</p>
+    <h3>Why BLEU is close to useless for Swahili, Rohingya, and Haitian Creole</h3>
+    <p>This exact-match brittleness compounds badly for morphologically rich, low-resource languages. Swahili marks noun class, tense, subject, and object agreement all as prefixes glued onto a single verb stem — one Swahili word can be the exact semantic equivalent of a five-word English clause, so a hypothesis and reference that agree completely in meaning can share almost no exact word-level n-grams if tokenization boundaries differ even slightly, or if the reference used one valid morphological variant and the hypothesis used another equally valid one. Rohingya compounds the problem further: it lacked a widely used standard written script until recently, so digitized parallel text is scarce, and the handful of reference translations that exist for any given sentence may not reflect the range of equally valid renderings a fluent bilingual speaker would accept. A metric that requires exact surface-string overlap against a single fixed reference is measuring reference-matching, not translation quality, and for these language pairs those two things come apart often enough that BLEU scores are not just imprecise — they are frequently uninformative in either direction: a bad translation can score fine by accidentally matching function words, and a correct one can score badly for lacking morphological identity with the one reference on hand.</p>
+    <h3>chrF and character-level scoring</h3>
+    <p><span class="term">chrF</span> (character F-score, Popović 2015) sidesteps the word-boundary problem by computing precision and recall over character n-grams instead of word n-grams, then taking their F-score. Because it operates below the word level, chrF is far more forgiving of morphological variation — a Swahili verb with a slightly different agreement prefix still shares most of its characters with the reference form, so chrF degrades gracefully where BLEU falls off a cliff. This is why chrF (and its extension chrF++, which adds word bigrams back in) has become the default choice, over BLEU, for morphologically rich and low-resource language evaluation in venues like the WMT shared tasks.</p>
+    <h3>Learned metrics: COMET and BERTScore</h3>
+    <p>Both BLEU and chrF are still surface-overlap metrics — they know nothing about meaning. <span class="term">BERTScore</span> and <span class="term">COMET</span> instead use contextual embeddings from a pretrained multilingual encoder (BERTScore matches hypothesis and reference tokens by cosine similarity in embedding space; COMET is trained end-to-end, often taking the source sentence as well, to regress directly against human quality judgments). These learned metrics catch paraphrases and morphological variants that word-overlap metrics miss, and COMET in particular has become the strongest single automatic predictor of human preference in recent WMT metrics evaluations. The trade-off: they are more expensive to compute, harder to interpret (a COMET score doesn't decompose into "which words were wrong" the way BLEU's n-gram breakdown does), and — because they reward semantic and fluency similarity — they can still be fooled by a hypothesis that is fluent and broadly on-topic but wrong on one decisive fact, which is exactly the failure this unit keeps returning to.</p>
+    <h3>ROUGE and summarization's recall bias</h3>
+    <p>Summarization is conventionally scored with <span class="term">ROUGE</span> (Recall-Oriented Understudy for Gisting Evaluation, Lin 2004): ROUGE-N measures n-gram recall — what fraction of the reference summary's n-grams appear somewhere in the generated summary — and ROUGE-L uses longest common subsequence. The recall orientation is deliberate (summaries are short, so precision is easy to inflate by omission), but it creates its own bias: a generated summary padded with extra sentences, extra qualifying detail, even outright invented content, can still recall every n-gram in the reference and score at or near the ceiling, because ROUGE never penalizes for content in the hypothesis that isn't in the reference. A summary can be stuffed with unsupported additions and ROUGE will not dock it a single point for those additions, so long as the reference's own words are all present somewhere in the pile.</p>
+    <h3>The central failure mode: fluent hallucination</h3>
+    <p>This is where evaluation and faithfulness collide directly. An abstractive summarizer condensing a batch of field reports that repeatedly mention "several people injured, exact count unknown" can generate the sentence "12 people were injured in the collapse" — grammatically perfect, plausible-sounding, thematically on point, and entirely fabricated: no source report contained the number 12. This is a <span class="term">hallucination</span>: fluent content the model generated because it was statistically plausible given the training distribution, not because the source supported it. None of the metrics above are built to catch this reliably. ROUGE will score it well if the reference happens to mention casualty figures using similar surrounding words. BLEU and chrF have no mechanism at all for checking whether a number is <em>true</em>, only whether it matches a reference string. Even COMET and BERTScore, which reward semantic plausibility, have no ground-truth signal telling them "12" was never in the source — they were trained to predict human fluency and adequacy judgments, not to fact-check against a document. For humanitarian response, an invented casualty count is not a rounding error in an evaluation score; it is the kind of error that gets reported up a chain of command and shapes how resources are allocated, and it is invisible to every metric in this lesson unless someone builds a check specifically for it — which is exactly where Lesson 3 goes next.</p>
+    <pre><code>from collections import Counter
+
+def ngrams(tokens, n):
+    return [tuple(tokens[i:i+n]) for i in range(len(tokens) - n + 1)]
+
+def modified_precision(hyp, ref, n):
+    hyp_ngrams = Counter(ngrams(hyp, n))
+    ref_ngrams = Counter(ngrams(ref, n))
+    overlap = sum(min(c, ref_ngrams[g]) for g, c in hyp_ngrams.items())
+    total = max(sum(hyp_ngrams.values()), 1)
+    return overlap / total
+
+def brevity_penalty(hyp, ref):
+    if len(hyp) &gt;= len(ref):
+        return 1.0
+    return math.exp(1 - len(ref) / len(hyp)) if len(hyp) &gt; 0 else 0.0
+
+def bleu(hyp, ref, max_n=2):
+    precisions = [modified_precision(hyp, ref, n) for n in range(1, max_n + 1)]
+    if min(precisions) == 0:
+        return 0.0
+    geo_mean = math.exp(sum(math.log(p) for p in precisions) / len(precisions))
+    return brevity_penalty(hyp, ref) * geo_mean
+
+reference = "several people were injured when the building collapsed".split()
+
+faithful_hyp   = "several people were hurt when the building collapsed".split()
+hallucinated_hyp = "twelve people were injured when the building collapsed".split()
+
+print("faithful paraphrase BLEU-2:", round(bleu(faithful_hyp, reference), 3))
+print("fluent hallucination BLEU-2:", round(bleu(hallucinated_hyp, reference), 3))</code></pre>
+    <p class="caption">The hallucinated hypothesis swaps only "several" for a specific, invented number "twelve" — a single-token change — and scores nearly identically to (often higher than) the honest paraphrase, because BLEU rewards exact word overlap and has no way to check whether "twelve" was ever true.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>BLEU = n-gram precision × brevity penalty</strong>; it requires exact string matches, so a valid synonym substitution can tank the score even when meaning is fully preserved.</li>
+        <li><strong>BLEU is especially unreliable for morphologically rich, low-resource languages</strong> (Swahili, Rohingya) because word boundaries and morpheme choices vary in ways that break exact n-gram matching without changing meaning.</li>
+        <li><strong>chrF's character-level n-grams degrade gracefully under morphological variation</strong> where BLEU's word-level n-grams collapse entirely — prefer chrF for these language pairs.</li>
+        <li><strong>COMET and BERTScore use learned embeddings</strong> to catch semantic equivalence missed by surface metrics, but remain blind to whether a specific fact or number is actually supported by the source.</li>
+        <li><strong>ROUGE's recall orientation means unsupported additions are never penalized</strong> — a padded or partly fabricated summary can still score at ceiling if it happens to contain the reference's words somewhere.</li>
+        <li><strong>No metric in this lesson checks faithfulness directly</strong>: a fluent hallucinated fact (an invented casualty count) can score as well as, or better than, an honest hedge — this is the gap production systems have to close with other tools.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>Low-resource and production realities</h2>
+    <p class="opening">Picture a relief coordinator who speaks fluent French and English but no Haitian Creole. Handed a stack of Kreyòl messages, she isn't starting from zero: Kreyòl's vocabulary is largely French-derived, so cognates, sentence patterns, and a good chunk of the words are already familiar to her from a language she does know well. She doesn't need to learn Kreyòl from scratch to make a useful first pass — she needs a disciplined way to lean on what already transfers, and a clear sense of which sentences are similar enough to trust and which need a specialist. That is almost exactly the shape of the low-resource machine translation problem, and it is where every technique in this lesson starts: borrowing structure from a resource-rich neighbor, and knowing when the borrowing has run out of runway.</p>
+    <h3>Transfer from high-resource pairs and multilingual models</h3>
+    <p>The direct version of the coordinator's strategy is <span class="term">transfer learning</span>: pretrain a translation model on an abundant pair — French-English has enormous parallel corpora — then fine-tune it on the much smaller Haitian Creole-English data that exists, relying on shared subword vocabulary and French-derived cognates to give the fine-tuning stage a head start it would never get training from scratch. The more general version is a <span class="term">multilingual model</span>: a single encoder-decoder trained jointly across dozens or hundreds of language pairs at once, sharing one representation space. mBART and Meta's <span class="term">NLLB</span> (No Language Left Behind, which explicitly targeted underserved languages including Kreyòl, Swahili, and other African and South Asian languages with historically little translation-model investment) work this way. Because all languages share one model and one embedding space, these systems can perform <span class="term">zero-shot translation</span>: a model trained on Kreyòl-English and English-Swahili pairs, but never on a single paired Kreyòl-Swahili sentence, can often translate directly between them by composing the shared representation space it learned from the other pairs — not perfectly, but usably, which matters enormously when no parallel Kreyòl-Swahili corpus exists at all and never will.</p>
+    <h3>Back-translation, and what happens when the base model is weak</h3>
+    <p><span class="term">Back-translation</span> manufactures more parallel training data out of monolingual text: take English sentences with no Creole counterpart, translate them into Creole with a reverse (English-to-Creole) model, and use the resulting (synthetic-Creole, real-English) pairs to train the forward (Creole-to-English) model. This works well when the reverse model is reasonably competent, because the synthetic source text is noisy but the target side is genuine, fluent English. It fails specifically when the reverse model is weak — which is the default situation for the lowest-resource pairs, like Rohingya, where a reverse model has almost nothing to train on either. A weak reverse model produces systematically wrong synthetic Creole or Rohingya text, and the forward model then trains to reproduce those same systematic errors as if they were ground truth, because from the forward model's perspective the synthetic side just looks like normal training data. The result is a forward model that has learned to confidently repeat a narrower, wronger version of the language than the one people actually speak — back-translation with a weak base doesn't just add noise, it adds a consistent, hard-to-detect bias, which is worse than noise because it doesn't average out.</p>
+    <h3>Extractive versus abstractive summarization</h3>
+    <p>Summarization splits into two families. <span class="term">Extractive</span> summarization selects existing sentences (or spans) from the source and stitches them together verbatim; <span class="term">abstractive</span> summarization generates new sentences that may paraphrase, compress, or synthesize across multiple source sentences. Abstractive summaries read better — more concise, better connected, closer to what a human analyst would write — but every generated sentence is a new opportunity for hallucination, exactly as in Lesson 2. Extractive summaries can read choppier and can't synthesize information that's spread across sentences, but every claim in the output is literally a sentence that appeared in the source, so provenance is never in question: if a location or a casualty figure shows up in an extractive summary, you can point to the exact source sentence it came from. For humanitarian incident reports, where a wrong number can misdirect a rescue crew, this traceability is usually worth more than the fluency abstractive methods buy — which is why production pipelines in this domain frequently default to extractive summarization, or to a hybrid where extraction picks the load-bearing sentences and a lightweight abstractive pass only smooths transitions between them, never introducing new facts.</p>
+    <h3>Long documents and hierarchical summarization</h3>
+    <p>A transformer's context window is fixed — a few hundred to a few thousand tokens depending on the model — while a day's accumulated incident reports from a disaster zone can run to tens of thousands of tokens. The standard answer is to <span class="term">chunk</span> the document into windows that fit the model, summarize each chunk independently, then summarize the resulting set of chunk-summaries into a final overview — <span class="term">hierarchical</span> or <span class="term">recursive summarization</span>. The failure mode to watch for is the chunk boundary itself: if a sentence describing a collapsed building's exact location straddles the cut between chunk 4 and chunk 5, either chunk summary may miss it entirely, because each chunk is summarized with no visibility into its neighbor. Overlapping windows (each chunk shares a few sentences with the next) and entity tracking across chunks (carrying forward a running list of names, places, and numbers seen so far) are the standard mitigations — neither is exotic, but skipping them is exactly how a hierarchical pipeline silently drops the one fact that mattered.</p>
+    <h3>Named entities, terminology, and the human in the loop</h3>
+    <p>Place names, organization acronyms (OCHA, IFRC), and person names must survive translation and summarization unchanged — not paraphrased, not "helpfully" normalized, not guessed at when the model is uncertain of a spelling. An <span class="term">entity-preservation check</span> — extracting named entities and numbers from the source and verifying each survives, unaltered, into the output — is a cheap, mechanical safeguard that catches a meaningful share of the failures in Lessons 1 and 2 without needing a better model at all. But no automatic check catches everything, and this is where the discipline that governs this whole platform applies directly: for the highest-stakes messages — anything naming exact casualty counts, exact locations of trapped people, or urgent resource requests — the right architecture routes the machine output to a human reviewer before it drives a decision, rather than treating any metric score, however good, as sufficient sign-off. Automation's job here is triage and acceleration: surface the volume, flag the low-confidence spans (weak coverage, dropped entities, low COMET score), and get a fast, faithful first draft in front of a human fast enough for it to matter — not to replace the human's judgment on the messages where being wrong is catastrophic.</p>
+    <pre><code>import re
+
+def chunk_text(sentences, max_per_chunk=3, overlap=1):
+    chunks = []
+    step = max_per_chunk - overlap
+    for i in range(0, len(sentences), step):
+        chunk = sentences[i:i + max_per_chunk]
+        if chunk:
+            chunks.append(chunk)
+        if i + max_per_chunk &gt;= len(sentences):
+            break
+    return chunks
+
+def extractive_summarize(sentences, keep=1):
+    # ponytail: naive "longest sentence wins" heuristic — a real system would
+    # score sentences by entity density / position; upgrade if summaries drift.
+    ranked = sorted(sentences, key=len, reverse=True)
+    return ranked[:keep]
+
+def find_entities(text):
+    # Capitalized words and standalone numbers — a crude proxy for names,
+    # places, org acronyms, and casualty counts.
+    return set(re.findall(r"\b[A-Z][a-zA-Z]+\b|\b\d+\b", text))
+
+report_sentences = [
+    "A four-story building collapsed near Kafou market in Leogane.",
+    "Local responders report several people trapped under the debris.",
+    "OCHA has requested 3 additional search and rescue teams.",
+    "A secondary aftershock was felt but caused no further damage.",
+    "IFRC volunteers are distributing water near the collapse site.",
+]
+
+chunks = chunk_text(report_sentences, max_per_chunk=3, overlap=1)
+chunk_summaries = [extractive_summarize(c, keep=1)[0] for c in chunks]
+final_summary = " ".join(extractive_summarize(chunk_summaries, keep=2))
+
+source_entities = find_entities(" ".join(report_sentences))
+summary_entities = find_entities(final_summary)
+dropped = source_entities - summary_entities
+
+print("Final summary:", final_summary)
+print("Dropped entities:", dropped or "none")</code></pre>
+    <p class="caption">Chunking with a one-sentence overlap keeps the "3 additional search and rescue teams" sentence from being isolated at a chunk edge; the entity-preservation check at the end flags exactly which names, places, or numbers from the source never made it into the final summary, giving a reviewer a concrete list to check rather than a vague sense of unease.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Transfer and multilingual models (mBART, NLLB) let a low-resource pair borrow structure from resource-rich neighbors</strong>, and enable zero-shot translation between pairs that were never directly paired in training data.</li>
+        <li><strong>Back-translation helps only as far as the reverse model is competent</strong> — with a weak reverse model (the norm for pairs like Rohingya), it bakes in a systematic, self-reinforcing bias rather than harmless noise.</li>
+        <li><strong>Extractive summarization trades fluency for traceability</strong>: every claim in the output is literally sourced verbatim, which is why high-stakes pipelines favor it, or a hybrid, over pure abstraction.</li>
+        <li><strong>Hierarchical summarization needs overlapping chunks and cross-chunk entity tracking</strong> — otherwise a fact that straddles a chunk boundary is silently dropped by both neighboring chunk summaries.</li>
+        <li><strong>Entity-preservation checks are a cheap, mechanical safety net</strong>, but the highest-stakes messages — exact casualties, exact locations — still belong in front of a human reviewer before they drive a decision, not signed off by any single metric score.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 7 quiz</h2>
+    <p class="quiz-intro">Eight questions across decoding, evaluation, and low-resource production trade-offs — each one requires reasoning through a scenario, not recalling a definition.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A beam search translator for Haitian Creole keeps truncating output before the location clause, even though the full-length continuation is clearly more accurate. Which change most directly addresses this?</p>
+      <ol class="choices" type="A">
+        <li>Increase the beam width from 4 to 8.</li>
+        <li>Apply length normalization to the cumulative log-probability score.</li>
+        <li>Switch from teacher forcing to autoregressive training.</li>
+        <li>Add a coverage penalty vector to the attention mechanism.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Raw cumulative log-probability is a sum of negative terms, so every additional generated token makes the score more negative — beam search will systematically prefer shorter hypotheses unless the score is divided by <code>length^alpha</code> to make the comparison length-fair.</p>
+          <p>Widening the beam (A) explores more hypotheses but doesn't change the scoring bias that favors short ones, so a wider beam can still pick the truncated candidate. Coverage (D) addresses a different failure — content that never receives attention at all — not the length bias in the final scoring step. "Autoregressive training" (C) isn't a real technique change here; training already differs from inference by design (teacher forcing vs. autoregressive generation), and that gap is exposure bias, not the length-normalization issue.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Because the decoder is trained with teacher forcing, it always conditions on the correct gold prefix during training but must condition on its own, possibly incorrect, prior outputs at inference — and this mismatch means a single early translation error can cause a cascading series of further errors. True or false?</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: True.</strong> This is exactly exposure bias: training never lets the model practice recovering from a wrong prefix, because the prefix during training is always gold. At inference, once the decoder emits a wrong token, every subsequent generation step conditions on that wrong token as if it were fact, and the decoder — having no training signal for "this history looks off" — tends to keep generating a fluent continuation consistent with its own mistake.</p>
+          <p>This is why a single dropped or mistranslated place name early in a sentence is riskier than it looks: it doesn't stay a one-word error, it can distort everything generated afterward while still reading as a coherent sentence.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">At every decoding step, the decoder's cross-attention layer issues a query against the encoder's key and value vectors for <span class="blank">&nbsp;</span> of the source tokens — not only the ones near the current position in the output — producing a weighted mixture used to generate the next target token.</p>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: all (the full set).</strong> Cross-attention is not a local or positional lookup — every decoder step can attend, in principle, to every encoder output simultaneously, which is exactly what allows a decoder generating an English word late in a sentence to reach back to a source token near the beginning of the Creole input.</p>
+          <p>This global reach is also why coverage failures are so easy to miss: because attention isn't constrained to move monotonically through the source, a source token can be skipped without any positional pattern giving it away.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">This length-normalization helper is meant to make longer and shorter beam hypotheses comparable, but a teammate reports it still favors short outputs almost every time. Find the bug.</p>
+      <pre><code>def normalized_score(tokens, cum_prob, alpha=0.7):
+    length = len(tokens)
+    return cum_prob / length ** alpha</code></pre>
+      <ol class="choices" type="A">
+        <li>The exponent <code>alpha</code> should be applied to <code>cum_prob</code>, not to <code>length</code>.</li>
+        <li>The function normalizes a raw probability rather than a log-probability, so the division doesn't correct the actual bias, which lives in summed log terms.</li>
+        <li><code>alpha</code> should default to 1.5 instead of 0.7.</li>
+        <li>The function is correct; the bug must be in the beam expansion step instead.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Length normalization is designed to counteract the bias created by <em>summing negative log-probabilities</em> across tokens. If <code>cum_prob</code> here is actually a raw probability (or a product of probabilities) rather than a sum of log-probabilities, dividing it by <code>length ** alpha</code> doesn't correct the length bias the way the technique assumes — raw probabilities already shrink multiplicatively toward zero with length in a way this division doesn't cleanly offset, and worse, multiplying many probabilities together underflows numerically for even moderately long sequences. The fix is to accumulate log-probabilities during beam expansion and normalize those.</p>
+          <p>Moving the exponent (A) or changing its value (C) doesn't address the underlying issue if the score being normalized isn't a log-probability sum in the first place — those tweaks would still be normalizing the wrong quantity. This is a case where the formula looks structurally identical to the correct version (same shape: score divided by length to a power) but is wrong because of what it's being applied to, not how it's applied.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A team needs to automatically score Swahili translations of incident reports and has only one human reference translation per source sentence. Which metric is the most defensible choice, and why?</p>
+      <ol class="choices" type="A">
+        <li>BLEU, because it's the most widely reported metric in the literature.</li>
+        <li>chrF, because character n-gram overlap degrades gracefully under the morphological variation that breaks word-level exact matching.</li>
+        <li>ROUGE, because it's recall-oriented and Swahili sentences are often long.</li>
+        <li>Raw exact-match accuracy, because it's simplest to implement.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Swahili's agreement prefixes mean a correct translation can take multiple valid morphological forms that share almost no exact word n-grams with any single fixed reference. chrF's character-level n-grams are far more tolerant of this variation — a slightly different prefix still shares most characters with the reference form — so chrF stays informative where BLEU would swing wildly based on which single morphological variant the one available reference happened to use.</p>
+          <p>BLEU (A) is the most commonly reported number in papers, but "widely reported" is not the same as "well suited" — its brittleness under morphological variation is exactly the flaw this scenario triggers. ROUGE (C) is built for summarization's content-recall problem, not translation adequacy, and sentence length isn't the relevant variable here. Exact-match accuracy (D) would fail almost every valid translation outright, since it requires the entire string to match character-for-character.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">An abstractive summarizer produces: "Approximately 40 people were displaced after the flooding in the region." It reads fluently, is on-topic, and scores well on ROUGE-1 against the reference summary. The catch: no source report specified a number of displaced people at all. Which statement best explains why ROUGE failed to catch this?</p>
+      <ol class="choices" type="A">
+        <li>ROUGE-1 only checks 4-grams, so a one-word insertion like "40" is invisible to it by design.</li>
+        <li>ROUGE measures whether reference words appear in the hypothesis (recall); it has no mechanism for penalizing extra, unsupported content the hypothesis adds beyond the reference.</li>
+        <li>ROUGE was designed for translation, not summarization, so it isn't applicable to this case at all.</li>
+        <li>The summarizer must have used a larger beam width, which is what caused the hallucination.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> ROUGE's recall orientation means it checks how much of the reference's content shows up in the hypothesis — it never checks the reverse direction, whether everything in the hypothesis is actually supported by the reference or the source. An invented number sitting alongside otherwise-accurate, reference-matching content doesn't reduce the recall score at all, because recall only counts what's missing, never what's added.</p>
+          <p>ROUGE-1 uses unigrams, not 4-grams (A is a factual mix-up, and the underlying reasoning is wrong regardless). ROUGE is specifically designed for summarization, unlike BLEU which targets translation (C is backwards). Beam width (D) affects how many hypotheses are explored during decoding, not whether a plausible-sounding number gets invented — hallucination here is a property of what the model learned to generate as fluent continuation, not a decoding hyperparameter.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A team building a Rohingya-English translation system has very little parallel data, so they back-translate a large body of monolingual English incident reports into synthetic Rohingya using a reverse (English-to-Rohingya) model — but that reverse model itself was trained on almost no data and is quite weak. What is the most likely outcome of training the forward model on this synthetic data?</p>
+      <ol class="choices" type="A">
+        <li>The forward model improves roughly as much as it would with an equal amount of genuine parallel data, since the English side is real.</li>
+        <li>The forward model learns to reproduce the weak reverse model's systematic errors as if they were valid Rohingya, because it has no way to distinguish synthetic source noise from genuine variation.</li>
+        <li>Back-translation has no effect either way, since only the reverse model's quality matters, not the forward model's.</li>
+        <li>The forward model will automatically detect and discard the lowest-quality synthetic pairs during training.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> Back-translation's genuine target side (real English) is a real benefit only if the synthetic source side is a reasonably faithful rendering. When the reverse model is weak, its systematic mistakes — wrong morphology, wrong word choice patterns — appear consistently across the whole synthetic corpus, and the forward model has no signal telling it "this source sentence is synthetic and flawed"; it just trains on it like any other example, absorbing the bias as if it were normal Rohingya.</p>
+          <p>Option A overstates the benefit — a real target side helps, but a systematically wrong source side is not equivalent to genuine parallel data. Option C is wrong because the forward model is precisely the one being trained on the flawed synthetic side, so it very much depends on the reverse model's quality. Option D describes a filtering step some pipelines do add deliberately (e.g., quality scoring of synthetic pairs), but nothing about back-translation does this "automatically" — it has to be engineered in, and for the lowest-resource languages there is often no strong independent model available to do the filtering.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">This hierarchical summarization pipeline chunks a long incident-report feed and looks correct on a quick read: it chunks, summarizes each chunk, then summarizes the chunk-summaries. It passes on a five-sentence test report. Complete the missing piece so it also holds up on a fifty-sentence feed where a critical detail (a specific missing-persons count) happens to land in the single sentence bridging chunk 3 and chunk 4 — and identify what "looks right" about the version without it that actually breaks in production.</p>
+      <pre><code>def chunk_text(sentences, max_per_chunk, overlap):
+    chunks = []
+    step = max_per_chunk # &lt;-- missing something here
+    for i in range(0, len(sentences), step):
+        chunks.append(sentences[i:i + max_per_chunk])
+    return chunks</code></pre>
+      <ol class="choices" type="A">
+        <li><code>step = max_per_chunk - overlap</code> — so consecutive chunks share <code>overlap</code> sentences instead of starting immediately after the previous chunk ends.</li>
+        <li><code>step = max_per_chunk + overlap</code> — so chunks are spaced further apart to cover the document faster.</li>
+        <li>No change needed; the loop already produces overlapping chunks because <code>range()</code> handles it automatically.</li>
+        <li><code>step = max_per_chunk // 2</code>, hard-coded, regardless of the <code>overlap</code> parameter.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: A.</strong> With <code>step = max_per_chunk</code>, chunks are back-to-back with zero overlap, so a sentence sitting exactly at a chunk boundary is fully contained in only one chunk — that's fine on its own, but it means each chunk's summarizer sees that boundary sentence with no surrounding context from the neighboring chunk, and a heuristic or model-based summarizer that ranks sentences by local salience can easily rank an isolated boundary sentence low and drop it. Setting <code>step = max_per_chunk - overlap</code> makes consecutive chunks share <code>overlap</code> sentences, so a boundary fact gets summarized twice, in two different local contexts, roughly doubling the chance at least one chunk summary captures it.</p>
+          <p>What "looks right" about the zero-overlap version: it passes the five-sentence test report, because a short test document is unlikely to place a critical detail exactly on one of its few chunk boundaries — the bug only shows up at the scale and boundary placement of a real fifty-sentence feed, which is precisely why it survives casual testing and reaches production. Options B and C either make the problem worse (spacing chunks apart drops content between them entirely) or are simply false — plain <code>range()</code> striding by <code>max_per_chunk</code> does not overlap. Option D ignores the caller-supplied <code>overlap</code> value entirely, silently discarding a configuration the rest of the system expects to control.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Text Processing (NLP) · Unit 7 of 8 — Unit 8 closes the course by assembling retrieval, generation, and conversation into a full chatbot/RAG pipeline.</p>
+</footer>
+</body>
+</html>

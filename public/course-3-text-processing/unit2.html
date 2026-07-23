@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 2 · Classical NLP: Bag-of-Words, TF-IDF, n-grams — Text Processing (NLP)</title>
+<style>
+:root{
+  --paper:#0b0b0c; --panel:#141416; --panel-2:#1b1b1e;
+  --ink:#f4f3ee; --ink-soft:rgba(244,243,238,.66); --ink-faint:rgba(244,243,238,.42);
+  --line:rgba(255,255,255,.09); --line-strong:rgba(255,255,255,.16);
+  --gold:#e6b24a; --gold-soft:#f0c15e; --gold-deep:#c99a3d;
+  --quiz:#7fd1c1; --quiz-deep:#4fae9c;
+  --code-bg:#08080a;
+  --mono:ui-monospace,"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --measure:75ch;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:17px;line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:1rem;top:1rem;z-index:9;background:var(--gold);color:var(--paper);padding:.5rem .9rem;border-radius:8px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+
+.unit-head,main,.unit-foot{max-width:var(--measure);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.unit-head{padding-top:clamp(2.5rem,8vw,5rem);border-bottom:1px solid var(--line);padding-bottom:2.5rem}
+.unit-head h1{
+  font-size:clamp(2rem,7vw,3.1rem);line-height:1.06;letter-spacing:-.025em;
+  margin:.45rem 0 1rem;font-weight:650;
+}
+.lede{color:var(--ink-soft);font-size:1.1rem;margin:0 0 2rem;max-width:62ch}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin:0;font-weight:500;
+}
+
+.toc{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:1.1rem 1.35rem}
+.toc ol{margin:0;padding-left:0;list-style:none;color:var(--ink-soft);font-size:.95rem}
+.toc li{margin:.3rem 0}
+.toc a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--ink);border-bottom-color:var(--gold)}
+
+.lesson{padding:clamp(2.5rem,7vw,4rem) 0;border-bottom:1px solid var(--line)}
+.lesson h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);line-height:1.15;letter-spacing:-.02em;
+  margin:.5rem 0 1.2rem;font-weight:640;
+}
+.lesson h3{
+  font-size:1.12rem;margin:2.3rem 0 .7rem;letter-spacing:-.01em;font-weight:620;
+}
+.lesson h3::before{content:"—  ";color:var(--gold);}
+p{margin:0 0 1.15rem}
+.opening{font-size:1.06rem}
+.opening::first-letter{
+  float:left;font-size:3.1rem;line-height:.86;padding:.12em .12em 0 0;
+  color:var(--gold);font-weight:650;
+}
+strong{color:var(--ink);font-weight:640}
+em{color:var(--ink);font-style:italic}
+.term{color:var(--gold-soft);font-weight:600;font-style:normal}
+a{color:var(--gold);text-underline-offset:3px}
+ul,ol{padding-left:1.3rem;margin:0 0 1.15rem}
+li{margin:.4rem 0}
+
+code{
+  font-family:var(--mono);font-size:.87em;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:5px;padding:.1em .35em;color:var(--gold-soft);
+}
+pre{
+  background:var(--code-bg);border:1px solid var(--line-strong);border-radius:12px;
+  padding:1.1rem 1.2rem;overflow-x:auto;margin:1.4rem 0 .5rem;
+  font-size:.85rem;line-height:1.6;
+}
+pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
+.caption{color:var(--ink-faint);font-size:.85rem;margin:.5rem 0 1.4rem}
+.math{
+  font-family:var(--mono);font-size:.9rem;background:var(--panel);
+  border-left:2px solid var(--gold);border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;overflow-x:auto;color:var(--ink);
+}
+
+.tbl{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.92rem;display:block;overflow-x:auto}
+.tbl th,.tbl td{border:1px solid var(--line);padding:.6rem .75rem;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:620;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+
+.takeaways{
+  background:linear-gradient(180deg,rgba(230,178,74,.10),rgba(230,178,74,.03));
+  border:1px solid rgba(230,178,74,.28);border-left:3px solid var(--gold);
+  border-radius:0 14px 14px 0;padding:1.25rem 1.4rem;margin:2.4rem 0 0;
+}
+.takeaways h4{
+  margin:0 0 .7rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold);font-weight:500;
+}
+.takeaways ul{margin:0;padding-left:1.15rem}
+.takeaways li{margin:.45rem 0;color:var(--ink-soft)}
+.takeaways li strong{color:var(--ink)}
+
+/* Quiz — deliberately a different accent from the gold lesson body */
+.quiz{padding:clamp(2.5rem,7vw,4rem) 0 3rem}
+.quiz .eyebrow{color:var(--quiz)}
+.quiz h2{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);margin:.5rem 0 .6rem;letter-spacing:-.02em;font-weight:640;
+}
+.quiz-intro{color:var(--ink-soft);margin-bottom:2rem}
+.q{
+  border:1px solid var(--line);border-top:2px solid var(--quiz);
+  border-radius:2px 2px 14px 14px;background:var(--panel);
+  padding:1.3rem 1.4rem;margin:0 0 1.2rem;
+}
+.q-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--quiz);margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;
+}
+.q-type{
+  color:var(--ink-faint);border:1px solid var(--line-strong);border-radius:100px;
+  padding:.12rem .55rem;letter-spacing:.08em;
+}
+.q-stem{margin:0 0 .9rem}
+.q pre{margin:.9rem 0}
+.choices{margin:0 0 1rem;padding-left:1.4rem;color:var(--ink-soft)}
+.blank{display:inline-block;min-width:8ch;border-bottom:1.5px solid var(--quiz);margin:0 .2rem}
+.q details{border-top:1px dashed var(--line-strong);padding-top:.85rem}
+.q summary{
+  cursor:pointer;font-family:var(--mono);font-size:.75rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--quiz);list-style:none;
+}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸  ";}
+.q details[open] summary::before{content:"▾  ";}
+.q summary:hover{color:var(--ink)}
+.answer{margin-top:.85rem;border-left:2px solid var(--quiz-deep);padding-left:1rem;color:var(--ink-soft)}
+.answer p{margin:0 0 .7rem;font-size:.95rem}
+.answer p:last-child{margin-bottom:0}
+.answer strong{color:var(--quiz)}
+
+.unit-foot{
+  border-top:1px solid var(--line);padding-block:2rem 3.5rem;
+  color:var(--ink-faint);font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+@media (max-width:480px){
+  body{font-size:16px}
+  pre{font-size:.78rem;padding:.9rem}
+  .opening::first-letter{font-size:2.6rem}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="unit-head">
+  <p class="eyebrow">Text Processing (NLP) · Unit 2 of 8</p>
+  <h1>Classical NLP: Bag-of-Words, TF-IDF, n-grams</h1>
+  <p class="lede">Before embeddings and transformers, search engines and classifiers ran on counting words. This unit builds the vector-space toolkit — bag-of-words, TF-IDF weighting, and n-grams — using a corpus of case law and statutes as the running example, and shows exactly where counting words stops working.</p>
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#lesson-1">1. The Bag-of-Words model</a></li>
+      <li><a href="#lesson-2">2. TF-IDF: weighting words by informativeness</a></li>
+      <li><a href="#lesson-3">3. N-grams and the sparsity wall</a></li>
+      <li><a href="#quiz">Check yourself</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main id="main">
+
+  <section class="lesson" id="lesson-1">
+    <p class="eyebrow">Lesson 1</p>
+    <h2>The Bag-of-Words model</h2>
+    <p class="opening">The <span class="term">bag-of-words model</span> (BoW) represents a document as an unordered multiset of its tokens — a "bag" you could shake, losing all information about where each word sat relative to the others, but keeping exactly how many times each one appears. Formally, given a fixed <span class="term">vocabulary</span> V — the set of all distinct terms across a corpus, after the tokenization and normalization steps from Unit 1 — every document d becomes a vector in a |V|-dimensional space, where the i-th coordinate is the count of vocabulary term i in d. This is the <span class="term">vector-space model</span>: documents stop being strings and become points (or arrows from the origin) in a high-dimensional space, and every downstream question — "how similar are these two filings," "which practice area does this belong to" — becomes a question about geometry.</p>
+    <p>Suppose a legal-tech vendor is indexing 50,000 documents: federal case opinions, state statutes, and regulatory filings. After Unit 1's pipeline (lowercasing, stripping punctuation, dropping stopwords, maybe stemming "indemnify"/"indemnification" to a shared root), the pipeline produces a vocabulary of perhaps 100,000 distinct terms — party names, docket numbers, legal terms of art, ordinary English. Building the bag-of-words representation means constructing the <span class="term">document-term matrix</span>: a table with 50,000 rows (one per document) and 100,000 columns (one per vocabulary term), where cell (i, j) holds the count of term j in document i.</p>
+    <h3>Building the vocabulary and count vectors</h3>
+    <p>Constructing the vocabulary is a single pass over the corpus: tokenize every document, union the resulting token sets, and assign each surviving term an integer index — term_to_id = {"agreement": 0, "breach": 1, "indemnification": 2, ...}. Once the vocabulary is fixed, encoding any document is a second pass: initialize a zero vector of length |V|, then for each token in the document increment the count at its assigned index. A four-page settlement agreement might produce a vector with 40 nonzero entries out of 100,000 — "party" appearing 6 times, "shall" appearing 11 times, "indemnification" appearing twice, and 99,960 zeros for every term the document never uses.</p>
+    <p>That ratio is the central fact about bag-of-words at corpus scale: a 50,000 × 100,000 document-term matrix has 5 billion cells, and any individual legal document — even a long one — only ever touches a few hundred distinct terms. Well over <strong>99.9% of the matrix is zero</strong>. Storing that as a dense array of floats would need roughly 20 GB of memory for a matrix of 32-bit floats, almost all of it spent recording "this term does not appear here" — information nobody needed encoded that expensively. Real systems use <span class="term">sparse storage</span> instead: formats like compressed sparse row (CSR) that store only the nonzero entries as (row, column, value) triples, plus compact index arrays to reconstruct rows and columns on demand. A document that uses 300 distinct terms costs roughly 300 entries to store, not 100,000 — the representation scales with how much a document actually says, not with the size of the vocabulary it draws from. Libraries such as scikit-learn's <code>CountVectorizer</code> return exactly this kind of sparse matrix by default, precisely because dense storage would be unworkable at legal-corpus scale.</p>
+    <h3>What bag-of-words throws away</h3>
+    <p>The cost of this representation is everything about sequence. Because BoW only counts occurrences, it cannot distinguish "the tenant breached the lease" from "the lease breached the tenant" (nonsensical, but the same bag), and cannot distinguish "dog bites man" from "man bites dog" — two sentences with opposite real-world meaning and identical bag-of-words vectors, since both contain exactly one "dog," one "bites," and one "man." In a legal corpus this matters concretely: "the defendant is not liable for damages" and "the defendant is liable for damages, not [some exception]" can produce disturbingly similar bags once "not" is common enough to survive stopword filtering, because BoW has no notion of which word negates which. Lesson 3 addresses this gap directly with n-grams, which recover a sliding window of local order; for now, hold onto the limitation as the reason nobody ships bag-of-words alone as a final legal-classification system — it is a first-pass filter, not a judgment-rendering engine.</p>
+    <h3>Comparing documents: cosine similarity</h3>
+    <p>Once documents are vectors, "how similar are these two filings" becomes "how close are these two vectors" — and the standard answer, when vectors are long and mostly zero, is <span class="term">cosine similarity</span>: the cosine of the angle between two vectors, ignoring their magnitude entirely.</p>
+    <p class="math">cos(A, B) = (A · B) / (‖A‖ ‖B‖) = (Σ Aᵢ Bᵢ) / (√(Σ Aᵢ²) · √(Σ Bᵢ²))</p>
+    <p>The dot product Σ AᵢBᵢ only accumulates contribution from terms present in <em>both</em> documents (any term where either count is zero contributes nothing), so for sparse legal-document vectors, computing this dot product only requires iterating over the small set of shared nonzero terms — not all 100,000 columns. Dividing by the product of the two vector norms cancels out document length: a two-page motion and a two-hundred-page appellate brief that happen to use the same terms in the same proportions will score a cosine similarity near 1.0, even though their raw count vectors are wildly different magnitudes. That length-invariance is exactly why cosine, not raw Euclidean distance, is the standard similarity measure for text — a longer document simply has bigger counts across the board, and Euclidean distance would penalize it for that alone.</p>
+    <pre><code>import numpy as np
+
+docs = [
+    "the tenant shall pay rent and indemnify the landlord",
+    "the landlord shall indemnify the tenant for damages",
+    "the court finds the defendant liable for breach of contract",
+    "the statute requires the agency to publish notice within thirty days",
+]
+
+# Build vocabulary
+vocab = sorted(set(tok for doc in docs for tok in doc.split()))
+term_to_id = {t: i for i, t in enumerate(vocab)}
+
+# Document-term count matrix (dense here for clarity; sparse in production)
+dtm = np.zeros((len(docs), len(vocab)))
+for row, doc in enumerate(docs):
+    for tok in doc.split():
+        dtm[row, term_to_id[tok]] += 1
+
+def cosine(a, b):
+    denom = np.linalg.norm(a) * np.linalg.norm(b)
+    return 0.0 if denom == 0 else np.dot(a, b) / denom
+
+n = len(docs)
+sim = np.zeros((n, n))
+for i in range(n):
+    for j in range(n):
+        sim[i, j] = cosine(dtm[i], dtm[j])
+
+print(np.round(sim, 2))
+</code></pre>
+    <p class="caption">Docs 0 and 1 (both lease/indemnification language) score highest off-diagonal similarity despite different word order; doc 3 (a statute about notice periods) is nearly orthogonal to the contract-language docs 0–2 because it shares almost no vocabulary with them.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>Bag-of-words</strong> maps each document to a vector of term counts over a fixed vocabulary — the vector-space model — discarding all word order in the process.</li>
+        <li>The <strong>document-term matrix</strong> at real corpus scale (50k docs × 100k terms) is over 99.9% zero; <strong>sparse storage</strong> (e.g., CSR) keeps memory proportional to actual content, not vocabulary size.</li>
+        <li>BoW cannot distinguish "dog bites man" from "man bites dog," or reliably track negation — a real limitation that motivates n-grams (Lesson 3).</li>
+        <li><strong>Cosine similarity</strong> compares document vectors by angle, not magnitude, so it is insensitive to document length — the right default metric for sparse count vectors.</li>
+        <li>Because the dot product in cosine similarity only accumulates over shared nonzero terms, it is cheap to compute even on very high-dimensional sparse vectors.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-2">
+    <p class="eyebrow">Lesson 2</p>
+    <h2>TF-IDF: weighting words by informativeness</h2>
+    <p class="opening">Take a corpus of ten thousand commercial contracts and count raw word frequencies: "agreement" appears in essentially every single one — it is boilerplate, present in the first line of nearly every contract regardless of subject matter — while "indemnification" appears in only about 3% of them, concentrated in the contracts that actually carry indemnification clauses. If a classifier or search ranker weights terms by raw count, "agreement" — appearing dozens of times per document — will dominate every similarity score and every document ranking, even though it distinguishes nothing: every document has it, so it carries zero information about which documents are alike or different. "Indemnification," by contrast, is rare and highly discriminative — its presence is exactly the signal that separates indemnification-bearing contracts from the rest. Raw counts rank these two terms exactly backwards from their actual usefulness, and that failure is what <span class="term">TF-IDF</span> (term frequency–inverse document frequency) exists to fix.</p>
+    <h3>Term frequency: several variants, same idea</h3>
+    <p>The term-frequency component measures how often a term appears within one document. The simplest variant is raw count, tf(t, d) = count of t in d, but raw counts scale badly: a term appearing 20 times in a long brief is not necessarily 20 times as relevant as a term appearing once in a short motion — after some point, repeated occurrences say less and less about relevance and more about document length. A common fix is <span class="term">log-scaled term frequency</span>:</p>
+    <p class="math">tf(t, d) = 1 + log(count(t, d))   if count(t, d) &gt; 0,  else 0</p>
+    <p>which compresses the difference between 20 occurrences and 40 occurrences relative to the difference between 0 and 1 occurrence — the jump from "absent" to "present" matters far more than the jump from "frequent" to "very frequent." A third variant, <span class="term">augmented (double-normalized) term frequency</span>, divides by the count of the most frequent term in the document to prevent long documents from automatically dominating: tf(t, d) = 0.5 + 0.5 × (count(t, d) / max count in d). All three variants answer "how prominent is this term in this document," just with different sensitivity to repetition.</p>
+    <h3>Inverse document frequency: rewarding rarity</h3>
+    <p>The inverse-document-frequency component measures how rare a term is across the whole corpus — the corrective for "agreement" appearing everywhere and "indemnification" appearing almost nowhere:</p>
+    <p class="math">idf(t) = log( N / (1 + df(t)) )</p>
+    <p>where N is the total number of documents and df(t) is the number of documents containing term t at least once. The "+1" in the denominator is <span class="term">smoothing</span>: without it, a term appearing in every single document (df(t) = N) would produce idf = log(1) = 0, which is fine, but a hypothetical term appearing in zero documents would divide by zero. Adding 1 keeps the formula well-defined and slightly discounts idf for very common terms without ever letting the denominator vanish. The log is not decorative — it directly compensates for <span class="term">Zipf's law</span>, the empirical regularity that word frequencies in natural language (including legal language) are extremely skewed: a handful of terms ("the," "shall," "agreement") account for a huge share of total occurrences, while the long tail of rare terms ("indemnification," "force majeure," "choice-of-law") each appear in only a small fraction of documents. Without the log, the raw ratio N/df(t) would swing by factors of thousands between common and rare terms, letting rare-term idf values completely swamp everything else in a product; the log compresses that swing onto a manageable, roughly linear scale so idf behaves as a weighting factor rather than an overwhelming multiplier.</p>
+    <h3>The product and L2 normalization</h3>
+    <p>TF-IDF weight is simply the product of the two components:</p>
+    <p class="math">tfidf(t, d) = tf(t, d) × idf(t)</p>
+    <p>A term that is frequent in a document (high tf) <em>and</em> rare across the corpus (high idf) gets the highest weight — exactly "indemnification" in a contract that has an indemnification clause. A term that is frequent locally but common everywhere (high tf, low idf, like "agreement") gets suppressed toward zero. A term that is rare in the corpus but absent from this particular document (low tf) contributes nothing regardless of its idf. After computing the full tf-idf vector for a document, it is standard practice to apply <span class="term">L2 normalization</span> — dividing every component by the vector's Euclidean norm, so ‖v‖ = 1 — which puts documents of very different lengths on the same scale and makes a plain dot product between two normalized vectors equivalent to cosine similarity, without needing to divide by norms at comparison time.</p>
+    <h3>The honest limits</h3>
+    <p>TF-IDF is still bag-of-words underneath — it re-weights the same count vector, it does not add any notion of order, syntax, or meaning. It has no idea that "car" and "automobile" refer to the same concept, or that "the court" and "the tribunal" might be functionally interchangeable in a given jurisdiction's filings; each distinct token gets its own dimension, entirely orthogonal to every other token, no matter how semantically close two words are to a human reader. A search for "automobile accident" using TF-IDF cosine similarity will not surface a highly relevant document that only says "car crash," because the two documents share zero vocabulary and their vectors have a dot product of exactly zero. That gap — no notion of semantic similarity between different words — is precisely what word embeddings (Unit 3) are built to close; TF-IDF remains extremely strong at lexical matching and is still the default first-pass ranker in production legal-search systems (often as one signal blended with others), but treat "car" and "automobile" as unrelated at your own risk if true synonym coverage matters for the task.</p>
+    <pre><code>import math
+from collections import Counter
+
+docs = [
+    "this agreement sets forth the indemnification obligations of the parties",
+    "the parties agree that this agreement is binding on all successors",
+    "indemnification under this agreement shall survive termination",
+    "the agreement contains no indemnification clause whatsoever",
+]
+
+tokenized = [d.split() for d in docs]
+N = len(tokenized)
+vocab = sorted(set(tok for d in tokenized for tok in d))
+
+# document frequency: how many docs contain each term at least once
+df = {t: sum(1 for d in tokenized if t in d) for t in vocab}
+idf = {t: math.log(N / (1 + df[t])) for t in vocab}
+
+def tfidf_vector(doc_tokens):
+    counts = Counter(doc_tokens)
+    raw = {t: (1 + math.log(c)) * idf[t] for t, c in counts.items()}
+    norm = math.sqrt(sum(v * v for v in raw.values())) or 1.0
+    return {t: v / norm for t, v in raw.items()}
+
+vec0 = tfidf_vector(tokenized[0])
+top = sorted(vec0.items(), key=lambda kv: kv[1], reverse=True)[:5]
+for term, weight in top:
+    print(f"{term:16s} {weight:.3f}")
+</code></pre>
+    <p class="caption">"Agreement" appears in every document (df = 4 of 4), so idf(agreement) is near zero and it drops out of the top weights even though it is the most frequent raw token in doc 0; "indemnification" and "obligations," rarer across the corpus, rise to the top.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li>Raw counts rank terms backwards: ubiquitous boilerplate ("agreement") gets high weight, rare discriminative terms ("indemnification") get low weight — TF-IDF corrects this.</li>
+        <li><strong>Term frequency</strong> variants (raw, log-scaled, augmented) all measure local prominence; log-scaling and augmentation both damp the effect of a term repeating many times in one document.</li>
+        <li><strong>Inverse document frequency</strong>, idf(t) = log(N / (1 + df(t))), rewards rarity across the corpus; the "+1" smooths against zero-division and the log compensates for Zipf's-law skew in natural-language term frequencies.</li>
+        <li><strong>L2 normalization</strong> puts documents of different lengths on a common scale and turns a dot product into a cosine similarity.</li>
+        <li>TF-IDF is still bag-of-words: "car" and "automobile" are orthogonal dimensions with zero shared signal — closing that gap is the job of embeddings, not TF-IDF.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="lesson" id="lesson-3">
+    <p class="eyebrow">Lesson 3</p>
+    <h2>N-grams and the sparsity wall</h2>
+    <p class="opening">Think of reading a contract one word at a time through a mail slot that only shows a single word before sliding to the next — that is unigram bag-of-words, and it is why "the defendant is not liable" and "the defendant is liable" can look deceptively similar once counted as isolated words: both contain "defendant," "is," and "liable." Widen the mail slot to show two words at a time, and a new unit appears: "not liable" as a single token, distinct from "liable" appearing alone. That is the entire idea behind <span class="term">n-grams</span> — instead of treating single tokens (unigrams) as the atomic unit, treat contiguous sequences of n tokens (bigrams for n=2, trigrams for n=3) as atomic units, recovering exactly the kind of local word-order information that plain bag-of-words throws away.</p>
+    <h3>From unigrams to bigrams to trigrams</h3>
+    <p>Given the token sequence ["the", "defendant", "is", "not", "liable", "for", "damages"], the bigrams are the 6 consecutive pairs: ("the","defendant"), ("defendant","is"), ("is","not"), ("not","liable"), ("liable","for"), ("for","damages"). Feeding both unigrams and bigrams into a bag-of-"words" model — a technique often called treating n-grams "as vocabulary" — gives the classifier access to ("not","liable") as its own feature, sharply distinguished from ("is","liable"), which would appear in the sentence without the negation. In legal text this distinction is not cosmetic: "shall not be liable" versus "shall be liable," "does not waive" versus "does waive," "excluding consequential damages" versus "including consequential damages" — these bigram- or trigram-level flips often invert the legal meaning of a clause entirely while sharing almost all their unigram vocabulary. Trigrams push further, capturing three-word legal terms of art like "duty of care," "clear and convincing," or "beyond a reasonable doubt" as single indivisible units rather than three independently-counted words.</p>
+    <h3>The combinatorial explosion</h3>
+    <p>The cost of this extra order-sensitivity is a vocabulary explosion. If the unigram vocabulary has |V| = 100,000 terms, the space of possible bigrams has up to |V|² = 10,000,000,000 combinations — in practice far fewer actually occur in any real corpus, but the number of <em>observed</em> distinct bigrams still grows much faster than the number of observed unigrams, because legal English permits enormous combinatorial variety in which words follow which. Trigrams multiply the count again. Where a 50,000-document corpus might have 100,000 unigram types, it could easily have 2 million distinct bigram types and 8 million distinct trigram types — most of which occur exactly once in the entire corpus (a pattern directly tied to Zipf's law from Lesson 2: the tail of rare n-grams is enormous). The document-term matrix, already 99.9% sparse at the unigram level, becomes even sparser with bigrams and trigrams added — more columns, most of them touched by only a handful of documents each.</p>
+    <h3>Count-based language models and the zero-probability problem</h3>
+    <p>N-grams also underlie the classical approach to <span class="term">language modeling</span>: estimating the probability of a word given the preceding n−1 words, using nothing but corpus counts. A bigram language model estimates:</p>
+    <p class="math">P(wᵢ | wᵢ₋₁) = count(wᵢ₋₁, wᵢ) / count(wᵢ₋₁)</p>
+    <p>Trained on a corpus of contracts, such a model might learn that P("liable" | "not") is high (because "not liable" is common) while P("banana" | "not") is essentially zero, because the bigram ("not","banana") never occurs in any contract in the training corpus. That zero is the <span class="term">zero-probability problem</span>: any n-gram absent from training data gets assigned probability exactly zero, and if the model ever needs to score a sequence containing that bigram — even a perfectly reasonable one that simply didn't appear in the training sample — the entire sequence probability collapses to zero (since sequence probability is a product of bigram probabilities). <span class="term">Smoothing</span> techniques exist specifically to fix this. The simplest, <span class="term">add-k smoothing</span> (add-1, or "Laplace smoothing," being the k=1 case), adds a small constant to every count before normalizing, so no bigram is ever assigned exactly zero probability, only a small nonzero floor. More sophisticated methods like <span class="term">Kneser-Ney smoothing</span> improve on add-k by redistributing probability mass based on how many <em>distinct contexts</em> a word appears in, not just its raw frequency — a word like "Francisco" might be common only because it always follows "San," so Kneser-Ney gives it a low "novel continuation" probability in unfamiliar contexts, whereas add-k smoothing would still treat it as unremarkable, since add-k only looks at counts, never at how contextually restricted a word's usage is.</p>
+    <h3>Perplexity and why n-gram LMs plateaued</h3>
+    <p>Language models are typically evaluated with <span class="term">perplexity</span>, a measure of how "surprised" the model is by held-out text — lower perplexity means the model assigned higher probability to what actually happened, i.e., it predicted the real text better. But no amount of smoothing fixes the deeper problem: n-gram models only ever condition on the last n−1 words, so a trigram model has zero memory of anything said more than two words back — it cannot connect "the plaintiff" at the start of a long sentence to a pronoun resolution twelve words later, and it cannot generalize across n-grams that never co-occurred in training but are semantically related ("not liable" and "no liability" are entirely separate bigram/trigram entries with no shared parameters, however closely related their meaning). Every increase in n multiplies the sparsity problem while only marginally extending the model's memory — a losing trade past trigrams or 4-grams for any corpus of realistic size. This combination — the curse of dimensionality in n-gram space, plus a hard ceiling on how much context can ever be captured — is exactly why n-gram language models plateaued through the 2000s and were superseded by neural approaches: first neural n-gram-style models, then recurrent networks, and eventually the attention-based architectures covered starting in Unit 4, all of which represent context as continuous vectors rather than discrete count tables, letting them generalize across similar phrases instead of treating every n-gram as an isolated, unrelated symbol.</p>
+    <pre><code>from collections import defaultdict
+
+corpus = [
+    "the defendant is not liable for damages".split(),
+    "the defendant shall not be liable for breach".split(),
+    "the defendant is liable for the full amount".split(),
+    "the court finds the defendant not liable".split(),
+]
+
+# Extract bigrams from each document
+def bigrams(tokens):
+    return list(zip(tokens, tokens[1:]))
+
+all_bigrams = [bg for doc in corpus for bg in bigrams(doc)]
+vocab = sorted(set(tok for doc in corpus for tok in doc))
+V = len(vocab)
+
+# Count bigram(w1,w2) and unigram(w1) for add-1 smoothing
+bigram_counts = defaultdict(int)
+unigram_counts = defaultdict(int)
+for doc in corpus:
+    for tok in doc:
+        unigram_counts[tok] += 1
+    for w1, w2 in bigrams(doc):
+        bigram_counts[(w1, w2)] += 1
+
+def p_bigram_add1(w1, w2):
+    return (bigram_counts[(w1, w2)] + 1) / (unigram_counts[w1] + V)
+
+for w2 in ["liable", "banana"]:
+    print(f'P("{w2}" | "not") = {p_bigram_add1("not", w2):.5f}')
+</code></pre>
+    <p class="caption">"not liable" occurred twice in training, so it gets a solid smoothed probability; "not banana" never occurred, but add-1 smoothing still assigns it a small nonzero probability instead of the zero a raw count-ratio model would give it.</p>
+    <aside class="takeaways">
+      <h4>Key takeaways</h4>
+      <ul>
+        <li><strong>N-grams</strong> (bigrams, trigrams) recover local word order that unigram bag-of-words discards — critical for legal negation flips like "not liable" versus "liable."</li>
+        <li>Moving from unigrams to bigrams to trigrams causes a combinatorial explosion in vocabulary size, worsening the sparsity that was already extreme at the unigram level.</li>
+        <li>Count-based n-gram language models estimate P(word | preceding words) from raw corpus counts, which assigns exactly zero probability to any unseen n-gram — the <strong>zero-probability problem</strong>.</li>
+        <li><strong>Add-k smoothing</strong> floors every count above zero; <strong>Kneser-Ney smoothing</strong> improves on this by weighting words by how many distinct contexts they appear in, not just raw frequency.</li>
+        <li><strong>Perplexity</strong> measures how well a language model predicts held-out text; n-gram models plateaued because fixed-window context plus exploding sparsity is a ceiling smoothing cannot lift — the reason neural language models (Unit 4) replaced them.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <p class="eyebrow">Check yourself</p>
+    <h2>Unit 2 quiz</h2>
+    <p class="quiz-intro">8 questions covering bag-of-words, TF-IDF, and n-grams — mixing multiple choice, true/false, fill-in-the-blank, and code completion.</p>
+
+    <article class="q">
+      <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">A 50,000-document legal corpus with a 100,000-term vocabulary produces a document-term matrix with roughly what proportion of nonzero entries?</p>
+      <ol class="choices" type="A">
+        <li>Roughly 50%, since half the documents share common legal boilerplate.</li>
+        <li>Well under 0.1% — the matrix is extremely sparse, since any single document only uses a small fraction of the full vocabulary.</li>
+        <li>Roughly 100%, since every document contains at least one instance of most common words like "the" and "shall."</li>
+        <li>It depends entirely on whether stemming was applied during preprocessing.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> A single legal document, even a long one, typically touches only a few hundred distinct terms out of a 100,000-term vocabulary, so well over 99.9% of the document-term matrix is zero.</p>
+          <p>Option C is the tempting distractor because a handful of very common words ("the," "shall") really do appear in nearly every document, but those few common columns don't make the matrix dense overall — the vast majority of the 100,000 columns are rare, specialized legal terms that any given document never uses.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Under a pure bag-of-words representation, "the tenant breached the lease" and "the lease breached the tenant" produce identical vectors.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: A. True.</strong> Bag-of-words only counts term occurrences and discards all information about order, so any two sentences using the exact same multiset of words produce the exact same count vector, regardless of how nonsensical or meaning-reversing the reordering is.</p>
+          <p>This is precisely the limitation that motivates n-grams (Lesson 3), which capture short contiguous sequences and so can distinguish some — though not all — reorderings.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">Cosine similarity is preferred over raw Euclidean distance for comparing document vectors because it is insensitive to <span class="blank">&nbsp;</span>, dividing out the vectors' magnitude and comparing only their angle.</p>
+      <ol class="choices" type="A">
+        <li>vocabulary size</li>
+        <li>document length</li>
+        <li>term frequency</li>
+        <li>stopword removal</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B. Document length.</strong> Cosine similarity divides the dot product by the product of the two vectors' norms, canceling out overall magnitude — so a short motion and a long brief using the same terms in the same proportions score high similarity, even though their raw count vectors differ enormously in size.</p>
+          <p>"Term frequency" is tempting because term frequency is exactly what feeds the dot product, but the normalization step is specifically what cancels the effect of a document simply being longer (and thus having larger raw counts across the board), not the term frequencies themselves.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 4 <span class="q-type">Multiple choice</span></p>
+      <p class="q-stem">In a corpus of 10,000 contracts, "agreement" appears in 9,800 of them and "indemnification" appears in 300 of them. Under TF-IDF, which statement is correct?</p>
+      <ol class="choices" type="A">
+        <li>"agreement" will have a much higher idf value, since it appears more often overall.</li>
+        <li>"indemnification" will have a much higher idf value, since it appears in far fewer documents.</li>
+        <li>Both terms will have identical idf values, since idf only depends on term frequency within a document.</li>
+        <li>idf cannot be computed unless every document contains both terms.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> idf(t) = log(N / (1 + df(t))) grows as document frequency df(t) shrinks — "indemnification," with a much smaller df (300 vs. 9,800 out of 10,000), gets a much larger idf, correctly rewarding its rarity and discriminative power.</p>
+          <p>Option C is wrong because it confuses idf (a corpus-wide statistic, one value per term) with term frequency (a per-document statistic) — idf has nothing to do with counts within a single document, only with how many documents contain the term at all.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 5 <span class="q-type">True / false</span></p>
+      <p class="q-stem">Because TF-IDF weights terms by informativeness, a TF-IDF-based search for "automobile accident" will reliably surface a highly relevant document that only uses the words "car crash."</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B. False.</strong> TF-IDF is still a bag-of-words method underneath its weighting — each distinct token is its own orthogonal dimension. "Automobile" and "car" share no vocabulary, so their TF-IDF vectors have zero dot product regardless of how semantically similar the words are to a human reader.</p>
+          <p>The intuition that "TF-IDF understands importance, so it should understand synonymy too" is the trap here — TF-IDF only re-weights existing lexical overlap, it does not create semantic connections between different words. That gap is closed by embeddings, covered in Unit 3.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 6 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-stem">The log in idf(t) = log(N / (1 + df(t))) compensates for <span class="blank">&nbsp;</span>, the empirical pattern in which a small number of words dominate total word occurrences while most words occur rarely.</p>
+      <ol class="choices" type="A">
+        <li>Kneser-Ney smoothing</li>
+        <li>the zero-probability problem</li>
+        <li>Zipf's law</li>
+        <li>L2 normalization</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: C. Zipf's law.</strong> Word (and n-gram) frequencies in natural language are extremely skewed — a handful of terms account for most occurrences, while a long tail of terms is rare. The log compresses the huge swings in N/df(t) that this skew would otherwise produce, so idf behaves as a manageable weighting factor.</p>
+          <p>"The zero-probability problem" is a distractor from Lesson 3 — it refers to unseen n-grams getting zero probability in a language model, a different issue from idf weighting in TF-IDF, and smoothing (not the log) is what addresses it.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 7 <span class="q-type">Code completion</span></p>
+      <p class="q-stem">Complete the function so it returns the list of bigrams (as tuples) from a token list, matching the definition used in Lesson 3.</p>
+      <pre><code>def bigrams(tokens):
+    return list(zip(______, ______))
+
+# bigrams(["the","defendant","is","not","liable"])
+# should return:
+# [("the","defendant"), ("defendant","is"), ("is","not"), ("not","liable")]</code></pre>
+      <ol class="choices" type="A">
+        <li><code>tokens, tokens</code></li>
+        <li><code>tokens, tokens[1:]</code></li>
+        <li><code>tokens[:-1], tokens[1:]</code></li>
+        <li><code>tokens[1:], tokens[:-1]</code></li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B (and C is equivalent).</strong> <code>zip(tokens, tokens[1:])</code> pairs each token with the one immediately after it; <code>zip</code> stops at the shorter sequence, so the last token is correctly left without a successor pair. <code>tokens[:-1], tokens[1:]</code> produces the identical result more explicitly.</p>
+          <p><code>zip(tokens, tokens)</code> (option A) pairs every token with itself — ("the","the"), ("defendant","defendant") — which produces same-word pairs, not consecutive-word bigrams, and is a common off-by-zero slip when writing this from scratch.</p>
+        </div>
+      </details>
+    </article>
+
+    <article class="q">
+      <p class="q-num">Question 8 <span class="q-type">Bug fix</span></p>
+      <p class="q-stem">This bigram language model probability function has a bug: it returns exactly 0.0 for any bigram unseen in training, which will zero out an entire sequence's probability. What is the minimal fix, consistent with Lesson 3's add-k smoothing?</p>
+      <pre><code>def p_bigram(w1, w2, bigram_counts, unigram_counts):
+    return bigram_counts[(w1, w2)] / unigram_counts[w1]</code></pre>
+      <ol class="choices" type="A">
+        <li>Add a try/except around the division to catch ZeroDivisionError.</li>
+        <li>Add 1 to the numerator and add the vocabulary size V to the denominator: <code>(bigram_counts[(w1,w2)] + 1) / (unigram_counts[w1] + V)</code>.</li>
+        <li>Replace the function with a lookup into a precomputed table of only the bigrams that occurred in training.</li>
+        <li>Sort the bigram counts and return the median count instead of the exact count.</li>
+      </ol>
+      <details>
+        <summary>Show answer</summary>
+        <div class="answer">
+          <p><strong>Answer: B.</strong> This is add-1 (Laplace) smoothing: adding 1 to every bigram count and V (vocabulary size) to every unigram count guarantees every possible bigram gets a small nonzero probability, fixing the zero-probability problem without changing the relative ordering of well-attested bigrams much.</p>
+          <p>Option A is the tempting distractor because the raw function as written won't actually raise ZeroDivisionError for an unseen bigram (the numerator is just 0, not undefined) — the real bug is a silent zero probability, not a crash, so a try/except would catch nothing and leave the underlying problem untouched.</p>
+        </div>
+      </details>
+    </article>
+
+  </section>
+
+</main>
+
+<footer class="unit-foot">
+  <p>Text Processing (NLP) · Unit 2 of 8 — Next: Unit 3 moves past discrete counting to dense word embeddings (word2vec, GloVe), where "car" and "automobile" finally end up near each other in vector space.</p>
+</footer>
+</body>
+</html>
