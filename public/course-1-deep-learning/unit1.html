@@ -149,6 +149,12 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{max-width:var(--measure);margin:0 auto;padding:1.75rem clamp(1.1rem,5vw,2rem) 4rem;display:flex;gap:.7rem;flex-wrap:wrap;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase}
+.unit-nav a{text-decoration:none;color:var(--ink-soft);border:1px solid var(--line);border-radius:10px;padding:.65rem .95rem;background:var(--panel);transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
+.unit-nav .unit-nav-index{color:var(--gold)}
+.unit-nav .unit-nav-off{color:var(--ink-faint);border:1px solid transparent;padding:.65rem .95rem}
 </style>
 </head>
 <body>
@@ -487,5 +493,12 @@ h1 = relu(X @ W1 + b1)              # crashes: shapes (32,8) and (16,8) not alig
 <footer class="unit-foot">
   <p>Deep Learning Foundations · Unit 1 of 8 — Unit 2 picks up where this one stops: loss functions for classification and regression, and how a single prediction's error gets turned into a training signal.</p>
 </footer>
+
+<nav class="unit-nav" aria-label="Course navigation">
+  <span class="unit-nav-off">Start</span>
+  <a class="unit-nav-index" href="../courses.html">All courses</a>
+  <a class="unit-nav-next" href="unit2.html">Unit 2 →</a>
+</nav>
+
 </body>
 </html>

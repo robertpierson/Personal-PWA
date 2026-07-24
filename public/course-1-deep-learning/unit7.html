@@ -149,6 +149,12 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{max-width:var(--measure);margin:0 auto;padding:1.75rem clamp(1.1rem,5vw,2rem) 4rem;display:flex;gap:.7rem;flex-wrap:wrap;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase}
+.unit-nav a{text-decoration:none;color:var(--ink-soft);border:1px solid var(--line);border-radius:10px;padding:.65rem .95rem;background:var(--panel);transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
+.unit-nav .unit-nav-index{color:var(--gold)}
+.unit-nav .unit-nav-off{color:var(--ink-faint);border:1px solid transparent;padding:.65rem .95rem}
 </style>
 </head>
 <body>
@@ -558,5 +564,12 @@ for chunk in patient_chunks:            # chunks in stay order, 24h each
 <footer class="unit-foot">
   <p>Deep Learning Foundations · Unit 7 of 8 — Unit 8 closes out the course with a synthesis of everything so far, stress-testing the full toolkit against harder, messier real-world scenarios.</p>
 </footer>
+
+<nav class="unit-nav" aria-label="Course navigation">
+  <a class="unit-nav-prev" href="unit6.html">← Unit 6</a>
+  <a class="unit-nav-index" href="../courses.html">All courses</a>
+  <a class="unit-nav-next" href="unit8.html">Unit 8 →</a>
+</nav>
+
 </body>
 </html>

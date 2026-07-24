@@ -149,6 +149,12 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{max-width:var(--measure);margin:0 auto;padding:1.75rem clamp(1.1rem,5vw,2rem) 4rem;display:flex;gap:.7rem;flex-wrap:wrap;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase}
+.unit-nav a{text-decoration:none;color:var(--ink-soft);border:1px solid var(--line);border-radius:10px;padding:.65rem .95rem;background:var(--panel);transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
+.unit-nav .unit-nav-index{color:var(--gold)}
+.unit-nav .unit-nav-off{color:var(--ink-faint);border:1px solid transparent;padding:.65rem .95rem}
 </style>
 </head>
 <body>
@@ -501,5 +507,12 @@ head.fit(cached_vectors, labels)</code></pre>
 <footer class="unit-foot">
   <p>Foundational Model Development · Unit 1 of 8 — Unit 2 opens the transformer itself: attention, positional encoding, and why this architecture became the near-universal backbone for the pretrain-then-adapt pipeline you just learned.</p>
 </footer>
+
+<nav class="unit-nav" aria-label="Course navigation">
+  <a class="unit-nav-prev" href="../course-1-deep-learning/unit8.html">← Course 1</a>
+  <a class="unit-nav-index" href="../courses.html">All courses</a>
+  <a class="unit-nav-next" href="unit2.html">Unit 2 →</a>
+</nav>
+
 </body>
 </html>
