@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -174,7 +181,7 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
     <h2>Two families from one architecture</h2>
     <p class="opening">A transformer is a single architecture, but the direction you point its self-attention mask splits it into two model families with almost opposite skills. <span class="term">Encoder-only models</span> like BERT attend in both directions at once — every token sees every other token, before and after it in the sequence — which makes them experts at understanding a fixed span of text but structurally incapable of generating one token at a time from scratch. <span class="term">Decoder-only models</span> like GPT attend only backward, each position conditioned solely on what came before it, which is exactly the constraint that lets them generate fluently but costs them the free look-ahead that makes classification and extraction so accurate for BERT. Neither family is a stunted version of the other; they are trained on different objectives for different jobs, and picking between them is mostly a question of which one your task's information flow actually needs.</p>
 
-    <p>Recall from Course 2 Unit 4 that BERT is pretrained with <span class="term">masked language modeling (MLM)</span>: roughly 15% of input tokens are replaced with a <code>[MASK]</code> placeholder, and the model has to predict the original token using context from both sides. To predict a masked word in the middle of "NVDA <code>[MASK]</code> Q3 estimates on strong data-center demand," the model needs "NVDA" behind it and "Q3 estimates" ahead of it — bidirectional context is not a bonus feature, it is the entire training signal. That objective is only possible because BERT's self-attention has no causal mask: every layer lets every token attend freely to every other token in the sequence, in both directions, at every step of pretraining and at every step of inference afterward.</p>
+    <p>Recall from Course 2 Unit 4 that BERT is pretrained with <span class="term">masked language modeling (MLM)</span>: roughly 15% of input token positions are selected for prediction — of those, 80% are replaced with a <code>[MASK]</code> placeholder, 10% with a random token, and 10% left unchanged, so the model cannot learn that a prediction is only ever needed where <code>[MASK]</code> appears — and the model has to predict the original token using context from both sides. To predict a masked word in the middle of "NVDA <code>[MASK]</code> Q3 estimates on strong data-center demand," the model needs "NVDA" behind it and "Q3 estimates" ahead of it — bidirectional context is not a bonus feature, it is the entire training signal. That objective is only possible because BERT's self-attention has no causal mask: every layer lets every token attend freely to every other token in the sequence, in both directions, at every step of pretraining and at every step of inference afterward.</p>
 
     <p>GPT is pretrained with the complementary objective, <span class="term">causal language modeling (CLM)</span>, also covered in Course 2 Unit 4: given every token up to position <em>i</em>, predict token <em>i</em>+1. The self-attention layers enforce a causal mask so that position <em>i</em> can only attend to positions 0 through <em>i</em> — it is mathematically prevented from seeing what comes after, because during real generation what comes after does not exist yet. This is not a design choice you could remove without breaking the model: a decoder trained without the causal mask would have learned to "predict" the next token by simply reading it, and would collapse the moment you tried to generate text one token at a time, where future tokens genuinely are not available.</p>
 
@@ -336,7 +343,8 @@ encoded = tokenizer("Palantir shares (PLTR) surge after government contract news
                      return_tensors="pt")
 logits = finetuned_bert(**encoded).logits             # (1, seq_len, num_tags)
 tags = logits.argmax(-1)                                # per-token B-TICKER/O/...
-# -> token "PL" tagged B-TICKER, "##TR" tagged I-TICKER, everything else O
+# -> token "PL" tagged B-TICKER; "##TR" is a continuation piece, masked with
+#    -100 during training, so span assembly ignores its prediction. Rest are O
 </code></pre>
     <p class="caption">The prompt reaches the right answer by pattern-matching the three demonstrations at inference time; the fine-tuned tagger reaches it because it actually learned ticker-tagging during training and never needs the demonstrations again.</p>
 
@@ -534,6 +542,11 @@ for word_id in word_ids:
 
 <footer class="unit-foot">
   <p>Text Processing (NLP) · Unit 5 of 8 — Next: Unit 6 goes deep on named entity recognition as its own task, beyond the ticker-tagging groundwork laid here.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="unit4.html">← Unit 4</a>
+    <a href="../courses.html">All units</a>
+    <a href="unit6.html">Unit 6 →</a>
+  </nav>
 </footer>
 </body>
 </html>

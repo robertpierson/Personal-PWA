@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -204,7 +211,7 @@ def cosine(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
 print(round(cosine(vecs["javascript"], vecs["js"]), 3))          # ~0.999, synonyms
-print(round(cosine(vecs["javascript"], vecs["accounting"]), 3))  # ~0.3, unrelated
+print(round(cosine(vecs["javascript"], vecs["accounting"]), 3))  # ~0.16, unrelated
 
 # Analogy arithmetic: junior_developer - junior + senior =~ senior_developer
 target = vecs["junior_developer"] - vecs["junior"] + vecs["senior"]
@@ -279,7 +286,7 @@ lr = 0.05
 center, pos_context = "python", "pandas"
 negatives = sample_negatives(3, exclude={center, pos_context})
 
-v_c = center_vecs[center]
+v_c = center_vecs[center].copy()   # copy: the update below mutates in place
 v_pos = context_vecs[pos_context]
 
 # Positive pair: push predicted probability toward 1.
@@ -342,10 +349,10 @@ vecs = {
     "amy":  np.array([0.1, 0.8, 0.15, 0.6, 0.2]),
     "lisa": np.array([0.15, 0.75, 0.1, 0.65, 0.25]),
     "joan": np.array([0.05, 0.82, 0.18, 0.58, 0.22]),
-    # Target set X: career/leadership-coded words
+    # Attribute set A2: career/leadership-coded words
     "executive": np.array([0.7, 0.2, 0.5, 0.3, 0.1]),
     "management": np.array([0.68, 0.22, 0.48, 0.28, 0.15]),
-    # Target set Y: support/care-coded words
+    # Attribute set B2: support/care-coded words
     "assistant": np.array([0.2, 0.7, 0.2, 0.5, 0.2]),
     "caregiver": np.array([0.15, 0.72, 0.18, 0.55, 0.18]),
 }
@@ -361,7 +368,11 @@ def assoc(word, A, B):
     return mean_a - mean_b
 
 def weat_score(X, Y, A, B):
-    """Differential association between target sets X and Y."""
+    """Differential association between target sets X and Y.
+    Note on naming: in Caliskan et al. the *names* are the target sets and the
+    career/support words are the attributes; this toy inverts that labelling
+    (career/support words are passed as X, Y), which is arithmetically the same
+    test read from the other side."""
     sum_x = sum(assoc(x, A, B) for x in X)
     sum_y = sum(assoc(y, A, B) for y in Y)
     return sum_x - sum_y
@@ -519,7 +530,7 @@ v_neg  -= lr * grad_common * v_c</code></pre>
 
     <article class="q">
       <p class="q-num">Question 8 <span class="q-type">Bug fix</span></p>
-      <p class="q-stem">This WEAT-style association function is meant to compute s(w, A, B): the mean cosine similarity of word <code>w</code> to attribute set A, minus the mean cosine similarity of <code>w</code> to attribute set B. It returns a value that never distinguishes bias direction correctly. Find the bug.</p>
+      <p class="q-stem">This WEAT-style association function is meant to compute s(w, A, B): the mean cosine similarity of word <code>w</code> to attribute set A, minus the mean cosine similarity of <code>w</code> to attribute set B. It returns a distorted magnitude whenever the two attribute sets differ in size (say 5 names in A against 3 in B). Find the bug.</p>
       <pre><code>def assoc(word, A, B):
     sum_a = sum(cosine(vecs[word], vecs[a]) for a in A)
     sum_b = sum(cosine(vecs[word], vecs[b]) for b in B)
@@ -545,6 +556,11 @@ v_neg  -= lr * grad_common * v_c</code></pre>
 
 <footer class="unit-foot">
   <p>Text Processing (NLP) · Unit 3 of 8 — Next: Unit 4 moves from static word vectors to sequence models, covering how RNNs and LSTMs read a resume or posting word-by-word while carrying state forward.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="unit2.html">← Unit 2</a>
+    <a href="../courses.html">All units</a>
+    <a href="unit4.html">Unit 4 →</a>
+  </nav>
 </footer>
 </body>
 </html>

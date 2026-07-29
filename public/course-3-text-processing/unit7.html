@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -211,8 +218,8 @@ def beam_search_step(beams, next_token_logprobs, beam_width, alpha=0.7):
 # Toy example: translating "anba" (under) — three partial hypotheses
 # competing to extend "there are people ..."
 toy_beams = [
-    (["there", "are", "people", "near"],  -3.1),
-    (["there", "are", "people", "under"], -3.6),
+    (["there", "are", "people", "near"],  -1.9),
+    (["there", "are", "people", "under"], -1.6),
     (["there", "are", "people"],          -1.4),  # shorter, tempting on raw logprob
 ]
 for tokens, lp in toy_beams:
@@ -235,7 +242,7 @@ for tokens, lp in toy_beams:
     <p class="eyebrow">Lesson 2</p>
     <h2>Evaluation and the faithfulness problem</h2>
     <p class="opening">An evaluation metric for text generation takes a generated hypothesis and one or more human reference texts and returns a single number meant to correlate with human judgment of quality. The oldest and still most widely reported such metric for translation is <span class="term">BLEU</span> (Bilingual Evaluation Understudy, Papineni et al. 2002): the geometric mean of n-gram precision — what fraction of the hypothesis's unigrams, bigrams, trigrams, and 4-grams also appear in the reference — multiplied by a <span class="term">brevity penalty</span> that punishes hypotheses shorter than the reference (to stop a system from gaming precision by outputting only a few very safe words). BLEU produces a single score between 0 and 1, almost always reported as 0–100.</p>
-    <p>A worked example makes the mechanics concrete. Take reference "the building collapsed near the market" against hypothesis "the building fell near the market" — a faithful paraphrase a bilingual reviewer would accept without hesitation. Unigram precision is high: five of six hypothesis words ("the," "building," "near," "the," "market") appear in the reference, only "fell" doesn't match "collapsed." But bigram precision collapses: "building fell," "fell near" share no match with the reference's "building collapsed," "collapsed near." By the time BLEU reaches 4-grams, overlap is near zero, and the geometric mean — which multiplies all four n-gram precisions together — is dragged down hard by the near-zero higher-order terms. A single word substitution that changes nothing about meaning can crater a BLEU score, because BLEU has no notion of synonymy: it only counts exact string matches.</p>
+    <p>A worked example makes the mechanics concrete. Take reference "the building collapsed near the market" against hypothesis "the building fell near the market" — a faithful paraphrase a bilingual reviewer would accept without hesitation. Unigram precision is high: five of six hypothesis words ("the," "building," "near," "the," "market") appear in the reference, only "fell" doesn't match "collapsed." Bigram precision drops to 3/5: "building fell" and "fell near" have no match in the reference, which has "building collapsed" and "collapsed near." By the time BLEU reaches 4-grams, overlap is near zero, and the geometric mean — which multiplies all four n-gram precisions together — is dragged down hard by the near-zero higher-order terms. A single word substitution that changes nothing about meaning can crater a BLEU score, because BLEU has no notion of synonymy: it only counts exact string matches.</p>
     <h3>Why BLEU is close to useless for Swahili, Rohingya, and Haitian Creole</h3>
     <p>This exact-match brittleness compounds badly for morphologically rich, low-resource languages. Swahili marks noun class, tense, subject, and object agreement all as prefixes glued onto a single verb stem — one Swahili word can be the exact semantic equivalent of a five-word English clause, so a hypothesis and reference that agree completely in meaning can share almost no exact word-level n-grams if tokenization boundaries differ even slightly, or if the reference used one valid morphological variant and the hypothesis used another equally valid one. Rohingya compounds the problem further: it lacked a widely used standard written script until recently, so digitized parallel text is scarce, and the handful of reference translations that exist for any given sentence may not reflect the range of equally valid renderings a fluent bilingual speaker would accept. A metric that requires exact surface-string overlap against a single fixed reference is measuring reference-matching, not translation quality, and for these language pairs those two things come apart often enough that BLEU scores are not just imprecise — they are frequently uninformative in either direction: a bad translation can score fine by accidentally matching function words, and a correct one can score badly for lacking morphological identity with the one reference on hand.</p>
     <h3>chrF and character-level scoring</h3>
@@ -246,7 +253,8 @@ for tokens, lp in toy_beams:
     <p>Summarization is conventionally scored with <span class="term">ROUGE</span> (Recall-Oriented Understudy for Gisting Evaluation, Lin 2004): ROUGE-N measures n-gram recall — what fraction of the reference summary's n-grams appear somewhere in the generated summary — and ROUGE-L uses longest common subsequence. The recall orientation is deliberate (summaries are short, so precision is easy to inflate by omission), but it creates its own bias: a generated summary padded with extra sentences, extra qualifying detail, even outright invented content, can still recall every n-gram in the reference and score at or near the ceiling, because ROUGE never penalizes for content in the hypothesis that isn't in the reference. A summary can be stuffed with unsupported additions and ROUGE will not dock it a single point for those additions, so long as the reference's own words are all present somewhere in the pile.</p>
     <h3>The central failure mode: fluent hallucination</h3>
     <p>This is where evaluation and faithfulness collide directly. An abstractive summarizer condensing a batch of field reports that repeatedly mention "several people injured, exact count unknown" can generate the sentence "12 people were injured in the collapse" — grammatically perfect, plausible-sounding, thematically on point, and entirely fabricated: no source report contained the number 12. This is a <span class="term">hallucination</span>: fluent content the model generated because it was statistically plausible given the training distribution, not because the source supported it. None of the metrics above are built to catch this reliably. ROUGE will score it well if the reference happens to mention casualty figures using similar surrounding words. BLEU and chrF have no mechanism at all for checking whether a number is <em>true</em>, only whether it matches a reference string. Even COMET and BERTScore, which reward semantic plausibility, have no ground-truth signal telling them "12" was never in the source — they were trained to predict human fluency and adequacy judgments, not to fact-check against a document. For humanitarian response, an invented casualty count is not a rounding error in an evaluation score; it is the kind of error that gets reported up a chain of command and shapes how resources are allocated, and it is invisible to every metric in this lesson unless someone builds a check specifically for it — which is exactly where Lesson 3 goes next.</p>
-    <pre><code>from collections import Counter
+    <pre><code>import math
+from collections import Counter
 
 def ngrams(tokens, n):
     return [tuple(tokens[i:i+n]) for i in range(len(tokens) - n + 1)]
@@ -319,8 +327,8 @@ def chunk_text(sentences, max_per_chunk=3, overlap=1):
     return chunks
 
 def extractive_summarize(sentences, keep=1):
-    # ponytail: naive "longest sentence wins" heuristic — a real system would
-    # score sentences by entity density / position; upgrade if summaries drift.
+    # Naive "longest sentence wins" heuristic — a real system would score
+    # sentences by entity density and position in the document.
     ranked = sorted(sentences, key=len, reverse=True)
     return ranked[:keep]
 
@@ -347,7 +355,7 @@ dropped = source_entities - summary_entities
 
 print("Final summary:", final_summary)
 print("Dropped entities:", dropped or "none")</code></pre>
-    <p class="caption">Chunking with a one-sentence overlap keeps the "3 additional search and rescue teams" sentence from being isolated at a chunk edge; the entity-preservation check at the end flags exactly which names, places, or numbers from the source never made it into the final summary, giving a reviewer a concrete list to check rather than a vague sense of unease.</p>
+    <p class="caption">The one-sentence overlap puts the "3 additional search and rescue teams" sentence in both chunks, but overlap alone does not save it: the length-ranking sentence scorer never selects it, and the entity-preservation check duly reports OCHA and 3 among the dropped entities. That check is the point — it flags exactly which names, places, or numbers from the source never made it into the final summary, giving a reviewer a concrete list to check rather than a vague sense of unease.</p>
     <aside class="takeaways">
       <h4>Key takeaways</h4>
       <ul>
@@ -414,8 +422,9 @@ print("Dropped entities:", dropped or "none")</code></pre>
     <article class="q">
       <p class="q-num">Question 4 <span class="q-type">Bug fix</span></p>
       <p class="q-stem">This length-normalization helper is meant to make longer and shorter beam hypotheses comparable, but a teammate reports it still favors short outputs almost every time. Find the bug.</p>
-      <pre><code>def normalized_score(tokens, cum_prob, alpha=0.7):
+      <pre><code>def normalized_score(tokens, cum_logprob, alpha=0.7):
     length = len(tokens)
+    cum_prob = math.exp(cum_logprob)      # convert to a raw probability first
     return cum_prob / length ** alpha</code></pre>
       <ol class="choices" type="A">
         <li>The exponent <code>alpha</code> should be applied to <code>cum_prob</code>, not to <code>length</code>.</li>
@@ -516,6 +525,11 @@ print("Dropped entities:", dropped or "none")</code></pre>
 
 <footer class="unit-foot">
   <p>Text Processing (NLP) · Unit 7 of 8 — Unit 8 closes the course by assembling retrieval, generation, and conversation into a full chatbot/RAG pipeline.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="unit6.html">← Unit 6</a>
+    <a href="../courses.html">All units</a>
+    <a href="unit8.html">Unit 8 →</a>
+  </nav>
 </footer>
 </body>
 </html>

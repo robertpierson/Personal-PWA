@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -178,7 +185,7 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
     <p>Constructing the vocabulary is a single pass over the corpus: tokenize every document, union the resulting token sets, and assign each surviving term an integer index — term_to_id = {"agreement": 0, "breach": 1, "indemnification": 2, ...}. Once the vocabulary is fixed, encoding any document is a second pass: initialize a zero vector of length |V|, then for each token in the document increment the count at its assigned index. A four-page settlement agreement might produce a vector with 40 nonzero entries out of 100,000 — "party" appearing 6 times, "shall" appearing 11 times, "indemnification" appearing twice, and 99,960 zeros for every term the document never uses.</p>
     <p>That ratio is the central fact about bag-of-words at corpus scale: a 50,000 × 100,000 document-term matrix has 5 billion cells, and any individual legal document — even a long one — only ever touches a few hundred distinct terms. Well over <strong>99.9% of the matrix is zero</strong>. Storing that as a dense array of floats would need roughly 20 GB of memory for a matrix of 32-bit floats, almost all of it spent recording "this term does not appear here" — information nobody needed encoded that expensively. Real systems use <span class="term">sparse storage</span> instead: formats like compressed sparse row (CSR) that store only the nonzero entries as (row, column, value) triples, plus compact index arrays to reconstruct rows and columns on demand. A document that uses 300 distinct terms costs roughly 300 entries to store, not 100,000 — the representation scales with how much a document actually says, not with the size of the vocabulary it draws from. Libraries such as scikit-learn's <code>CountVectorizer</code> return exactly this kind of sparse matrix by default, precisely because dense storage would be unworkable at legal-corpus scale.</p>
     <h3>What bag-of-words throws away</h3>
-    <p>The cost of this representation is everything about sequence. Because BoW only counts occurrences, it cannot distinguish "the tenant breached the lease" from "the lease breached the tenant" (nonsensical, but the same bag), and cannot distinguish "dog bites man" from "man bites dog" — two sentences with opposite real-world meaning and identical bag-of-words vectors, since both contain exactly one "dog," one "bites," and one "man." In a legal corpus this matters concretely: "the defendant is not liable for damages" and "the defendant is liable for damages, not [some exception]" can produce disturbingly similar bags once "not" is common enough to survive stopword filtering, because BoW has no notion of which word negates which. Lesson 3 addresses this gap directly with n-grams, which recover a sliding window of local order; for now, hold onto the limitation as the reason nobody ships bag-of-words alone as a final legal-classification system — it is a first-pass filter, not a judgment-rendering engine.</p>
+    <p>The cost of this representation is everything about sequence. Because BoW only counts occurrences, it cannot distinguish "the tenant breached the lease" from "the lease breached the tenant" (nonsensical, but the same bag), and cannot distinguish "dog bites man" from "man bites dog" — two sentences with opposite real-world meaning and identical bag-of-words vectors, since both contain exactly one "dog," one "bites," and one "man." In a legal corpus this matters concretely: "the defendant is not liable for damages" and "the defendant is liable for damages, not [some exception]" can produce disturbingly similar bags once "not" is retained (kept off the stopword list), because BoW has no notion of which word negates which. Lesson 3 addresses this gap directly with n-grams, which recover a sliding window of local order; for now, hold onto the limitation as the reason nobody ships bag-of-words alone as a final legal-classification system — it is a first-pass filter, not a judgment-rendering engine.</p>
     <h3>Comparing documents: cosine similarity</h3>
     <p>Once documents are vectors, "how similar are these two filings" becomes "how close are these two vectors" — and the standard answer, when vectors are long and mostly zero, is <span class="term">cosine similarity</span>: the cosine of the angle between two vectors, ignoring their magnitude entirely.</p>
     <p class="math">cos(A, B) = (A · B) / (‖A‖ ‖B‖) = (Σ Aᵢ Bᵢ) / (√(Σ Aᵢ²) · √(Σ Bᵢ²))</p>
@@ -274,7 +281,7 @@ top = sorted(vec0.items(), key=lambda kv: kv[1], reverse=True)[:5]
 for term, weight in top:
     print(f"{term:16s} {weight:.3f}")
 </code></pre>
-    <p class="caption">"Agreement" appears in every document (df = 4 of 4), so idf(agreement) is near zero and it drops out of the top weights even though it is the most frequent raw token in doc 0; "indemnification" and "obligations," rarer across the corpus, rise to the top.</p>
+    <p class="caption">"Agreement" appears in every document (df = 4 of 4), so with the un-smoothed idf here, log(N/(1+df)) = log(4/5), its weight goes slightly <em>negative</em> and it drops out of the top weights entirely, even though it is the most frequent raw token in doc 0. What rises instead are the terms unique to this document — "sets," "forth," "obligations," and even the function word "of" all tie at 0.484, with "parties" (df = 2) behind them at 0.201. Note that a term appearing in 3 of 4 documents, like "indemnification," lands at exactly 0.000: production implementations use sklearn's smoothed log((1+N)/(1+df)) + 1 precisely so no term's weight goes negative or vanishes this way.</p>
     <aside class="takeaways">
       <h4>Key takeaways</h4>
       <ul>
@@ -300,7 +307,7 @@ for term, weight in top:
     <p class="math">P(wᵢ | wᵢ₋₁) = count(wᵢ₋₁, wᵢ) / count(wᵢ₋₁)</p>
     <p>Trained on a corpus of contracts, such a model might learn that P("liable" | "not") is high (because "not liable" is common) while P("banana" | "not") is essentially zero, because the bigram ("not","banana") never occurs in any contract in the training corpus. That zero is the <span class="term">zero-probability problem</span>: any n-gram absent from training data gets assigned probability exactly zero, and if the model ever needs to score a sequence containing that bigram — even a perfectly reasonable one that simply didn't appear in the training sample — the entire sequence probability collapses to zero (since sequence probability is a product of bigram probabilities). <span class="term">Smoothing</span> techniques exist specifically to fix this. The simplest, <span class="term">add-k smoothing</span> (add-1, or "Laplace smoothing," being the k=1 case), adds a small constant to every count before normalizing, so no bigram is ever assigned exactly zero probability, only a small nonzero floor. More sophisticated methods like <span class="term">Kneser-Ney smoothing</span> improve on add-k by redistributing probability mass based on how many <em>distinct contexts</em> a word appears in, not just its raw frequency — a word like "Francisco" might be common only because it always follows "San," so Kneser-Ney gives it a low "novel continuation" probability in unfamiliar contexts, whereas add-k smoothing would still treat it as unremarkable, since add-k only looks at counts, never at how contextually restricted a word's usage is.</p>
     <h3>Perplexity and why n-gram LMs plateaued</h3>
-    <p>Language models are typically evaluated with <span class="term">perplexity</span>, a measure of how "surprised" the model is by held-out text — lower perplexity means the model assigned higher probability to what actually happened, i.e., it predicted the real text better. But no amount of smoothing fixes the deeper problem: n-gram models only ever condition on the last n−1 words, so a trigram model has zero memory of anything said more than two words back — it cannot connect "the plaintiff" at the start of a long sentence to a pronoun resolution twelve words later, and it cannot generalize across n-grams that never co-occurred in training but are semantically related ("not liable" and "no liability" are entirely separate bigram/trigram entries with no shared parameters, however closely related their meaning). Every increase in n multiplies the sparsity problem while only marginally extending the model's memory — a losing trade past trigrams or 4-grams for any corpus of realistic size. This combination — the curse of dimensionality in n-gram space, plus a hard ceiling on how much context can ever be captured — is exactly why n-gram language models plateaued through the 2000s and were superseded by neural approaches: first neural n-gram-style models, then recurrent networks, and eventually the attention-based architectures covered starting in Unit 4, all of which represent context as continuous vectors rather than discrete count tables, letting them generalize across similar phrases instead of treating every n-gram as an isolated, unrelated symbol.</p>
+    <p>Language models are typically evaluated with <span class="term">perplexity</span>, a measure of how "surprised" the model is by held-out text — lower perplexity means the model assigned higher probability to what actually happened, i.e., it predicted the real text better. But no amount of smoothing fixes the deeper problem: n-gram models only ever condition on the last n−1 words, so a trigram model has zero memory of anything said more than two words back — it cannot connect "the plaintiff" at the start of a long sentence to a pronoun resolution twelve words later, and it cannot generalize across n-grams that never co-occurred in training but are semantically related ("not liable" and "no liability" are entirely separate bigram/trigram entries with no shared parameters, however closely related their meaning). Every increase in n multiplies the sparsity problem while only marginally extending the model's memory — a losing trade past trigrams or 4-grams for any corpus of realistic size. This combination — the curse of dimensionality in n-gram space, plus a hard ceiling on how much context can ever be captured — is exactly why n-gram language models plateaued through the 2000s and were superseded by neural approaches: first neural n-gram-style models, then recurrent networks, and eventually the attention-based architectures covered starting in Unit 5, all of which represent context as continuous vectors rather than discrete count tables, letting them generalize across similar phrases instead of treating every n-gram as an isolated, unrelated symbol.</p>
     <pre><code>from collections import defaultdict
 
 corpus = [
@@ -467,13 +474,13 @@ for w2 in ["liable", "banana"]:
       <ol class="choices" type="A">
         <li><code>tokens, tokens</code></li>
         <li><code>tokens, tokens[1:]</code></li>
-        <li><code>tokens[:-1], tokens[1:]</code></li>
+        <li><code>tokens[1:], tokens[2:]</code></li>
         <li><code>tokens[1:], tokens[:-1]</code></li>
       </ol>
       <details>
         <summary>Show answer</summary>
         <div class="answer">
-          <p><strong>Answer: B (and C is equivalent).</strong> <code>zip(tokens, tokens[1:])</code> pairs each token with the one immediately after it; <code>zip</code> stops at the shorter sequence, so the last token is correctly left without a successor pair. <code>tokens[:-1], tokens[1:]</code> produces the identical result more explicitly.</p>
+          <p><strong>Answer: B.</strong> <code>zip(tokens, tokens[1:])</code> pairs each token with the one immediately after it; <code>zip</code> stops at the shorter sequence, so the last token is correctly left without a successor pair. <code>tokens[1:], tokens[2:]</code> (option C) skips the first token entirely and pairs each remaining token with the one two positions along in the original list — it drops the opening bigram and shifts every other pair one place.</p>
           <p><code>zip(tokens, tokens)</code> (option A) pairs every token with itself — ("the","the"), ("defendant","defendant") — which produces same-word pairs, not consecutive-word bigrams, and is a common off-by-zero slip when writing this from scratch.</p>
         </div>
       </details>
@@ -505,6 +512,11 @@ for w2 in ["liable", "banana"]:
 
 <footer class="unit-foot">
   <p>Text Processing (NLP) · Unit 2 of 8 — Next: Unit 3 moves past discrete counting to dense word embeddings (word2vec, GloVe), where "car" and "automobile" finally end up near each other in vector space.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="unit1.html">← Unit 1</a>
+    <a href="../courses.html">All units</a>
+    <a href="unit3.html">Unit 3 →</a>
+  </nav>
 </footer>
 </body>
 </html>

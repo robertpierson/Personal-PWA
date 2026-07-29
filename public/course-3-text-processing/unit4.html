@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -176,7 +183,7 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
     <p>The fix is to stop counting exact contexts and instead learn a continuous representation of context that generalizes. This is exactly the machinery Course 1 Unit 7 built: an RNN or LSTM that carries a hidden state forward through a sequence, updating it token by token, so that "when I get" and "when I arrive" end up nearby in some internal representation even though they share no words. We are not re-deriving the LSTM cell here — the gates, the cell state, the vanishing-gradient fix are assumed knowledge. What's new in this lesson is wiring that cell into a full <span class="term">neural language model</span>: a system that reads a prefix of tokens and outputs a probability distribution over the entire vocabulary for what comes next.</p>
     <h3>The architecture: embed, recur, project</h3>
     <p>A word-level RNN language model has three stages stacked in sequence. First, an <span class="term">embedding layer</span> maps each input token — a word or subword piece, using the tokenizer from Course 3 Unit 1 — to a dense vector, typically 128 to 512 dimensions for a keyboard-scale model. This replaces the one-hot, vocabulary-sized sparse vector with something the network can do useful arithmetic on; "get" and "arrive" can live near each other in this space even though their spellings share nothing. Second, the embedding sequence feeds an LSTM (or a stack of one to two LSTM layers for capacity), which processes tokens one at a time and maintains a hidden state summarizing everything seen so far. Third, at every timestep the hidden state is projected through a linear layer up to vocabulary size and passed through softmax, producing a full probability distribution over "what word comes next." This projection layer is the part we'll spend Lesson 2 making cheaper, because vocabulary size on a keyboard easily reaches 30,000–50,000 subword pieces, and that final matrix multiply dominates both compute and parameter count on a phone.</p>
-    <p>Contrast this with the causal language modelling objective from Course 2 Unit 4: same idea — predict token <code>t+1</code> from tokens <code>1..t</code> — but there the sequence mixing was self-attention; here it's a recurrent cell. The training procedure is identical in spirit: <span class="term">teacher forcing</span>, where at every position the model is fed the true previous token from the training sequence (not its own prediction) as input, and the loss is cross-entropy between the predicted distribution and the actual next token, averaged over the sequence. Teacher forcing lets you train in parallel across all positions of a sequence (matmul across the batch and time dimension) rather than waiting for the model's own — possibly wrong — predictions to compound, which would make early training unstable. The mismatch this creates between training (always fed ground truth) and inference (fed its own guesses) is a known limitation, but it's a good trade for how much faster and more stable it makes learning; we don't dwell on it further here since Unit 6 revisits generation quality trade-offs in more depth.</p>
+    <p>Contrast this with the causal language modelling objective from Course 2 Unit 4: same idea — predict token <code>t+1</code> from tokens <code>1..t</code> — but there the sequence mixing was self-attention; here it's a recurrent cell. The training procedure is identical in spirit: <span class="term">teacher forcing</span>, where at every position the model is fed the true previous token from the training sequence (not its own prediction) as input, and the loss is cross-entropy between the predicted distribution and the actual next token, averaged over the sequence. Teacher forcing lets you train in parallel across all positions of a sequence (matmul across the batch and time dimension) rather than waiting for the model's own — possibly wrong — predictions to compound, which would make early training unstable. The mismatch this creates between training (always fed ground truth) and inference (fed its own guesses) is a known limitation, but it's a good trade for how much faster and more stable it makes learning; we don't dwell on it further here since Unit 7 revisits generation quality trade-offs in more depth.</p>
     <h3>Forward pass and generation</h3>
     <p>At training time, the model produces one full sequence of next-token logits per input sequence, one per position, and the loss sums cross-entropy across all of them. At inference time — the actual keyboard use case — there's no ground truth to feed forward, so the model must consume its own output token by token. This is where <span class="term">sampling strategy</span> becomes a product decision, not just a math detail. <span class="term">Greedy decoding</span> always picks the single highest-probability token; it's fast and deterministic but tends toward bland, repetitive completions and can get stuck in loops ("the the the"). <span class="term">Temperature sampling</span> rescales the logits before softmax by dividing by a temperature <code>T</code>: low T (below 1) sharpens the distribution toward greedy-like behavior, high T (above 1) flattens it toward more surprising, more diverse — and more error-prone — suggestions. <span class="term">Top-k sampling</span> restricts the candidate pool to the k highest-probability tokens before sampling, which prevents the long tail of implausible tokens from ever being drawn, a real risk on a 30k+ subword vocabulary where the tail is huge. <span class="term">Top-p (nucleus) sampling</span> instead takes the smallest set of tokens whose cumulative probability exceeds p (say 0.9), which adapts the candidate pool size to the shape of the distribution — narrow when the model is confident, wide when it's genuinely unsure.</p>
     <p>For keyboard autocomplete specifically, the choice matters more than it might for open-ended text generation, because the user sees the top few suggestions directly and judges the product on them. Pure greedy decoding for the single "ghost text" completion shown inline is standard, since users expect the most likely continuation, not a creative one. But when the keyboard shows three ranked suggestion chips, those are effectively the top-k (k=3) candidates from a moderate temperature distribution — diverse enough to hedge against being wrong, plausible enough that none look absurd. Nucleus sampling is more common in generative chat assistants than in keyboards, precisely because it can occasionally surface a low-probability tail token that would look like a bizarre, trust-eroding suggestion inline.</p>
@@ -241,7 +248,6 @@ class TiedAdaptiveLMHead:
         self.head_size = head_size                 # e.g. 2000 most-frequent tokens
         # tail projects hidden_dim -> small bottleneck -> tail vocab, saving params
         self.tail_down = np.random.randn(hidden_dim, tail_bottleneck_dim) * 0.02
-        self.tail_up_scale = (vocab - head_size)
 
     def logits(self, h):
         # weight tying: reuse embed_W transposed instead of a second matrix
@@ -283,7 +289,8 @@ class TiedAdaptiveLMHead:
     def __init__(self, model, char_fallback):
         self.model = model                  # tied-weight, quantized LSTM-LM
         self.char_fallback = char_fallback   # small char-level model for OOV
-        self.h, self.c = model.init_state()  # persisted between calls
+        self.h, self.c = model.init_state()  # committed state, words so far
+        self.scratch_h, self.scratch_c = self.h, self.c   # in-progress word
         self.current_token_ids = []          # tokens of the word being typed
 
     def on_keystroke(self, new_char, tokenizer):
@@ -291,15 +298,19 @@ class TiedAdaptiveLMHead:
         last_tok = self.current_token_ids[-1]
 
         if tokenizer.is_known(last_tok):
-            logits, self.h, self.c = self.model.step(last_tok, self.h, self.c)
+            # step a scratch copy: the in-progress token is not committed yet,
+            # so it must not permanently advance the session's recurrent state
+            logits, self.scratch_h, self.scratch_c = self.model.step(
+                last_tok, self.h, self.c)
             return top_suggestions(logits, k=3)
         else:
             # cold start: novel/rare token — fall back, don't block on it
             return self.char_fallback.predict(self.current_token_ids)
 
     def on_word_committed(self, tokenizer):
-        # space/punctuation typed: fold committed word into recurrent state,
-        # reset the in-progress token buffer for the next word
+        # space/punctuation typed: promote the scratch state to committed,
+        # then reset the in-progress token buffer for the next word
+        self.h, self.c = self.scratch_h, self.scratch_c
         self.current_token_ids = []
 </code></pre>
     <p class="caption">The session object holds hidden state across the whole keystroke stream so each keystroke is O(1) work; an unknown token routes to the character-level fallback instead of stalling or crashing the suggestion bar.</p>
@@ -488,6 +499,11 @@ class TiedAdaptiveLMHead:
 
 <footer class="unit-foot">
   <p>Text Processing (NLP) · Unit 4 of 8 — Unit 5 leaves recurrence behind for self-attention and the transformer block that displaced it at scale.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="unit3.html">← Unit 3</a>
+    <a href="../courses.html">All units</a>
+    <a href="unit5.html">Unit 5 →</a>
+  </nav>
 </footer>
 </body>
 </html>

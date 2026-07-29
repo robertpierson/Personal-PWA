@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -177,7 +184,7 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
     <p>It helps to say plainly what preprocessing is for. Raw text arrives as a stream of Unicode codepoints with essentially unlimited variation: any user can type any sequence of any of the roughly 150,000 characters Unicode defines, in any order, with invisible formatting marks mixed in. A model's vocabulary and downstream layers assume far more regularity than that — the same word should usually map to the same representation, invisible characters should not silently change meaning, and semantically equivalent inputs should end up close together. Preprocessing is the bridge between those two worlds. It is <em>lossy</em> by construction — you cannot both compress a space of near-infinite variation into a small, reusable vocabulary and preserve every distinction the raw text carried. The question is never "how do I remove noise," it is "which distinctions can this particular model, for this particular task, afford to lose."</p>
 
     <h3>Unicode normalisation: NFC, NFKC, and why it's a security question</h3>
-    <p>The first problem is that the "same" text can arrive as different byte sequences. The character é can be one codepoint (U+00E9, precomposed) or two (U+0065 "e" plus U+0301 a combining acute accent) — visually identical, but a naive string-equality check or a tokenizer's lookup table sees them as different tokens. <span class="term">Unicode normalisation</span> fixes this by rewriting text into one of a handful of canonical forms. <span class="term">NFC</span> (Normalization Form Canonical Composition) prefers the precomposed form wherever one exists, which is usually what you want for display and for a model vocabulary trained on typical text. <span class="term">NFKC</span> (Compatibility Composition) goes further: it also collapses "compatibility" variants that are stylistically different but semantically identical — the fullwidth "Ａ" used in some East Asian typesetting becomes ordinary "A," a ligature like "ﬁ" becomes "f" + "i," superscript "²" becomes "2." For moderation pipelines specifically, this is not a cosmetic nicety — it is a security control. Adversarial posters use <span class="term">homoglyph substitution</span>, swapping Latin letters for visually near-identical characters from other scripts (Cyrillic "а" for Latin "a," to dodge a keyword filter on a banned word), and they use invisible characters like zero-width spaces or joiners to break up a filtered string without changing how it renders. NFKC normalisation, combined with stripping known invisible-format codepoints, closes a real fraction of these evasions before the text ever reaches tokenization — though never all of them, since new homoglyph tricks appear as fast as filters catch old ones.</p>
+    <p>The first problem is that the "same" text can arrive as different byte sequences. The character é can be one codepoint (U+00E9, precomposed) or two (U+0065 "e" plus U+0301 a combining acute accent) — visually identical, but a naive string-equality check or a tokenizer's lookup table sees them as different tokens. <span class="term">Unicode normalisation</span> fixes this by rewriting text into one of a handful of canonical forms. <span class="term">NFC</span> (Normalization Form Canonical Composition) prefers the precomposed form wherever one exists, which is usually what you want for display and for a model vocabulary trained on typical text. <span class="term">NFKC</span> (Compatibility Composition) goes further: it also collapses "compatibility" variants that are stylistically different but semantically identical — the fullwidth "Ａ" used in some East Asian typesetting becomes ordinary "A," a ligature like "ﬁ" becomes "f" + "i," superscript "²" becomes "2." For moderation pipelines specifically, this is not a cosmetic nicety — it is a security control. Adversarial posters use <span class="term">homoglyph substitution</span>, swapping Latin letters for visually near-identical characters from other scripts (Cyrillic "а" for Latin "a," to dodge a keyword filter on a banned word), and they use invisible characters like zero-width spaces or joiners to break up a filtered string without changing how it renders. NFKC handles the compatibility half of this — fullwidth forms, ligatures, superscripts — and stripping known invisible-format codepoints handles the second trick, but it does <em>not</em> map cross-script homoglyphs: Cyrillic а has no compatibility decomposition to Latin a and survives NFKC unchanged. Catching those needs a separate confusables (UTS #39 skeleton) mapping, and even that never closes all of them, since new homoglyph tricks appear as fast as filters catch old ones.</p>
 
     <h3>Case folding: not always a win</h3>
     <p>Lowercasing everything is the oldest reflex in text preprocessing, and for many tasks it is still correct: it collapses "Excited," "excited," and "EXCITED" to one vocabulary entry, shrinking vocabulary size and data sparsity. But notice what that collapse destroys for a moderation model specifically. ALL-CAPS is a real signal — of shouting, aggression, or excitement — and case is one of the cheapest features a classifier can use to detect it. Case also disambiguates named entities from common words ("US" the country versus "us" the pronoun, "March" the month versus "march" the verb), which matters for entity-aware moderation like doxxing detection. The honest rule is: fold case when your downstream representation is sparse (word counts, classic bag-of-words features) and case variants would otherwise fragment your vocabulary pointlessly; keep case when your model is expressive enough to use it as signal (subword or character-level neural models, which can learn "all-caps span" as a pattern) or when the task explicitly needs it. There is no universally correct answer — only the one your task and your downstream tokenizer can afford.</p>
@@ -282,7 +289,7 @@ for post in posts:
     print(f"  regex:      {len(rx):>2} tokens  {rx}")
     print(f"  char:       {len(ch):>2} tokens")
     print()</code></pre>
-    <p class="caption">On "fr€€ m0ney click now!!" the whitespace tokenizer produces only three tokens ("fr€€", "m0ney", "click", "now!!" — none of which match a normal-English vocabulary and would mostly become UNK); the regex tokenizer splits the punctuation and symbols off, giving a real subword-style tokenizer more recognizable pieces to work with ("fr", "€", "€", "m0ney" still whole); only character tokenization guarantees zero unknown tokens, at the cost of roughly 4x the token count.</p>
+    <p class="caption">On "fr€€ m0ney click now!!" the whitespace tokenizer produces only four tokens ("fr€€", "m0ney", "click", "now!!" — none of which match a normal-English vocabulary and would mostly become UNK); the regex tokenizer splits the punctuation and symbols off, giving a real subword-style tokenizer more recognizable pieces to work with ("fr", "€", "€", "m0ney" still whole); only character tokenization guarantees zero unknown tokens, at the cost of roughly 4x the token count.</p>
 
     <aside class="takeaways">
       <h4>Key takeaways</h4>
@@ -321,7 +328,7 @@ for post in posts:
 #  this hand-rolled version shows the *mechanism*, not production code)
 
 def toy_stem(word):
-    for suffix in ("ational", "ing", "edly", "ed", "ies", "ly", "es", "s", "y"):
+    for suffix in ("ational", "ities", "ing", "edly", "ed", "ies", "al", "ly", "es", "s", "y"):
         if word.endswith(suffix) and len(word) - len(suffix) >= 3:
             return word[: -len(suffix)]
     return word
@@ -338,9 +345,8 @@ words = ["bullying", "bullied", "universities", "universal", "running", "ran", "
 for w in words:
     stem = toy_stem(w)
     lemma = LEMMA_TABLE.get(w, w)
-    flag = "  <- non-word fragment" if stem not in ("run", "see", "univers") and not stem.isalpha() is False and len(stem) < 4 else ""
     print(f"{w:14} stem={stem:12} lemma={lemma}")</code></pre>
-    <p class="caption">Watch "universities" and "universal": the toy stemmer strips "-al" and "-ies" respectively and lands both near "univers," falsely suggesting they're related, while the lemma table correctly keeps "universal" as its own word and maps "universities" to "university" — the exact failure mode that makes stemming risky for moderation keyword matching.</p>
+    <p class="caption">Watch "universities" and "universal": the toy stemmer strips "-ities" and "-al" respectively and lands both near "univers," falsely suggesting they're related, while the lemma table correctly keeps "universal" as its own word and maps "universities" to "university" — the exact failure mode that makes stemming risky for moderation keyword matching.</p>
 
     <aside class="takeaways">
       <h4>Key takeaways</h4>
@@ -425,7 +431,7 @@ for w in words:
 
     <article class="q">
       <p class="q-num">Question 5 <span class="q-type">Code completion</span></p>
-      <p class="q-stem">This function is meant to cap runs of a repeated character at two, so "soooo goooood" becomes "soo goood" without collapsing all the way to "so good" and losing the emphasis. Fill in the regex pattern and replacement.</p>
+      <p class="q-stem">This function is meant to cap runs of a repeated character at two, so "soooo goooood" becomes "soo good" without collapsing all the way to "so good" and losing the emphasis. Fill in the regex pattern and replacement.</p>
       <pre><code>import re
 
 def de_elongate(text):
@@ -441,7 +447,7 @@ def de_elongate(text):
 
     <article class="q">
       <p class="q-num">Question 6 <span class="q-type">True / false</span></p>
-      <p class="q-stem">Character-level (or byte-level) tokenization can never produce an out-of-vocabulary token, because its vocabulary already covers every possible input by construction.</p>
+      <p class="q-stem">Byte-level tokenization can never produce an out-of-vocabulary token, because its vocabulary already covers every possible input by construction.</p>
       <ol class="choices" type="A">
         <li>True</li>
         <li>False</li>
@@ -449,7 +455,7 @@ def de_elongate(text):
       <details>
         <summary>Show answer</summary>
         <div class="answer">
-          <p><strong>Answer: True.</strong> A character-level vocabulary is the full Unicode codepoint set (or, at the byte level, exactly the 256 possible byte values), so any input string, however novel or adversarial, decomposes into some sequence of already-known units — there is no such thing as an unrepresentable character or byte.</p>
+          <p><strong>Answer: True.</strong> At the byte level the vocabulary is exactly the 256 possible byte values, so any input string, however novel or adversarial, decomposes into some sequence of already-known units — there is no such thing as an unrepresentable byte. (A character-level vocabulary is only closed in this way if it enumerates the whole codepoint space; production character models usually restrict it to characters seen in training, which can still produce an OOV.)</p>
           <p>This is the one clean advantage character/byte tokenization has over both word-level and subword tokenization; the cost, covered in the lesson, is that this completeness comes with much longer token sequences and higher compute per unit of text, not that it fails to achieve full coverage.</p>
         </div>
       </details>
@@ -499,6 +505,11 @@ clean("i am not going to hurt you")
 
 <footer class="unit-foot">
   <p>Text Processing (NLP) · Unit 1 of 8 — Unit 2 moves from tokens to counts: Bag-of-Words and TF-IDF as the first real numeric representation of a post.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="../course-2-foundational-models/unit8.html">← Foundational Model Development</a>
+    <a href="../courses.html">All units</a>
+    <a href="unit2.html">Unit 2 →</a>
+  </nav>
 </footer>
 </body>
 </html>

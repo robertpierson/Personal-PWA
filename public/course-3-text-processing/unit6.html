@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -249,7 +256,7 @@ print(bio_to_spans(tags))          # round-trips back to (3,3,'DRUG') etc.
     <h3>Linear-chain CRFs: modelling transitions explicitly</h3>
     <p>The <span class="term">linear-chain Conditional Random Field</span> (CRF), dominant from roughly 2005 through the mid-2010s, fixed the independence problem directly. Instead of predicting each tag from local features alone, a CRF scores an <em>entire</em> tag sequence <code>y</code> given the input <code>x</code> using two kinds of learned scores: <span class="term">emission scores</span> (how well tag <code>y_i</code> fits token <code>x_i</code>, from hand-engineered or embedding features) and <span class="term">transition scores</span> (how well tag <code>y_i</code> follows tag <code>y_{i-1}</code>, learned as a small matrix over the tag set). Critically, the transition matrix can learn that the score for "<code>I-DRUG</code> follows <code>O</code>" should be effectively <code>-∞</code>, ruling out illegal BIO sequences by construction rather than hoping the model learns to avoid them.</p>
     <p class="math">score(x, y) = Σᵢ emission(yᵢ, xᵢ) + Σᵢ transition(yᵢ₋₁, yᵢ)</p>
-    <p>Finding the highest-scoring legal tag sequence out of the exponentially many possible sequences is done with <span class="term">Viterbi decoding</span>, a dynamic-programming algorithm that reuses partial best-paths instead of enumerating every sequence. This is the same core idea as Viterbi decoding in speech recognition and in the forward-backward algorithm for HMMs, adapted here to maximize a discriminative score rather than a generative likelihood.</p>
+    <p>Finding the highest-scoring legal tag sequence out of the exponentially many possible sequences is done with <span class="term">Viterbi decoding</span>, a dynamic-programming algorithm that reuses partial best-paths instead of enumerating every sequence. This is the same trellis dynamic programming the forward-backward algorithm uses for HMMs, except that it maximizes over paths instead of summing over them, adapted here to maximize a discriminative score rather than a generative likelihood.</p>
     <h3>BiLSTM-CRF: 2015–2018's dominant architecture</h3>
     <p>Feature-engineered CRFs required a human to hand-craft the suffix rules, capitalization patterns, and dictionary-lookup features that fed the emission scores. The <span class="term">BiLSTM-CRF</span> architecture (Lample et al. 2016, Huang et al. 2015) removed that manual step: a bidirectional LSTM reads the token sequence (often over word embeddings plus a character-level CNN or LSTM to capture morphology — useful for drug suffixes and dosage-unit tokens like "mg" or "mcg"), and its hidden states become the emission scores fed into the same CRF layer with its learned transition matrix. This combination — neural feature extraction, symbolic-style transition constraints — dominated clinical and biomedical NER benchmarks (i2b2, n2c2, BC5CDR) from roughly 2015 to 2018 and is still a reasonable baseline to cite today.</p>
     <h3>BERT token classification, with or without a CRF</h3>
@@ -366,7 +373,7 @@ for cls, (p, r, f1, support) in zip(classes, scores):
 macro_f1 = np.mean([s[2] for s in scores])
 weighted_f1 = np.sum([s[2] * s[3] for s in scores]) / cm.sum()
 print(f"macro-F1={macro_f1:.3f}  weighted-F1={weighted_f1:.3f}")
-# rheumatology's weak F1 (~0.74) drags macro-F1 down noticeably;
+# rheumatology's weak F1 (~0.73) drags macro-F1 down noticeably;
 # weighted-F1 barely moves because rheumatology is only 25 of 500 notes.</code></pre>
     <p class="caption">Macro-F1 exposes the rare rheumatology class's weaker performance; weighted-F1 nearly hides it because the class has so little support — exactly the gap that makes averaging choice a clinical, not just statistical, decision.</p>
     <aside class="takeaways">
@@ -434,7 +441,7 @@ print(f"macro-F1={macro_f1:.3f}  weighted-F1={weighted_f1:.3f}")
 
     <article class="q">
       <p class="q-num">Question 4 <span class="q-type">Bug fix</span></p>
-      <p class="q-stem">A colleague wrote this BIO-to-span converter for extracting drug/dose/disease entities from tagged clinical tokens. It works on simple cases but silently merges two adjacent, different-type entities that happen to sit next to each other with no O token between them (e.g., a DRUG entity immediately followed by a DOSE entity, tagged <code>B-DRUG I-DOSE</code> because the annotator started a new entity without emitting a fresh B- tag). What is the root-cause bug, and how should it be fixed?</p>
+      <p class="q-stem">A colleague wrote this BIO-to-span converter for extracting drug/dose/disease entities from tagged clinical tokens. It works on simple cases but silently merges two adjacent, different-type entities that happen to sit next to each other with no O token between them (e.g., a DRUG entity immediately followed by a DOSE entity, tagged <code>B-DRUG I-DOSE</code> because a model predicted an illegal transition — IOB2 annotation never permits I- to follow a different entity type). What is the root-cause bug, and how should it be fixed?</p>
       <pre><code>def bio_to_spans(tags):
     spans, cur = [], None
     for i, tag in enumerate(tags):
@@ -524,6 +531,11 @@ print(f"macro-F1={macro_f1:.3f}  weighted-F1={weighted_f1:.3f}")
 
 <footer class="unit-foot">
   <p>Text Processing (NLP) · Unit 6 of 8 — Next: Unit 7 turns from classification and extraction to generation, covering machine translation and summarization.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="unit5.html">← Unit 5</a>
+    <a href="../courses.html">All units</a>
+    <a href="unit7.html">Unit 7 →</a>
+  </nav>
 </footer>
 </body>
 </html>
