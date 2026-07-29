@@ -66,11 +66,6 @@ export function SiteFooter() {
             <Link href="/terms" className="hover:text-forest">
               Terms
             </Link>
-            {/* Static curriculum pages live in /public, outside the app router,
-                so use a plain anchor for a full-page navigation. */}
-            <a href="/courses.html" className="hover:text-forest">
-              Curriculum
-            </a>
             <Link href="/login" className="hover:text-forest">
               Client login
             </Link>

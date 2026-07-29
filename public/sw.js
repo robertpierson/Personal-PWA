@@ -11,17 +11,7 @@ const CACHE_VERSION = "marquee-v2";
 const PRECACHE = `${CACHE_VERSION}-precache`;
 const RUNTIME = `${CACHE_VERSION}-runtime`;
 
-// App shell + the curriculum index. Individual course units (.html) are cached
-// on first visit by the network-first navigation handler below, so the whole
-// curriculum becomes available offline as it's read.
-const PRECACHE_URLS = [
-  "/",
-  "/work",
-  "/contact",
-  "/offline",
-  "/manifest.webmanifest",
-  "/courses.html",
-];
+const PRECACHE_URLS = ["/", "/work", "/contact", "/offline", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
