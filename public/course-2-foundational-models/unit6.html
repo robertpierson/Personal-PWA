@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -176,7 +183,7 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
 
     <h3>The layer-wise picture</h3>
     <p>The load-bearing empirical claim behind transfer learning is that a deep network learns a <span class="term">hierarchy</span> of representations: lower layers encode generic structure — subword composition, local syntax, common collocations — while upper layers encode increasingly abstract, task- and domain-specific structure. This was established for vision by Yosinski et al. (2014), who showed that lower convolutional filters in an ImageNet-trained CNN look like edge and color detectors regardless of which classes the network was trained on, while the last few layers are highly specific to the exact output classes. Transformer language models show the same pattern, and it has been measured directly with <span class="term">probing classifiers</span>: freeze the pretrained encoder, take the hidden state at each layer, and train a small linear classifier on top of just that layer's frozen output. If accuracy is flat and low through the early layers, jumps in the middle, and plateaus or dips near the top, you have empirical evidence of where the reusable representation actually lives — and it tells you how much of the network you need to touch.</p>
-    <p>For the report-classification problem this matters directly. A 12-layer encoder pretrained on general web text will show something like: layers 1–3 encode subword and local n-gram statistics that transfer almost for free (punctuation, sentence boundaries, common function words); layers 4–8 build compositional syntax and some semantics that transfer partially, degraded by the fact that "pneumothorax," "effusion," and "nodule" are rare or out-of-vocabulary tokens the tokenizer had to split into sub-word fragments it never saw combined this way; and layers 9–12, which in the pretrained model encode task-specific structure for whatever the pretraining objective was (next-token prediction or masked-token prediction), are the least useful as-is and need the most adaptation. This is exactly why full fine-tuning tends to touch upper layers hardest and why, as you'll see in Lesson 2, discriminative learning rates that scale up toward the top of the network follow the same logic the probing curve reveals.</p>
+    <p>For the report-classification problem this matters directly. A 12-layer encoder pretrained on general web text will show something like: layers 1–3 encode subword and local n-gram statistics that transfer almost for free (punctuation, sentence boundaries, common function words); layers 4–8 build compositional syntax and some semantics that transfer partially, degraded by the fact that "pneumothorax," "effusion," and "nodule" are rare or out-of-vocabulary tokens the tokenizer had to split into sub-word fragments it never saw combined this way; and the final layer, which in the pretrained model encodes task-specific structure for whatever the pretraining objective was (next-token prediction or masked-token prediction), are the least useful as-is and need the most adaptation. This is exactly why full fine-tuning tends to touch upper layers hardest and why, as you'll see in Lesson 2, discriminative learning rates that scale up toward the top of the network follow the same logic the probing curve reveals.</p>
 
     <h3>Feature extraction versus full fine-tuning</h3>
     <p>There are two ends of a spectrum for using a pretrained model on a new task. <span class="term">Feature extraction</span> (also called the linear-probe or frozen-backbone approach) freezes every pretrained weight and trains only a new head — here, a 4-way softmax classifier — on top of the frozen final-layer (or pooled) representation. <span class="term">Full fine-tuning</span> updates every weight in the network, backbone included, using the labelled data. Feature extraction is cheap, fast, and close to impossible to overfit with 12,000 examples because the number of trainable parameters is tiny (a 768-to-4 linear layer is 3,076 parameters, versus 100M+ for the full encoder). But it is also capped: if the frozen representation doesn't already separate "pneumothorax present" from "pneumothorax excluded," a linear head cannot learn to make that distinction no matter how much labelled data you throw at it, because the information the head needs was never extracted from the input in the first place.</p>
@@ -217,7 +224,7 @@ def probe_every_layer(hidden_by_layer, y_train, y_val, train_idx, val_idx):
     for layer_idx, feats in enumerate(hidden_by_layer):
         X_train = [feats[i] for i in train_idx]
         X_val   = [feats[i] for i in val_idx]
-        probe = LogisticRegression(max_iter=1000, multi_class="multinomial")
+        probe = LogisticRegression(max_iter=1000)
         probe.fit(X_train, y_train)
         acc = probe.score(X_val, y_val)
         accuracies.append(acc)
@@ -520,6 +527,11 @@ loss_fn = torch.nn.CrossEntropyLoss(weight=class_weights)</code></pre>
 
 <footer class="unit-foot">
   <p>Foundational Model Development · Unit 6 of 8 — Unit 7 turns to lighter-weight adaptation: LoRA, adapters, and instruction tuning as alternatives to updating every weight.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="unit5.html">← Unit 5</a>
+    <a href="../courses.html">All units</a>
+    <a href="unit7.html">Unit 7 →</a>
+  </nav>
 </footer>
 </body>
 </html>

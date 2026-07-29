@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -315,7 +322,7 @@ print("output:", output.shape)                          # (2, 400, 768) — same
     <p class="opening">Picture the 400 clauses of a supply agreement photocopied onto loose index cards, then dropped and shuffled into a random pile. Self-attention, as built so far, effectively operates on that shuffled pile: each token's output is a weighted sum over every other token's value, and that weighting depends only on how well queries and keys match by content — nothing in the mechanism cares whether a given key came from the token immediately before or three hundred tokens away. Permute the input order and the entire set of outputs permutes identically along with it; attention is <span class="term">permutation-equivariant</span>. That's a serious problem for legal text specifically, because clause order is not decoration — "the foregoing," "Section 4.2 above," and the clause numbering itself are all load-bearing references to sequence, and "clause 287 governs an obligation defined back in clause 3" is a fact about where things sit, not just what they say. A bag of shuffled index cards has no way to represent "clause 3 comes before clause 287." Position has to be injected into the model explicitly, as an additional signal added to (or combined with) the content embedding, before attention ever runs.</p>
     <h3>Sinusoidal, learned, and rotary position schemes</h3>
     <p>The original transformer's solution was a fixed <span class="term">sinusoidal position encoding</span>: for position <code>pos</code> and embedding dimension index <code>i</code>, each pair of dimensions is assigned a sine and a cosine at a different frequency, <code>PE(pos, 2i) = sin(pos / 10000^(2i/d_model))</code> and <code>PE(pos, 2i+1) = cos(pos / 10000^(2i/d_model))</code>. The frequency intuition is a clock with many hands: low dimension indices oscillate fast, like a seconds hand, distinguishing clause 3 from clause 4; high dimension indices oscillate slowly, like an hour hand, distinguishing clause 3 from clause 303. Together, the full set of frequencies gives every position a unique, fixed fingerprint, and because sine and cosine of a shifted angle can be written as a linear combination of the unshifted sine and cosine, a fixed offset between two positions (clause 287 minus clause 3 = 284) corresponds to a fixed linear transformation of the encoding — in principle letting the network learn to attend by relative offset, not just absolute position. A simpler alternative, <span class="term">learned absolute position embeddings</span>, just assigns each position index its own trainable vector, exactly like a token embedding table indexed by position instead of by word. It's simpler and often works as well in practice, but it hard-codes a maximum sequence length — a model trained on contracts up to 2,048 tokens has no embedding, learned or otherwise, for token 2,049, and can't extrapolate to a longer document at all.</p>
-    <p><span class="term">RoPE</span> (Rotary Position Embedding) takes a different approach: rather than adding a position signal to the content embedding, it rotates each query and key vector by an angle proportional to its position, treating pairs of dimensions as 2D coordinates and applying a rotation matrix. The key property is that the dot product between a rotated query at position <code>m</code> and a rotated key at position <code>n</code> depends mathematically only on the relative offset <code>m − n</code>, not on <code>m</code> and <code>n</code> individually — relative position falls out of the geometry rather than being learned or hand-designed. Because the rotation is a smooth, well-defined function of position for any integer, RoPE tends to extrapolate to sequence lengths beyond what was seen in training noticeably better than sinusoidal or learned absolute encodings, which is a meaningful advantage when a model trained mostly on shorter agreements later has to process an unusually long one. <span class="term">ALiBi</span> (Attention with Linear Biases) skips modifying Q and K altogether and instead adds a fixed, non-learned penalty directly to the attention scores: a bias of <code>−m · (i − j)</code> subtracted from the score between positions <code>i</code> and <code>j</code>, growing linearly with distance. It has no parameters to learn at all, is simple to compute, and in the original paper extrapolated to much longer sequences than the model was trained on, at the cost of imposing a fairly rigid "closer is generally more relevant" prior that isn't always true of legal cross-references, where the most relevant clause can be the furthest one away.</p>
+    <p><span class="term">RoPE</span> (Rotary Position Embedding) takes a different approach: rather than adding a position signal to the content embedding, it rotates each query and key vector by an angle proportional to its position, treating pairs of dimensions as 2D coordinates and applying a rotation matrix. The key property is that the dot product between a rotated query at position <code>m</code> and a rotated key at position <code>n</code> depends mathematically only on the relative offset <code>m − n</code>, not on <code>m</code> and <code>n</code> individually — relative position falls out of the geometry rather than being learned or hand-designed. Because the rotation is a smooth, well-defined function of position for any integer, RoPE tends to extrapolate to sequence lengths beyond what was seen in training noticeably better than sinusoidal or learned absolute encodings, which is a meaningful advantage when a model trained mostly on shorter agreements later has to process an unusually long one. <span class="term">ALiBi</span> (Attention with Linear Biases) skips modifying Q and K altogether and instead adds a fixed, non-learned penalty directly to the attention scores: a bias of <code>−m · (i − j)</code> added to the score between positions <code>i</code> and <code>j</code>, growing linearly with distance. It has no parameters to learn at all, is simple to compute, and in the original paper extrapolated to much longer sequences than the model was trained on, at the cost of imposing a fairly rigid "closer is generally more relevant" prior that isn't always true of legal cross-references, where the most relevant clause can be the furthest one away.</p>
     <h3>Masking: causal, padding, and composing the two</h3>
     <p>Position solves "where is this token," but some architectures also need to restrict "which tokens is this one even allowed to see." A <span class="term">causal mask</span> enforces that token <em>i</em> can attend only to tokens at position ≤ <em>i</em>, never to anything later — essential for any model that generates text left to right, since at generation time the tokens after the current position don't exist yet. It's implemented by adding <code>−∞</code> to every score in the strictly-upper-triangular part of the score matrix (row <em>i</em>, column <em>j</em>, for <em>j</em> &gt; <em>i</em>) before the softmax, so those positions receive exactly zero weight after exponentiating. A <span class="term">padding mask</span> solves a different, purely practical problem: contracts in a batch are different lengths, so shorter ones are padded to match the longest, and those pad tokens carry no real content — they must never receive or contribute attention weight, or the model's output would depend on an implementation detail (batch composition) rather than the document itself. The fix is the same mechanism, a large negative value added at every padded position's column. The two masks compose by simple addition: sum the causal mask and the padding mask (each 0 where allowed, −∞ where forbidden) and add the result to the raw scores once, before a single softmax — a position that's blocked by either mask ends up at −∞ either way, and a position has to clear both to receive nonzero weight.</p>
     <h3>Encoder-only, decoder-only, encoder-decoder</h3>
@@ -400,6 +407,10 @@ print("attention weights:\n", np.round(weights, 2))
     <article class="q">
       <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
       <p class="q-stem">Dividing the raw dot-product scores by √d_k before the softmax is necessary because, for query and key vectors with independent, mean-zero, unit-variance components, the variance of q·k grows linearly with d_k — so without scaling, the softmax would saturate more as head dimension increases.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
       <details>
         <summary>Show answer</summary>
         <div class="answer">
@@ -464,7 +475,7 @@ print("attention weights:\n", np.round(weights, 2))
         <summary>Show answer</summary>
         <div class="answer">
           <p><strong>Bug: <code>k=0</code> includes the diagonal in the masked region.</strong> <code>np.triu(..., k=0)</code> zeroes out (here, sets to -∞) everything on and above the main diagonal, which means position i is masked against itself, not just against future positions j > i. Fix: use <code>k=1</code>, which starts the masked region strictly above the diagonal, leaving each position free to attend to itself and everything before it.</p>
-          <p>It's a one-character bug but a meaningful one — with k=0, every row's softmax would have to assign all its weight to strictly earlier positions and none to the current token, silently discarding a clause's own content, which is never the intended behavior of a causal mask.</p>
+          <p>It's a one-character bug but a meaningful one — with k=0, every row's softmax would have to assign all its weight to strictly earlier positions and none to the current token, silently discarding a clause's own content, which is never the intended behavior of a causal mask. Row 0 is worse than silent: the first clause has no earlier positions at all, so its entire row is −∞, the softmax denominator is 0, and the row comes out NaN — which then propagates through the rest of the forward pass.</p>
         </div>
       </details>
     </article>
@@ -490,6 +501,10 @@ print("attention weights:\n", np.round(weights, 2))
     <article class="q">
       <p class="q-num">Question 8 <span class="q-type">True / false</span></p>
       <p class="q-stem">Because self-attention is permutation-equivariant, a transformer with no position information at all would still correctly distinguish "clause 3 defines Losses, and clause 287 uses the term" from a shuffled version of the same contract with clauses 3 and 287 swapped in position.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
       <details>
         <summary>Show answer</summary>
         <div class="answer">
@@ -505,6 +520,11 @@ print("attention weights:\n", np.round(weights, 2))
 
 <footer class="unit-foot">
   <p>Foundational Model Development · Unit 2 of 8 — Next: Unit 3 covers tokenization and embeddings, the layer beneath everything this unit assumed was already a vector.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="unit1.html">← Unit 1</a>
+    <a href="../courses.html">All units</a>
+    <a href="unit3.html">Unit 3 →</a>
+  </nav>
 </footer>
 </body>
 </html>

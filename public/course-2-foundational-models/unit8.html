@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -243,7 +250,7 @@ def run_pairwise_eval(cases, outputs_a, outputs_b, judge_model, rubric):
     <p class="opening">In 2017, Christiano, Leike, and colleagues showed you could train an Atari-playing agent from nothing but pairwise human preferences over short video clips — no hand-written reward function at all. A person watches two brief clips and picks the better one; a small reward model learns to predict that preference; reinforcement learning optimizes against the learned reward instead of the game's built-in score. The recipe moved to text summarization in 2020 (Stiennon et al.), then became the standard way to align a language model with InstructGPT in 2022 — the paper behind the first modern ChatGPT-style assistants. Anthropic's Constitutional AI, later that year, asked whether a written set of principles could substitute for some of the human labeling. In 2023, Direct Preference Optimization (DPO) showed the entire reinforcement-learning apparatus could be replaced with a single supervised loss. This lesson walks that path forward, because a benefits-eligibility assistant is exactly the kind of system where alignment isn't cosmetic — it's the difference between calibrated and manipulative under a distressed user.</p>
 
     <h3>Three stages, one goal</h3>
-    <p>Stage one is <span class="term">supervised fine-tuning</span> (SFT) — the model you built in Unit 5 — trained on curated (prompt, ideal answer) pairs that teach format and baseline competence: cite the regulation, ask about household size before answering, use plain language over legal jargon. Stage two trains a <span class="term">reward model</span> on human preference pairs: given two candidate answers to the same claimant question, a rater picks the better one, where "better" means accurate, appropriately hedged, and not paternalistic. Stage three, <span class="term">policy optimization</span> — usually Proximal Policy Optimization (PPO) — uses the reward model's score as a training signal to push the SFT model further, this time optimizing directly for what raters preferred rather than for what happened to be in the SFT dataset.</p>
+    <p>Stage one is <span class="term">supervised fine-tuning</span> (SFT) — the model you built in Unit 7 — trained on curated (prompt, ideal answer) pairs that teach format and baseline competence: cite the regulation, ask about household size before answering, use plain language over legal jargon. Stage two trains a <span class="term">reward model</span> on human preference pairs: given two candidate answers to the same claimant question, a rater picks the better one, where "better" means accurate, appropriately hedged, and not paternalistic. Stage three, <span class="term">policy optimization</span> — usually Proximal Policy Optimization (PPO) — uses the reward model's score as a training signal to push the SFT model further, this time optimizing directly for what raters preferred rather than for what happened to be in the SFT dataset.</p>
 
     <h3>Bradley-Terry: turning a preference into a number</h3>
     <p>The reward model needs a way to convert "raters preferred answer A over answer B" into a scalar function <code>r(x, y)</code>. The Bradley-Terry model does this by treating the preference probability as a sigmoid of the reward difference:</p>
@@ -262,7 +269,7 @@ def run_pairwise_eval(cases, outputs_a, outputs_b, judge_model, rubric):
     <h3>DPO — one loss, no reward model</h3>
     <p>Direct Preference Optimization skips training a separate reward model and running RL entirely. The insight: the Bradley-Terry preference probability can be rewritten directly in terms of the policy's own log-probabilities relative to the reference policy's log-probabilities, turning the whole problem into a single supervised maximum-likelihood loss over preference pairs:</p>
     <p class="math">L_DPO = −log σ( β · [ (log π_θ(y_w|x) − log π_ref(y_w|x)) − (log π_θ(y_l|x) − log π_ref(y_l|x)) ] )</p>
-    <p>Each log-probability term is the same per-token quantity summed for the cross-entropy loss back in Unit 3's pretraining objective — just applied to a full candidate response instead of a single next token, and compared between the policy and a frozen reference copy of it.</p>
+    <p>Each log-probability term is the same per-token quantity summed for the cross-entropy loss back in Unit 4's pretraining objective — just applied to a full candidate response instead of a single next token, and compared between the policy and a frozen reference copy of it.</p>
 
     <h3>Where DPO and PPO actually differ</h3>
     <p>DPO is simpler to implement and considerably more stable to train — no reward model, no on-policy rollouts, no PPO hyperparameter fragility — which is why most teams default to it now. But it has real limits. It only ever compares against the fixed preference pairs collected offline, so it can't explore beyond what raters happened to rank; a trained reward model, by contrast, generalizes to score outputs nobody ranked yet and can drive iterative best-of-n resampling or continued online RL. PPO's online exploration also handles multi-dimensional reward shaping — weighting accuracy, citation presence, and tone together — more naturally than DPO's single pairwise signal. In practice: reach for DPO to get solid alignment quickly and cheaply off a fixed preference dataset; reach for PPO, or DPO iterated across fresh rounds of preference collection, when the objective needs continued improvement past what the original raters covered.</p>
@@ -275,7 +282,7 @@ def dpo_loss(policy_logps_chosen, policy_logps_rejected,
     """
     Each *_logps_* is the SUM of per-token log-probabilities the model
     assigns to a full response given the prompt -- the same quantity
-    summed for cross-entropy loss in Unit 3, just for a whole candidate
+    summed for cross-entropy loss in Unit 4, just for a whole candidate
     response instead of a single next token.
     """
     policy_logratio = policy_logps_chosen - policy_logps_rejected
@@ -311,7 +318,7 @@ def dpo_loss(policy_logps_chosen, policy_logps_rejected,
     <p>Post-training quantization methods like GPTQ and AWQ compress weights from 16-bit to 8-bit or 4-bit representations by choosing per-group scale factors that minimize reconstruction error, rather than naively rounding every value. What degrades first is not average-case fluency — a 4-bit model still writes grammatical, confident sentences — but tail behavior: precise numeric thresholds (an income cutoff at exactly £16,000 rendered as a rounding-adjacent £15,800), rare facts seen only once or twice in training (an obscure regulation clause), and multi-step arithmetic or reasoning chains. For a benefits assistant that is exactly the failure mode that matters most: fluency survives int4 quantization comfortably; the specific threshold a claimant's whole case turns on is the first thing to go soft. Validate any quantized release against the task-specific eval set from Lesson 1 — not perplexity, which barely moves even when the numbers a claimant needs start drifting.</p>
 
     <h3>The KV cache is the real memory bottleneck</h3>
-    <p>Recall from Unit 2: at each generation step, self-attention needs the key and value vectors for every previous token, so they're cached in GPU memory rather than recomputed from scratch. Cache size scales with batch size times sequence length times layer count times head count times head dimension, times two (key and value) times bytes per element — for a long eligibility conversation where a claimant explains a complicated household history across twenty turns, that cache can outgrow the model's weights themselves. Naive serving reserves a maximum-length contiguous memory block per request even for conversations that end early, wasting most of it. <span class="term">PagedAttention</span> (used in vLLM) fixes this the way an operating system handles virtual memory: the KV cache is stored in fixed-size, non-contiguous blocks referenced by a page table, claimed only as a sequence actually grows, and shareable across requests with an identical prefix — such as the same system prompt describing eligibility rules, reused for every claimant.</p>
+    <p>Recall from Unit 5: at each generation step, self-attention needs the key and value vectors for every previous token, so they're cached in GPU memory rather than recomputed from scratch. Cache size scales with batch size times sequence length times layer count times head count times head dimension, times two (key and value) times bytes per element — for a long eligibility conversation where a claimant explains a complicated household history across twenty turns, that cache can outgrow the model's weights themselves. Naive serving reserves a maximum-length contiguous memory block per request even for conversations that end early, wasting most of it. <span class="term">PagedAttention</span> (used in vLLM) fixes this the way an operating system handles virtual memory: the KV cache is stored in fixed-size, non-contiguous blocks referenced by a page table, claimed only as a sequence actually grows, and shareable across requests with an identical prefix — such as the same system prompt describing eligibility rules, reused for every claimant.</p>
 
     <h3>Continuous batching and speculative decoding</h3>
     <p><span class="term">Continuous batching</span> slots a new request into a running batch the instant any sequence in it finishes, instead of waiting for the whole static batch to complete before starting the next — a large real-world throughput gain over static batching, since claimant conversations rarely finish at the same length. <span class="term">Speculative decoding</span> has a small, fast draft model propose several tokens ahead; the large model then verifies all of them in a single forward pass and accepts the matching prefix, discarding the rest for a correction. This cuts wall-clock latency without changing what the large model would have generated on its own, because decoding at small batch sizes is memory-bandwidth-bound rather than compute-bound — verifying several tokens at once costs little more than generating just one.</p>
@@ -374,7 +381,7 @@ def dpo_loss(policy_logps_chosen, policy_logps_rejected,
   <section class="quiz" id="quiz">
     <p class="eyebrow">Check yourself</p>
     <h2>Unit 8 quiz</h2>
-    <p class="quiz-intro">Eight questions across evaluation, alignment, and deployment — the last two are multi-step, and one requires combining scaling laws from Unit 4 with the mixed-precision training material from Unit 7.</p>
+    <p class="quiz-intro">Eight questions across evaluation, alignment, and deployment — the last two are multi-step, and one requires combining scaling laws from Unit 5 with the mixed-precision training material from Unit 7.</p>
 
     <article class="q">
       <p class="q-num">Question 1 <span class="q-type">Multiple choice</span></p>
@@ -479,10 +486,10 @@ def dpo_loss(policy_logps_chosen, policy_logps_rejected,
 
     <article class="q">
       <p class="q-num">Question 7 <span class="q-type">Multiple choice</span></p>
-      <p class="q-stem">A junior engineer argues: "Unit 7 showed mixed-precision (fp16/bf16) training reaches the same loss as fp32 with proper loss scaling, so int4 post-training quantization at serving time should be just as lossless." Combining Unit 4's scaling-law relationship — where a model's capacity ends up concentrated as it's trained — with this unit's material on quantization, what is the strongest objection?</p>
+      <p class="q-stem">A junior engineer argues: "Unit 7 showed mixed-precision (fp16/bf16) training reaches the same loss as fp32 with proper loss scaling, so int4 post-training quantization at serving time should be just as lossless." Combining Unit 5's scaling-law material with this unit's material on quantization, what is the strongest objection?</p>
       <ol class="choices" type="A">
         <li>Quantization and mixed-precision training use different numbers of bits, so the comparison is meaningless on its face.</li>
-        <li>Mixed-precision training keeps a full-precision master copy of weights and gradients throughout training, actively correcting rounding error at every step; post-training quantization is a one-time, irreversible compression applied after training, to a model whose scaling-law-predicted capacity is concentrated in comparatively few parameters carrying rare, precise facts — exactly what a one-shot rounding pass degrades first.</li>
+        <li>Mixed-precision training keeps a full-precision master copy of weights and gradients throughout training, actively correcting rounding error at every step; post-training quantization is a one-time, irreversible compression applied after training, with no opportunity to correct the error it introduces — so the model's tail behaviour, the rare facts and precise thresholds that depend on small weight differences, is what degrades first.</li>
         <li>Mixed-precision training is always more accurate than any form of quantization, in any context.</li>
         <li>int4 quantization only affects intermediate activations, not the learned weights, so it cannot touch stored facts at all.</li>
       </ol>
@@ -517,6 +524,11 @@ def dpo_loss(policy_logps_chosen, policy_logps_rejected,
 
 <footer class="unit-foot">
   <p>Foundational Model Development · Unit 8 of 8 — Course complete. Course 3, Text Processing (NLP), picks up from here: tokenization choices, classical and neural text representations, and the sequence-labeling and classification tasks that sit beneath everything this course built on top of.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="unit7.html">← Unit 7</a>
+    <a href="../courses.html">All units</a>
+    <a href="../course-3-text-processing/unit1.html">Text Processing →</a>
+  </nav>
 </footer>
 </body>
 </html>

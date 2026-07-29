@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -221,8 +228,8 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
 for method, bits in (("full", 16), ("lora", 16), ("qlora", 4)):
     print(method, round(memory_budget_gb(7, method, rank=16, bits=bits), 1), "GB")
 # full   112.0 GB
-# lora    14.6 GB
-# qlora    4.1 GB</code></pre>
+# lora    14.5 GB
+# qlora    4.0 GB</code></pre>
     <p class="caption">Full fine-tuning's 112 GB matches the arithmetic above. LoRA's budget is dominated by the frozen bf16 base weights (14 GB) plus a tiny adapter training cost; QLoRA shrinks the base itself to 4-bit, which is what makes the 40-tenant shared budget arithmetic work at all.</p>
 
     <aside class="takeaways">
@@ -294,7 +301,7 @@ class LoRALinear(nn.Module):
         d_out, d_in = self.base.weight.shape
         self.r = r
         self.scale = alpha / r
-        self.A = nn.Parameter(torch.randn(r, d_in) * (1 / r ** 0.5))
+        self.A = nn.Parameter(torch.randn(r, d_in) * (1 / d_in ** 0.5))   # fan-in is d_in
         self.B = nn.Parameter(torch.zeros(d_out, r))   # zero init: BA = 0 at step 0
         self.merged = False
 
@@ -440,7 +447,7 @@ print(labels)
         <summary>Show answer</summary>
         <div class="answer">
           <p><strong>Answer: B.</strong> <code>B</code> (the (d_out × r) matrix) is zero-initialized; <code>A</code> (the (r × d_in) matrix) gets the random initialization.</p>
-          <p>Initializing <code>A</code> to zero instead would be backwards for training dynamics: <code>∂L/∂B</code> is proportional to <code>Aᵀ</code>, so with <code>A</code> at zero, <code>B</code> would never receive a gradient signal at all, and the adapter would never start learning.</p>
+          <p>Initializing <code>A</code> to zero instead would be backwards for training dynamics: <code>∂L/∂B</code> is proportional to <code>Aᵀ</code>, so with <code>A</code> at zero, <code>B</code> still receives a gradient through A on the very first step (∂L/∂A ∝ Bᵀ ≠ 0), so the adapter does train — it is simply not the convention. Only zero-initializing <em>both</em> A and B stalls the adapter permanently.</p>
         </div>
       </details>
     </article>
@@ -544,6 +551,11 @@ print(labels)
 
 <footer class="unit-foot">
   <p>Foundational Model Development · Unit 7 of 8 — Unit 8 covers evaluating and deploying these tuned models: RLHF and DPO for preference alignment, benchmark and human evaluation, and serving the result in production.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="unit6.html">← Unit 6</a>
+    <a href="../courses.html">All units</a>
+    <a href="unit8.html">Unit 8 →</a>
+  </nav>
 </footer>
 </body>
 </html>

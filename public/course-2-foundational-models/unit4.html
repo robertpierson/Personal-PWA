@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -200,7 +207,7 @@ inputs = tokens[:, :-1]               # shape: (4, 7)  -- what the model sees
 labels = tokens[:, 1:]                # shape: (4, 7)  -- what it must predict
 
 print("inputs[0]:", inputs[0].tolist())   # [101, 45, 902, 17, 6, 88, 231]
-print("labels[0]:", labels[0].tolist())   # [45, 902, 17, 6, 88, 5*]
+print("labels[0]:", labels[0].tolist())   # [45, 902, 17, 6, 88, 231, 5]
 # position i of `inputs` and position i of `labels` are DIFFERENT tokens:
 # labels[i] is whatever came immediately after inputs[i] in the source file.
 
@@ -290,7 +297,7 @@ def fim_reorder(func_tokens, split_a, split_b, pre_id, suf_id, mid_id):
     <p>Read the inner fraction as a softmax over "which code snippet, among all <code>N</code> in the batch, is the one this docstring goes with" — the numerator is the score for the true match <code>cᵢ</code>, the denominator sums over every candidate <code>cⱼ</code> in the batch including the true one. It is literally a cross-entropy loss where the "classes" are the other items in the batch and the correct class index for row <code>i</code> is <code>i</code> itself.</p>
     <h3>Temperature, and in-batch negatives as the difficulty knob</h3>
     <p>The <code>τ</code> (<span class="term">temperature</span>) parameter rescales the similarity scores before the softmax. As <code>τ → 0</code>, the softmax sharpens toward a one-hot distribution concentrated on whichever candidate has the single highest similarity — the loss becomes dominated by hard negatives (near-miss functions that are almost, but not quite, the right match) and gradients become large and noisy. As <code>τ → ∞</code>, every similarity score gets crushed toward the same value, the softmax flattens toward uniform, and the loss gradient vanishes — the model gets almost no signal about which negatives it's failing to distinguish. In practice <code>τ</code> is a tuned hyperparameter (commonly 0.05–0.1 for normalized embeddings), not something you set at either extreme.</p>
-    <p>The negatives in the denominator above come from other pairs already in the same training batch — <span class="term">in-batch negatives</span> — which is why <span class="term">effective batch size is the difficulty knob</span> for this objective in a way it simply isn't for CLM or MLM. A batch of 64 pairs gives the model 63 negatives per anchor to distinguish against; a batch of 8,192 pairs (achievable with large-batch contrastive training, as CLIP and later code-search systems do) gives it 8,191 — a much harder discrimination problem, which drives the encoders toward finer-grained, more separable representations. This is also why contrastive pretraining is unusually batch-size-sensitive compared to the other two objectives in this unit: shrinking the batch doesn't just slow training, it changes what the model is being asked to learn.
+    <p>The negatives in the denominator above come from other pairs already in the same training batch — <span class="term">in-batch negatives</span> — which is why <span class="term">effective batch size is the difficulty knob</span> for this objective in a way it simply isn't for CLM or MLM. A batch of 64 pairs gives the model 63 negatives per anchor to distinguish against; a batch of 8,192 pairs (achievable with large-batch contrastive training, as CLIP and later code-search systems do) gives it 8,191 — a much harder discrimination problem, which drives the encoders toward finer-grained, more separable representations. This is also why contrastive pretraining is unusually batch-size-sensitive compared to the other two objectives in this unit: shrinking the batch doesn't just slow training, it changes what the model is being asked to learn.</p>
     <h3>Dual encoders, collapse, and when to prefer this objective</h3>
     <p>The architecture that pairs naturally with InfoNCE is the <span class="term">dual encoder</span> (CLIP-style, but for docstrings and functions instead of captions and images): one encoder maps docstrings to vectors, a separate encoder maps code to vectors, both projected into a shared embedding space, trained jointly so that matching pairs land near each other under cosine similarity and everything else lands far apart. At serving time this is what makes large-scale code search fast — you embed every function in your corpus once, offline, and a query only needs one forward pass through the docstring encoder plus a nearest-neighbor lookup, rather than a forward pass of a joint model against every candidate function.</p>
     <p>The failure mode specific to this objective is <span class="term">representation collapse</span>: without care, an encoder can satisfy "positives close, negatives far" by mapping every input to a nearly identical vector (which trivially makes all pairwise similarities equal and, degenerately, minimizes badly-normalized versions of the loss) or by collapsing onto a narrow subspace that loses the information a retrieval system actually needs. The standard countermeasures are L2-normalizing every embedding before the dot product (turning similarity into pure cosine similarity, so blowing up vector norms can't cheat the loss), using a large and diverse negative pool (a bigger, more varied batch makes the "map everything to one point" solution score badly, since it would confuse every negative for the positive too), and a properly tuned, non-degenerate temperature.</p>
@@ -377,7 +384,7 @@ loss = (loss_doc_to_code + loss_code_to_doc) / 2       # symmetric InfoNCE</code
 
     <article class="q">
       <p class="q-num">Question 4 <span class="q-type">Bug fix</span></p>
-      <p class="q-stem">A teammate's CLM training loop trains without crashing, but held-out perplexity never drops below the vocabulary size (i.e., it's no better than random), and sampled completions are nonsense that ignores the given prompt. Find and fix the bug.</p>
+      <p class="q-stem">A teammate's CLM training loop trains without crashing, but training and held-out loss both fall suspiciously fast, with perplexity dropping toward 1, yet sampled completions are nonsense that ignores the given prompt. Find and fix the bug.</p>
       <pre><code>tokens = batch["input_ids"]          # (batch, seq_len), causal-masked model
 
 inputs = tokens[:, :-1]
@@ -391,7 +398,7 @@ loss = F.cross_entropy(
       <details>
         <summary>Show answer</summary>
         <div class="answer">
-          <p><strong>Answer:</strong> <code>labels</code> is sliced identically to <code>inputs</code> (<code>tokens[:, :-1]</code> for both), so the model is being trained to predict the token it was just given, at the same position — not the next one. The fix is <code>labels = tokens[:, 1:]</code>, so <code>inputs</code> and <code>labels</code> are offset by one position as in Lesson 1's worked example. With the bug in place, the "easiest" solution to the (wrong) objective is closer to an identity/copy function, which is why perplexity plateaus near the vocabulary size and generated text ignores the actual prompt — the model never learned to predict forward at all.</p>
+          <p><strong>Answer:</strong> <code>labels</code> is sliced identically to <code>inputs</code> (<code>tokens[:, :-1]</code> for both), so the model is being trained to predict the token it was just given, at the same position — not the next one. The fix is <code>labels = tokens[:, 1:]</code>, so <code>inputs</code> and <code>labels</code> are offset by one position as in Lesson 1's worked example. With the bug in place, the "easiest" solution to the (wrong) objective is closer to an identity/copy function, which a causal model can solve almost perfectly by copying the token it can already see — which is why perplexity collapses toward 1 while generated text ignores the actual prompt — the model never learned to predict forward at all.</p>
           <p>It's tempting to suspect the <code>reshape(-1, vocab_size)</code> call, since flattening errors are a classic shape bug elsewhere — but the shapes here are consistent (both tensors are <code>(batch, seq_len-1)</code> before flattening); the defect is semantic (wrong slice), not dimensional, so no shape-related exception is ever raised.</p>
         </div>
       </details>
@@ -436,7 +443,7 @@ to_random = ____________________________________   # &lt;-- complete this line
         <summary>Show answer</summary>
         <div class="answer">
           <p><strong>Answer: B.</strong> The random-replacement bucket must be exactly the middle 10% of the corrupted positions — those with <code>choice</code> in <code>[0.80, 0.90)</code> — leaving the top 10% (<code>choice &gt;= 0.90</code>) as the "left unchanged" bucket. Both bounds are needed, or the random bucket would swallow the unchanged bucket too.</p>
-          <p>Option A looks plausible but includes everything from 0.80 up to 1.0 (20% of candidates, not 10%), silently merging the random and unchanged buckets into one 20% random-replacement group and leaving nothing for "unchanged." Option D would correctly capture the remaining 20% but still doesn't separate the random 10% from the unchanged 10% — it only distinguishes "masked" from "not masked."</p>
+          <p>Option A looks plausible but includes everything from 0.80 up to 1.0 (20% of candidates, not 10%), silently merging the random and unchanged buckets into one 20% random-replacement group and leaving nothing for "unchanged." Option C picks the bottom 10% of <code>choice</code>, which is precisely the band already claimed by the <code>[MASK]</code> bucket — it would re-corrupt positions that were just masked and leave the middle band untouched. Option D would correctly capture the remaining 20% but still doesn't separate the random 10% from the unchanged 10% — it only distinguishes "masked" from "not masked."</p>
         </div>
       </details>
     </article>
@@ -465,6 +472,11 @@ to_random = ____________________________________   # &lt;-- complete this line
 
 <footer class="unit-foot">
   <p>Foundational Model Development · Unit 4 of 8 — Next: Unit 5 puts a price on all three of these objectives, covering scaling laws and how compute, data, and parameter count trade off against each other.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="unit3.html">← Unit 3</a>
+    <a href="../courses.html">All units</a>
+    <a href="unit5.html">Unit 5 →</a>
+  </nav>
 </footer>
 </body>
 </html>
