@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -260,7 +267,7 @@ print(nms(boxes, scores, 0.5))   # -> [0, 2]  (box 0 suppresses 1 and 3; box 2 s
     """
     img_w, img_h = image_size
     feat_w, feat_h = feature_size
-    scale_x = feat_w / img_w   # e.g. 40 / 1920 = 0.02083...
+    scale_x = feat_w / img_w   # e.g. 60 / 1920 = 0.03125
     scale_y = feat_h / img_h
 
     x_min, y_min, x_max, y_max = proposal_box
@@ -275,9 +282,9 @@ print(nms(boxes, scores, 0.5))   # -> [0, 2]  (box 0 suppresses 1 and 3; box 2 s
 # backbone stride 32 -> feature map is 60 x 38 (1920/32, 1208/32)
 sign_box = (910, 340, 928, 362)
 mapped = map_proposal_to_feature_map(sign_box, (1920, 1208), (60, 38))
-print(mapped)   # -> (28.4375, 10.6875, 29.0, 11.34375)
+print(mapped)   # -> (28.4375, 10.6954, 29.0, 11.3874)
 # RoI pooling would round these to (28, 11, 29, 11) -- a zero-height slice!
-# RoI Align keeps the fraction and bilinearly samples a real 0.65 x 0.66-cell region.</code></pre>
+# RoI Align keeps the fraction and bilinearly samples a real 0.56 x 0.69-cell region.</code></pre>
     <p class="caption">Notice how the naive rounded version would collapse this small sign's proposal to a zero-height box on the feature map (<code>y_min</code> and <code>y_max</code> both rounding to 11) — exactly the failure mode RoI Align's fractional, interpolated sampling avoids, which matters disproportionately for the distant-and-small end of this domain's object-scale range.</p>
     <aside class="takeaways">
       <h4>Key takeaways</h4>
@@ -300,7 +307,7 @@ print(mapped)   # -> (28.4375, 10.6875, 29.0, 11.34375)
     <h3>SSD: predicting at multiple feature-map scales</h3>
     <p><span class="term">SSD</span> (Single Shot Detector, Liu et al., 2016) tackled the huge-truck-versus-tiny-sign scale problem head-on by attaching detection heads to <em>several</em> feature maps at different depths of the backbone, not just one. Early, high-resolution feature maps (large spatial size, small receptive field) predict small objects well — a distant traffic sign, a far-off pedestrian — because their finer grid resolution and smaller anchors match small object footprints. Later, low-resolution feature maps (small spatial size, large receptive field, having been downsampled repeatedly) predict large objects well — the truck filling half the frame — because each grid cell there has "seen" a much larger patch of the original image. Predicting at one single scale (as the original YOLO did) forces a trade-off between the anchor sizes needed for tiny distant signs and the anchor sizes needed for huge nearby vehicles; SSD's multi-scale heads sidestep that trade-off by giving each object size its own natural home in the feature pyramid. This idea — a feature pyramid with detection heads at every level — became close to universal in later one-stage designs, including later YOLO versions.</p>
     <h3>Class imbalance and focal loss</h3>
-    <p>Dense, grid-based prediction has a cost that two-stage detectors mostly avoid: at every grid cell and every anchor and every scale, the overwhelming majority of candidates correspond to background — road surface, sky, guardrail — with real objects (vehicle, pedestrian, cyclist, sign) making up a tiny fraction. A typical dense detector might evaluate 100,000 anchors per image, of which perhaps a few dozen actually overlap a labeled object. Standard cross-entropy loss (the same loss from Unit 1's classifiers, recall) treats every anchor equally, so the flood of easy, correctly-classified background anchors dominates the gradient and drowns out the learning signal from the rare, hard, actually-useful object anchors. <span class="term">Focal loss</span>, introduced with <span class="term">RetinaNet</span> (Lin et al., 2017), fixes this by down-weighting the loss contribution of examples the model already classifies confidently, via a modulating factor:</p>
+    <p>Dense, grid-based prediction has a cost that two-stage detectors mostly avoid: at every grid cell and every anchor and every scale, the overwhelming majority of candidates correspond to background — road surface, sky, guardrail — with real objects (vehicle, pedestrian, cyclist, sign) making up a tiny fraction. A typical dense detector might evaluate 100,000 anchors per image, of which perhaps a few dozen actually overlap a labeled object. Standard cross-entropy loss (the same loss from Unit 3's classifiers, recall) treats every anchor equally, so the flood of easy, correctly-classified background anchors dominates the gradient and drowns out the learning signal from the rare, hard, actually-useful object anchors. <span class="term">Focal loss</span>, introduced with <span class="term">RetinaNet</span> (Lin et al., 2017), fixes this by down-weighting the loss contribution of examples the model already classifies confidently, via a modulating factor:</p>
     <p class="math">FL(p_t) = -(1 - p_t)^γ · log(p_t)</p>
     <p>where <code>p_t</code> is the model's estimated probability for the true class and <code>γ</code> (commonly 2) controls how aggressively easy examples get down-weighted. An easy background anchor the model already scores at <code>p_t = 0.99</code> contributes a loss term multiplied by <code>(1 - 0.99)^2 = 0.0001</code> — effectively silenced — while a hard, misclassified pedestrian anchor at <code>p_t = 0.2</code> keeps a multiplier of <code>(1 - 0.2)^2 = 0.64</code>, barely reduced. RetinaNet, a one-stage detector using focal loss plus a feature pyramid (directly building on both SSD's multi-scale idea and the residual-backbone lineage from Course 4 Unit 3), was the first one-stage design to match two-stage accuracy, precisely because it fixed the class-imbalance problem that had previously limited one-stage detectors' precision.</p>
     <h3>Anchor-free detectors and the transformer turn</h3>
@@ -348,7 +355,7 @@ box, cls_idx, conf = decode_yolo_cell(
     cell_x=12, cell_y=7, cell_size=32, anchor_w=24, anchor_h=60,
 )
 print(box, cls_idx, round(conf, 3))
-# -> roughly (376.6, 231.9, 402.2, 305.6), class 0 (vehicle), confidence ~0.94</code></pre>
+# -> roughly (389.1, 196.8, 415.6, 273.9), class 0 (vehicle), confidence ~0.90</code></pre>
     <p class="caption">Notice the two different transforms at play: the center coordinates use a <code>sigmoid</code> to keep the predicted offset inside the current cell (never letting a box's center "escape" to a neighboring cell), while width and height use <code>exp</code> to scale the anchor prior up or down multiplicatively — a network output of 0 leaves the anchor's size unchanged, positive values grow it, negative values shrink it. Final confidence multiplies objectness by the winning class probability, so a box can have high objectness but still be filtered out if no class scores well.</p>
     <aside class="takeaways">
       <h4>Key takeaways</h4>
@@ -380,7 +387,7 @@ print(box, cls_idx, round(conf, 3))
         <summary>Show answer</summary>
         <div class="answer">
           <p><strong>Answer: 0.29.</strong> Union = area(A) + area(B) − intersection = 4,000 + 5,000 − 2,000 = 7,000. IoU = 2,000 / 7,000 ≈ 0.2857, which rounds to 0.29.</p>
-          <p>0.40 (option C) is a common mistake from dividing intersection by only the predicted box's area (2,000/5,000) instead of the union — that's a "containment" ratio, not IoU, and it isn't symmetric the way IoU must be.</p>
+          <p>0.40 (option C) is a common mistake from dividing intersection by only the ground-truth box's area (2,000/5,000) instead of the union — a recall-like containment ratio, not IoU, and it isn't symmetric the way IoU must be. 0.50 (option D) is the mirror slip: intersection over the <em>predicted</em> box's area (2,000/4,000), which is precision-like and equally asymmetric.</p>
         </div>
       </details>
     </article>
@@ -527,6 +534,11 @@ print(focal_weight(0.2))   # got 0.04    (should be ~0.64)</code></pre>
 
 <footer class="unit-foot">
   <p>Computer Vision · Unit 4 of 8 — Unit 5 moves from boxes to pixels: semantic and instance segmentation.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="unit3.html">← Unit 3</a>
+    <a href="../courses.html">All units</a>
+    <a href="unit5.html">Unit 5 →</a>
+  </nav>
 </footer>
 </body>
 </html>

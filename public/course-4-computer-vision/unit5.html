@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -186,8 +193,8 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
     <pre><code>import numpy as np
 
 # Toy encoder-decoder step showing a U-Net-style skip connection.
-# Shapes follow (batch, channels, height, width) for a single axial
-# CT slice, 256x256, going through one encoder level and back up.
+# Shapes follow (batch, channels, height, width) for a batch of axial
+# CT slices, 256x256, going through one encoder level and back up.
 
 batch = 4
 
@@ -291,10 +298,10 @@ for name, p in [("collapsed", probs_collapsed), ("good", probs_good)]:
     print(f"{name:<10}{ce:>12.4f}{dl:>14.4f}")
 
 # model         pixel CE    Dice loss
-# collapsed       0.0169        0.9560
-# good            0.0157        0.1264
+# collapsed       0.0329        0.9884
+# good            0.0108        0.5557
 </code></pre>
-    <p class="caption">Pixel CE barely distinguishes the two models (0.0169 vs 0.0157 — both look "fine" because background dominates the average), while Dice loss correctly flags the collapsed model as almost completely wrong (0.956, near the 1.0 ceiling) and the good model as strong (0.126) — Dice carries training signal exactly where CE goes flat.</p>
+    <p class="caption">Both models score a pixel CE under 0.04 — the collapsed one at 0.033 and the good one at 0.011 — because background dominates the average, so neither reads as obviously broken on CE alone. Dice loss separates them by a wide margin: 0.988 for the collapsed model, near the 1.0 ceiling, against 0.556 for the good one. Dice carries training signal exactly where CE goes flat.</p>
     <aside class="takeaways">
       <h4>Key takeaways</h4>
       <ul>
@@ -341,7 +348,8 @@ def mask_head_forward(x, num_classes):
     n, c, h, w = x.shape
     # ... 4 conv layers here, shape unchanged: (n, 256, 14, 14) ...
     upsampled = np.repeat(np.repeat(x, 2, axis=2), 2, axis=3)   # (n, 256, 28, 28)
-    class_masks = np.random.randn(n, num_classes, 28, 28)        # 1x1 conv, C_out=num_classes
+    up_n, _, up_h, up_w = upsampled.shape
+    class_masks = np.random.randn(up_n, num_classes, up_h, up_w)  # 1x1 conv, C_out=num_classes
     return class_masks
 
 pred_masks = mask_head_forward(roi_features, num_classes)
@@ -519,6 +527,11 @@ print("final per-instance mask:", final_masks.shape)
 
 <footer class="unit-foot">
   <p>Computer Vision · Unit 5 of 8 — Unit 6 turns to transformer-based vision architectures (ViT) and what they change about the encoder side of everything built here.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="unit4.html">← Unit 4</a>
+    <a href="../courses.html">All units</a>
+    <a href="unit6.html">Unit 6 →</a>
+  </nav>
 </footer>
 </body>
 </html>

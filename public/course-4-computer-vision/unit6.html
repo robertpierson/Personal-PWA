@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -176,7 +183,7 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
     <p>That is precisely the bet the Vision Transformer (ViT) made in 2020. Instead of convolving, it borrows the recipe from Course 2's sequence transformers wholesale: turn the input into a sequence of tokens, embed each token, add position information, and run it through ordinary self-attention layers. The only genuinely new idea is how you turn a 2-D image into a 1-D sequence of tokens in the first place.</p>
 
     <h3>Patchify, then transformer</h3>
-    <p>ViT slices an image into a grid of fixed-size, non-overlapping <span class="term">patches</span> — typically 16×16 pixels — and treats each patch exactly the way Course 2 treated a wordpiece: as one token in a sequence. A 224×224 product photo becomes a 14×14 grid of patches, or 196 tokens. Each patch is flattened from a (16, 16, 3) block of pixels into a 768-length vector and passed through a single learned linear layer — the <span class="term">patch embedding</span> — to produce the token's initial representation. There is no hierarchy of convolutions building up receptive field; the patch embedding is the entire "stem." From that point on, every patch token can attend to every other patch token, immediately, in layer one. A shift toe-cap detail in a sneaker photo can directly attend to the toe-cap detail eleven patches away, without needing to wait for pooling layers to enlarge the receptive field, the way a CNN would.</p>
+    <p>ViT slices an image into a grid of fixed-size, non-overlapping <span class="term">patches</span> — typically 16×16 pixels — and treats each patch exactly the way Course 2 treated a wordpiece: as one token in a sequence. A 224×224 product photo becomes a 14×14 grid of patches, or 196 tokens. Each patch is flattened from a (16, 16, 3) block of pixels into a 768-length vector and passed through a single learned linear layer — the <span class="term">patch embedding</span> — to produce the token's initial representation. There is no hierarchy of convolutions building up receptive field; the patch embedding is the entire "stem." From that point on, every patch token can attend to every other patch token, immediately, in layer one. A stitched toe-cap detail in a sneaker photo can directly attend to the toe-cap detail eleven patches away, without needing to wait for pooling layers to enlarge the receptive field, the way a CNN would.</p>
     <p>Because self-attention has no inherent notion of order or position — Course 2 covered this when it introduced positional encodings for text — ViT prepends a learnable <span class="term">[CLS] token</span> to the sequence, the same device BERT used for sentence-level classification, and adds a learned <span class="term">position embedding</span> to every token, including [CLS]. For images the position embeddings are typically learned per grid location (a 1-D embedding per one of the 196 flattened positions, sometimes factored into row and column embeddings), rather than the fixed sinusoidal scheme sometimes used for text. After the full transformer encoder stack processes the sequence, the final [CLS] token's representation is fed to a classification head — in a retail setting, a head predicting product category, or an embedding to be matched against other product embeddings for visual search.</p>
 
     <h3>The data-hunger problem</h3>
@@ -225,7 +232,7 @@ print(tokens.shape)   # (197, 768): 196 patch tokens + 1 [CLS] token, each 768-d
         <li><strong>ViT trades hand-coded priors for learned ones.</strong> CNNs bake in locality and translation equivariance via the convolution operation; ViT has neither and must learn spatial structure from data, which is why it needs far more training images to match a CNN.</li>
         <li><strong>Patchify is the only vision-specific step.</strong> A 16×16 patch becomes one token, flattened and linearly projected — the transformer encoder that follows is identical in kind to the one Course 2 used for text.</li>
         <li><strong>[CLS] and 2-D position embeddings replace what convolution gave for free.</strong> Since self-attention is permutation-invariant, position embeddings are the only thing telling the model where each patch sat in the original grid.</li>
-        <li><strong>The JFT-300M result is a data-scale threshold, not a universal win.</strong> Below roughly ImageNet-1k scale, a CNN generally beats a from-scratch ViT; a boutique catalogue of 10k SKUs behaves differently than a marketplace with tens of millions of listing photos.</li>
+        <li><strong>The JFT-300M result is a data-scale threshold, not a universal win.</strong> At ImageNet-1k scale and below, a CNN generally beats a from-scratch ViT; a boutique catalogue of 10k SKUs behaves differently than a marketplace with tens of millions of listing photos.</li>
         <li><strong>Hybrid stems split the difference.</strong> A small convolutional stem feeding into a transformer body recovers some locality prior and eases the data requirement, at modest architectural cost.</li>
       </ul>
     </aside>
@@ -238,7 +245,7 @@ print(tokens.shape)   # (197, 768): 196 patch tokens + 1 [CLS] token, each 768-d
 
     <h3>Swin: windows restore a hierarchy</h3>
     <p>The <span class="term">Swin Transformer</span> (2021) solves the cost problem by giving up global attention within a layer and instead computing self-attention inside small, fixed-size local windows — typically 7×7 patches. Attention cost within a window is constant regardless of image size, and since the number of windows grows only linearly with image area, total cost becomes linear in the number of tokens rather than quadratic. The catch: a patch in one window can no longer see a patch in a neighboring window, so information can't cross window boundaries within a single layer. Swin's fix is the <span class="term">shifted window</span>: alternating layers offset the window grid by half a window's width, so patches that were split into two separate windows in one layer end up sharing a window in the next. Stack enough shifted-window layers and information effectively propagates across the whole image, without ever paying for full quadratic attention.</p>
-    <p>Swin also restores something ViT gave up: a multi-scale hierarchy. Every few layers, Swin merges 2×2 neighboring patches into one, halving the token count and doubling the channel depth — structurally identical to a CNN's pooling-and-downsampling stages, and it produces the same pyramid of feature-map resolutions that detection and segmentation heads (built in earlier units) expect as input. This is why Swin, rather than plain ViT, became the default vision-transformer backbone for object detection: a plain ViT's single-resolution output doesn't naturally feed a feature-pyramid detection head, while Swin's does.</p>
+    <p>Swin also restores something ViT gave up: a multi-scale hierarchy. Every few layers, Swin merges 2×2 neighboring patches into one, quartering the token count (halving resolution on each axis) and doubling the channel depth — structurally identical to a CNN's pooling-and-downsampling stages, and it produces the same pyramid of feature-map resolutions that detection and segmentation heads (built in earlier units) expect as input. This is why Swin, rather than plain ViT, became the default vision-transformer backbone for object detection: a plain ViT's single-resolution output doesn't naturally feed a feature-pyramid detection head, while Swin's does.</p>
     <p>One implementation subtlety worth naming, because it is the kind of thing that silently breaks a from-scratch reimplementation: the "shift" in shifted-window attention is a <em>cyclic</em> shift (patches that fall off one edge wrap around to the opposite edge, via something like a numpy roll), not a crop-and-pad. A naive pad-based shift would waste computation on empty padding regions and would need a variable number of windows per image. The cyclic-roll trick keeps every image at exactly the same fixed number of equally-sized windows before and after the shift, at the cost of one extra piece of bookkeeping: an attention mask that prevents patches which only ended up adjacent because of the wraparound (say, the left edge of the image now sitting next to the right edge) from attending to each other as if they were truly neighboring content. Skipping that mask is a classic Swin bug — the model still runs and shapes still check out, but it quietly lets a bag on the left border of a photo attend to unrelated background pixels wrapped in from the right border.</p>
 
     <h3>DeiT: teaching a ViT to be data-efficient</h3>
@@ -530,6 +537,11 @@ loss = mse(reconstruction, original_patches)</code></pre>
 
 <footer class="unit-foot">
   <p>Computer Vision · Unit 6 of 8 — Unit 7 turns to generative vision models: GANs and diffusion, and how they learn to synthesize rather than just represent images.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="unit5.html">← Unit 5</a>
+    <a href="../courses.html">All units</a>
+    <a href="unit7.html">Unit 7 →</a>
+  </nav>
 </footer>
 </body>
 </html>

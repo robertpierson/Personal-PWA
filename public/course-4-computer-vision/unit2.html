@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -288,13 +295,13 @@ def non_max_suppression(mag, orient):
             a = angle[y, x]
             # snap to nearest of 0, 45, 90, 135 degrees
             if a < 22.5 or a >= 157.5:
-                n1, n2 = mag[y, x-1], mag[y, x+1]        # horizontal edge
+                n1, n2 = mag[y, x-1], mag[y, x+1]        # vertical edge
             elif a < 67.5:
-                n1, n2 = mag[y-1, x+1], mag[y+1, x-1]     # 45 degrees
+                n1, n2 = mag[y-1, x-1], mag[y+1, x+1]     # 45 degrees
             elif a < 112.5:
-                n1, n2 = mag[y-1, x], mag[y+1, x]         # vertical edge
+                n1, n2 = mag[y-1, x], mag[y+1, x]         # horizontal edge
             else:
-                n1, n2 = mag[y-1, x-1], mag[y+1, x+1]     # 135 degrees
+                n1, n2 = mag[y-1, x+1], mag[y+1, x-1]     # 135 degrees
             if mag[y, x] >= n1 and mag[y, x] >= n2:
                 out[y, x] = mag[y, x]
     return out
@@ -487,15 +494,15 @@ descriptor = hog_descriptor(mag, orient, cell_size=8, n_bins=9)
       <p class="q-stem">What is the concrete effect of this bug on inspection images?</p>
       <ol class="choices" type="A">
         <li>It has no visible effect — Canny edges look the same regardless of orientation handling.</li>
-        <li>It only thins horizontal edges correctly; vertical and diagonal edges (e.g. vertical scratches, angled solder bridges) stay several pixels wide because the wrong neighbor pixels are compared.</li>
+        <li>It only thins vertical edges correctly; horizontal and diagonal edges (e.g. horizontal scratches, angled solder bridges) stay several pixels wide because the wrong neighbor pixels are compared.</li>
         <li>It causes every pixel in the image to be suppressed to zero.</li>
         <li>It makes the algorithm run non-deterministically.</li>
       </ol>
       <details>
         <summary>Show answer</summary>
         <div class="answer">
-          <p><strong>Answer: B.</strong> Non-max suppression must compare each pixel against the two neighbors that straddle it <em>perpendicular</em> to the local gradient orientation. Always checking left/right only correctly thins edges whose gradient runs horizontally; a vertical scratch's gradient points left-right, so its edge, running top-to-bottom, needs the up/down neighbors compared instead — the buggy version leaves those edges wide and unthinned.</p>
-          <p>A is the tempting-but-wrong answer for anyone who's only tested the code on a single horizontal test edge; the failure only becomes visible once you inspect vertical or diagonal defects, which is most of what a real production line produces.</p>
+          <p><strong>Answer: B.</strong> Non-max suppression must compare each pixel against the two neighbors that straddle it <em>perpendicular</em> to the local gradient orientation. Always checking left/right only correctly thins edges whose gradient runs horizontally — and a horizontal gradient means a <em>vertical</em> edge, so vertical scratches are the one case the buggy version handles right. A horizontal scratch's gradient points up-down, so its edge, running left-to-right, needs the up/down neighbors compared instead — the buggy version leaves those edges wide and unthinned.</p>
+          <p>A is the tempting-but-wrong answer for anyone who's only tested the code on a single vertical test edge; the failure only becomes visible once you inspect vertical or diagonal defects, which is most of what a real production line produces.</p>
         </div>
       </details>
     </article>
@@ -540,6 +547,11 @@ descriptor = hog_descriptor(mag, orient, cell_size=8, n_bins=9)
 
 <footer class="unit-foot">
   <p>Computer Vision · Unit 2 of 8 — Unit 3 picks up where hand-designed filters leave off: convolutional layers that learn their own kernels directly from data.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="unit1.html">← Unit 1</a>
+    <a href="../courses.html">All units</a>
+    <a href="unit3.html">Unit 3 →</a>
+  </nav>
 </footer>
 </body>
 </html>

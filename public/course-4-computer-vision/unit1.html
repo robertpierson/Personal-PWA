@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -177,7 +184,7 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
     <p>Satellite imagery follows the exact same <code>(H, W, C)</code> skeleton, but the channel axis carries far more information than three visible-light values. The European Space Agency's <span class="term">Sentinel-2</span> mission — twin satellites that revisit most of Earth's land surface every five days — captures <strong>13 spectral bands</strong> per tile, spanning wavelengths from 443 nanometers (deep blue) out to 2190 nanometers (shortwave infrared, well past what human eyes or ordinary cameras register). Bands 2, 3, and 4 correspond to blue, green, and red and can be combined into a familiar-looking RGB composite, but bands like 8 (near-infrared, NIR) and 11–12 (shortwave infrared, SWIR) are where a lot of the useful signal for land monitoring actually lives, because live vegetation, bare soil, water, and cloud all reflect those wavelengths very differently even when they look similar in visible light.</p>
     <h3>Bit depth and dynamic range</h3>
     <p>A consumer photo typically stores each channel at <span class="term">8-bit depth</span>: 256 possible values (0–255) per pixel per channel. That's plenty for a screen, whose own display range is limited, but it's a coarse instrument for scientific measurement. Sentinel-2 data is delivered at <strong>12-bit or 16-bit depth</strong> — values from 0 up to 4095 (12-bit) or stored in 16-bit integer containers with reflectance scaled by a factor of 10,000. The reason is <span class="term">dynamic range</span>: the difference between the darkest shadow and the brightest sunlit surface a sensor can distinguish. An 8-bit sensor imaging a scene that spans deep-shadow forest canopy to sun-glinting water would have to compress that whole range into 256 buckets, crushing subtle differences between, say, healthy and drought-stressed crops into the same bucket. A 12-bit sensor has 16 times as many buckets (4096 vs. 256) to spread that same range across, preserving gradations that 8-bit would flatten. This matters enormously for anything measuring vegetation health or water content, where the meaningful signal is often a small percentage difference in reflectance.</p>
-    <p>Spatial resolution is the other axis that determines what a tile can actually show. Sentinel-2's visible and NIR bands are captured at <strong>10 meters per pixel</strong>; some bands (like red-edge and SWIR) are captured at 20 m, and atmospheric bands at 60 m. A 10 m pixel means one number in the array represents everything reflected off a 10×10 meter patch of ground — roughly a third of a soccer pitch. That's enough to distinguish a farm field from a forest, or to track a clear-cut logging scar, but nowhere near enough to identify an individual tree or a single building, which is why very-high-resolution commercial satellites (sub-meter) exist for tasks Sentinel-2 can't do, at a much higher cost per image and far worse revisit frequency. Resolution is a budget: coarser pixels cover more ground per file and revisit more often, finer pixels see more detail but cost more to store, transmit, and label.</p>
+    <p>Spatial resolution is the other axis that determines what a tile can actually show. Sentinel-2's visible and NIR bands are captured at <strong>10 meters per pixel</strong>; some bands (like red-edge and SWIR) are captured at 20 m, and atmospheric bands at 60 m. A 10 m pixel means one number in the array represents everything reflected off a 10×10 meter patch of ground — 100 square meters, roughly 1/70th of a soccer pitch. That's enough to distinguish a farm field from a forest, or to track a clear-cut logging scar, but nowhere near enough to identify an individual tree or a single building, which is why very-high-resolution commercial satellites (sub-meter) exist for tasks Sentinel-2 can't do, at a much higher cost per image and far worse revisit frequency. Resolution is a budget: coarser pixels cover more ground per file and revisit more often, finer pixels see more detail but cost more to store, transmit, and label.</p>
     <h3>Memory footprint of a multiband tile</h3>
     <p>Channel count and bit depth combine directly into storage cost. An 8-bit RGB tile of 512×512 pixels is <code>512 × 512 × 3 = 786,432 bytes</code>, under a megabyte. A Sentinel-2 tile of the same spatial footprint but all 13 bands stored as 16-bit integers is <code>512 × 512 × 13 × 2 bytes = 6,815,744 bytes</code> — about 6.8 MB, nearly nine times larger for the same ground area. Multiply that by the thousands of tiles needed to cover a country, and it's clear why satellite pipelines are built around lazy loading, tiling, and compressed formats (like Cloud-Optimized GeoTIFF) rather than loading whole scenes into memory at once — a habit this unit's third lesson returns to directly.</p>
     <pre><code>import numpy as np
@@ -223,7 +230,7 @@ print(ndvi.min(), ndvi.max())  # roughly in [-1, 1]</code></pre>
   <section class="lesson" id="lesson-2">
     <p class="eyebrow">Lesson 2</p>
     <h2>Color spaces, channels, and spectral indices</h2>
-    <p class="opening">Point an RGB composite of a farm at a agronomist and ask them to spot the drought-stressed rows before the damage is visible to the naked eye, and they can't — because by the time chlorophyll loss shows up as a color shift in red, green, and blue, the plant has already been stressed for days. RGB is a three-number summary tuned to human color perception, and human color perception was never built to detect early plant stress or to separate a cloud from a bright patch of sand. This is the practical problem that spectral indices exist to solve: RGB throws away exactly the wavelengths — red-edge and near-infrared — where the physically real signal about vegetation health actually lives, and no amount of clever thresholding on brightness alone can get it back.</p>
+    <p class="opening">Point an RGB composite of a farm at an agronomist and ask them to spot the drought-stressed rows before the damage is visible to the naked eye, and they can't — because by the time chlorophyll loss shows up as a color shift in red, green, and blue, the plant has already been stressed for days. RGB is a three-number summary tuned to human color perception, and human color perception was never built to detect early plant stress or to separate a cloud from a bright patch of sand. This is the practical problem that spectral indices exist to solve: RGB throws away exactly the wavelengths — red-edge and near-infrared — where the physically real signal about vegetation health actually lives, and no amount of clever thresholding on brightness alone can get it back.</p>
     <p>It helps to be precise about what a <span class="term">color space</span> is: a coordinate system for describing color, with each space designed around a different goal. <strong>RGB</strong> mirrors the additive color receptors in cameras and screens — good for display, bad for many analysis tasks because brightness, hue, and saturation are all tangled together across the three channels (dimming a light changes all three RGB values, not just one). <strong>HSV</strong> (hue, saturation, value) untangles that: hue is a single number for "what color," saturation for "how vivid," value for "how bright." This makes HSV useful for tasks like isolating water bodies by hue regardless of how bright or dark the water appears in a given scene, or for cloud detection, where clouds tend to have low saturation (they look washed-out white-gray) regardless of the underlying terrain's hue. <strong>Lab</strong> (also written CIELAB) is built to match human perceptual distance — two colors that are numerically far apart in Lab actually look far apart to a human eye, which RGB and HSV don't guarantee. Lab shows up in tasks like matching printed colors or benchmarking image quality, less so in raw satellite band math, but it's worth knowing it exists as the "perceptually honest" option.</p>
     <table class="tbl">
       <tr><th>Space</th><th>What it separates</th><th>Good for</th><th>Weak for</th></tr>
@@ -309,9 +316,12 @@ def extract_overlapping_patches(scene, patch=256, overlap=32):
 # Correct order: split scenes into train/test FIRST, then compute stats
 # only on the training scenes, then preprocess everything with those
 # frozen numbers -- this is what avoids normalisation leakage.
-train_mean = raw_tile.astype(np.float32).mean(axis=(0, 1)) / 10000.0
-train_std  = raw_tile.astype(np.float32).std(axis=(0, 1)) / 10000.0
-clean = preprocess_tile(tile, train_mean, train_std)
+scenes = [tile, tile, tile, tile]                    # stand-in for a scene directory
+train_scenes, test_scenes = scenes[:3], scenes[3:]   # split FIRST
+train_stack = np.stack(train_scenes).astype(np.float32)
+train_mean = train_stack.mean(axis=(0, 1, 2)) / 10000.0   # training split only
+train_std  = train_stack.std(axis=(0, 1, 2)) / 10000.0
+clean = preprocess_tile(test_scenes[0], train_mean, train_std)
 
 patches = list(extract_overlapping_patches(clean, patch=256, overlap=32))
 print(len(patches), patches[0][2].shape)   # e.g. 4 (256, 256, 13)</code></pre>
@@ -481,6 +491,11 @@ print(len(patches), patches[0][2].shape)   # e.g. 4 (256, 256, 13)</code></pre>
 
 <footer class="unit-foot">
   <p>Computer Vision · Unit 1 of 8 — Unit 2 turns to edge detection and classical hand-crafted features, the last stop before convolutional architectures in Unit 3.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="../course-3-text-processing/unit8.html">← Text Processing</a>
+    <a href="../courses.html">All units</a>
+    <a href="unit2.html">Unit 2 →</a>
+  </nav>
 </footer>
 </body>
 </html>
