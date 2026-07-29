@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -240,7 +247,7 @@ def sanity_check_initial_loss(model, batch, loss_fn, num_classes):
   <section class="lesson" id="lesson-2">
     <p class="eyebrow">Lesson 2</p>
     <h2>Hyperparameter tuning on a real budget</h2>
-    <p class="opening">In 2012, James Bergstra and Yoshua Bengio published a result that should have ended grid search on the spot: for a fixed compute budget, random search over hyperparameters reliably outperforms grid search, and the reason is almost embarrassingly simple. Most hyperparameters barely affect the outcome. If you lay out a 6×6 grid over two hyperparameters but only one of them actually matters, a grid search wastes five out of every six evaluations re-testing values of the useless dimension while holding the important one fixed at only six distinct values. Random search, drawing both hyperparameters independently for every trial, effectively gets six-times-six-squared, thirty-six, distinct values along whichever dimension turns out to matter — for the same number of trials. On the geothermal-siting project, this is not a theoretical curiosity: a GPU-hour on the shared cluster has to be justified to whoever owns the allocation, and a search strategy that wastes five-sixths of its budget on a hyperparameter nobody needed tuned is a search strategy that gets your next allocation request questioned.</p>
+    <p class="opening">In 2012, James Bergstra and Yoshua Bengio published a result that should have ended grid search on the spot: for a fixed compute budget, random search over hyperparameters reliably outperforms grid search, and the reason is almost embarrassingly simple. Most hyperparameters barely affect the outcome. If you lay out a 6×6 grid over two hyperparameters but only one of them actually matters, a grid search wastes five out of every six evaluations re-testing values of the useless dimension while holding the important one fixed at only six distinct values. Random search, drawing both hyperparameters independently for every trial, effectively gets six times six — thirty-six — distinct values along whichever dimension turns out to matter — for the same number of trials. On the geothermal-siting project, this is not a theoretical curiosity: a GPU-hour on the shared cluster has to be justified to whoever owns the allocation, and a search strategy that wastes five-sixths of its budget on a hyperparameter nobody needed tuned is a search strategy that gets your next allocation request questioned.</p>
 
     <h3>What to tune, and in what order</h3>
     <p>Not all hyperparameters are equal, and tuning them in the wrong order burns budget re-deriving results that a later stage will invalidate anyway. The order that works, built directly on Units 4 and 5: <span class="term">learning rate first, always</span> — it interacts with everything else (the wrong LR makes every other setting look bad or good by accident) and its effect size dwarfs almost everything else you could tune. Then <span class="term">batch size</span>, which on a terabyte-scale 3-D seismic volume is really a memory-and-throughput decision as much as an optimization one (Lesson 3 covers why). Then <span class="term">regularization strength</span> — weight decay, dropout rate, augmentation intensity — tuned against the LR you've already fixed, since regularization and effective learning rate trade off against each other. Only last, <span class="term">architecture</span> choices: number of 3-D conv blocks, channel widths, whether to add the residual connections from Unit 5. Architecture search is the most expensive category per trial and the least likely to move the needle relative to just getting the learning rate right, so it belongs at the end, on whatever budget remains.</p>
@@ -250,7 +257,7 @@ def sanity_check_initial_loss(model, batch, loss_fn, num_classes):
     <p class="math">lr = 10^u,  u ~ Uniform(log10(lr_min), log10(lr_max))</p>
 
     <h3>Search strategies, and when each earns its cost</h3>
-    <p>Grid search evaluates every combination of a fixed value set per hyperparameter — cost grows exponentially with dimensions and, per Bergstra & Bengio, wastes budget on unimportant ones. Random search fixes that waste and is the right default when you can't run many sequential rounds. Bayesian optimization and its tree-structured variant <span class="term">TPE</span> (tree-structured Parzen estimator) build a probabilistic model of "which region of hyperparameter space tends to score well" from completed trials and propose the next trial to maximize expected improvement — it earns its (real) implementation and sequencing overhead once evaluations are expensive enough that squeezing more information out of each one matters, which is exactly the seismic case: a single training run at full 3-D resolution can eat 40+ GPU-hours. <span class="term">Hyperband</span> and its asynchronous cousin <span class="term">ASHA</span> (Asynchronous Successive Halving Algorithm) attack the problem from the other direction: run many configurations in parallel at low fidelity (few epochs, or a downsampled sub-volume of the seismic cube), then kill the bottom fraction — commonly half — at each rung and let only the survivors continue to the next, more expensive fidelity level. This matters enormously on a shared cluster because it converts "run 64 configs to completion" into "run 64 configs for one cheap rung, then only the best 8 for a mid rung, then only the best 2 to completion" — the total GPU-hours spent look nothing like 64 full runs.</p>
+    <p>Grid search evaluates every combination of a fixed value set per hyperparameter — cost grows exponentially with dimensions and, per Bergstra & Bengio, wastes budget on unimportant ones. Random search fixes that waste and is the right default when you can't run many sequential rounds. Bayesian optimization and its tree-structured variant <span class="term">TPE</span> (tree-structured Parzen estimator) build a probabilistic model of "which region of hyperparameter space tends to score well" from completed trials and propose the next trial to maximize expected improvement — it earns its (real) implementation and sequencing overhead once evaluations are expensive enough that squeezing more information out of each one matters, which is exactly the seismic case: a single training run at full 3-D resolution can eat 40+ GPU-hours. <span class="term">Hyperband</span> and its asynchronous cousin <span class="term">ASHA</span> (Asynchronous Successive Halving Algorithm) attack the problem from the other direction: run many configurations in parallel at low fidelity (few epochs, or a downsampled sub-volume of the seismic cube), then kill the bottom fraction — commonly half — at each rung and let only the survivors continue to the next, more expensive fidelity level. This matters enormously on a shared cluster because it converts "run 64 configs to completion" into "run 64 configs for one cheap rung, then only the best 32 for a mid rung, then only the best 16 to completion" — the total GPU-hours spent look nothing like 64 full runs.</p>
 
     <table class="tbl">
       <tr><th>Strategy</th><th>Cost pattern</th><th>Best when</th></tr>
@@ -275,8 +282,8 @@ def sample_config(rng):
 
 def random_search_with_asha(train_fn, n_configs=32, rungs=(1, 4, 16), keep_frac=0.5):
     """train_fn(config, max_epochs) -> validation loss after max_epochs.
-    ponytail: single-machine sequential loop; a real cluster runs rungs in
-    parallel across workers, upgrade path is a job queue, not this function."""
+    Single-machine sequential loop; a real cluster runs each rung's configs
+    in parallel across workers off a job queue."""
     rng = random.Random(0)
     survivors = [sample_config(rng) for _ in range(n_configs)]
     for rung_epochs in rungs:
@@ -530,6 +537,11 @@ survivors = [cfg for cfg, _ in scored[:n_keep]]</code></pre>
 
 <footer class="unit-foot">
   <p>Deep Learning Foundations · Unit 8 of 8 — Course complete. Course 2, Foundational Model Development, picks up from here: pretraining objectives, tokenization, and the transformer-scale training runs where every technique in this unit — debugging protocol, tuning budget, and memory arithmetic — stops being optional and starts being the whole job.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="unit7.html">← Unit 7</a>
+    <a href="../courses.html">All units</a>
+    <a href="../course-2-foundational-models/unit1.html">Foundational Model Development →</a>
+  </nav>
 </footer>
 </body>
 </html>

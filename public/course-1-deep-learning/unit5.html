@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -332,7 +339,9 @@ class BrokenDropout:
     <p><span class="term">Early stopping</span> monitors a validation metric — here, validation AUC — after every epoch, and halts training once it has failed to improve by more than <code>min_delta</code> for <code>patience</code> consecutive epochs, at which point training restores the weights from whichever epoch produced the best validation score, rather than keeping whatever the final epoch happened to produce. Returning to this unit's opening scenario: if validation AUC peaked at 0.781 on epoch 6 and drifted down to 0.760 by epoch 30, an early-stopping tracker with, say, <code>patience=5</code> would have kept training past epoch 6 (to confirm the peak wasn't a one-epoch fluke), then stopped around epoch 11–12 once five epochs had passed with no improvement over <code>min_delta</code>, and loaded the epoch-6 checkpoint back into the model rather than shipping epoch 12's already-degrading weights.</p>
     <p>One rule is non-negotiable: the stopping epoch itself is a hyperparameter, chosen by looking at a validation metric, and it must be chosen on a split the final reported performance number does not also come from. If you tune <code>patience</code> and <code>min_delta</code> by repeatedly checking performance on the out-of-time test set reserved for the regulatory sign-off, you have turned that test set into a validation set — the same leakage as tuning learning rate or lambda on it — and the final reported AUC will be an optimistic estimate of what the model actually does once deployed. Keep a separate validation split for the stopping decision, and hold the out-of-time slice untouched for a single, final read. Because this model is specifically exposed to vintage shift, an in-time random validation split and an out-of-time validation split can disagree about when to stop; where possible, an out-of-time-flavored validation slice gives a more honest signal about drift-sensitivity than an in-time split drawn from the same vintage as training.</p>
 
-    <pre><code>class EarlyStopper:
+    <pre><code>import copy
+
+class EarlyStopper:
     def __init__(self, patience=5, min_delta=1e-4, mode="max"):
         self.patience = patience
         self.min_delta = min_delta
@@ -353,7 +362,7 @@ class BrokenDropout:
             self.bad_epochs = 0
         else:
             self.bad_epochs += 1
-        return self.bad_epochs &gt; self.patience   &#35; True -&gt; stop now
+        return self.bad_epochs &gt;= self.patience   &#35; True -&gt; stop now
 
 stopper = EarlyStopper(patience=5, min_delta=1e-4, mode="max")
 for epoch in range(1, max_epochs + 1):
@@ -404,6 +413,10 @@ model.load_state_dict(stopper.best_state)       &#35; restore the BEST checkpoin
     <article class="q">
       <p class="q-num">Question 2 <span class="q-type">True / false</span></p>
       <p class="q-stem">Because adding an L2 term to the loss and applying "weight decay" both produce a gradient contribution of <code>λ·w</code>, they are mathematically equivalent regularizers regardless of which optimizer is used — including Adam.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
       <details>
         <summary>Show answer</summary>
         <div class="answer">
@@ -483,6 +496,10 @@ model.load_state_dict(stopper.best_state)       &#35; restore the BEST checkpoin
     <article class="q">
       <p class="q-num">Question 7 <span class="q-type">True / false</span></p>
       <p class="q-stem">Santurkar et al. (2018) found that batch normalization works primarily by reducing internal covariate shift, confirming the mechanism proposed in the original 2015 batch norm paper.</p>
+      <ol class="choices" type="A">
+        <li>True</li>
+        <li>False</li>
+      </ol>
       <details>
         <summary>Show answer</summary>
         <div class="answer">
@@ -516,6 +533,11 @@ model.load_state_dict(stopper.best_state)       &#35; restore the BEST checkpoin
 
 <footer class="unit-foot">
   <p>Deep Learning Foundations · Unit 5 of 8 — Next: Unit 6 moves from controlling capacity to squeezing more signal out of what you have, picking up where regularized training leaves off.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="unit4.html">← Unit 4</a>
+    <a href="../courses.html">All units</a>
+    <a href="unit6.html">Unit 6 →</a>
+  </nav>
 </footer>
 </body>
 </html>

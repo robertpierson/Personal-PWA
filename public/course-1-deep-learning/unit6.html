@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -218,7 +225,7 @@ def conv2d_valid(image, kernel):
 
 edges = conv2d_valid(leaf_crop, edge_kernel)
 print(edges.round(2))</code></pre>
-    <p class="caption">Notice the output rows near index 1 and 4 spike to roughly ±1.4 — that's the kernel straddling the bright-to-dark and dark-to-bright transitions around the lesion streak — while rows entirely inside the bright or entirely inside the dark region land near zero. One 9-number kernel, reused at all 36 valid positions, located the lesion boundary.</p>
+    <p class="caption">Notice that output rows 0 and 1 spike positive (about +1.39 and +1.50) and rows 2 and 3 spike negative (about −1.38 and −1.49) — that's the kernel straddling the bright-to-dark and dark-to-bright transitions around the lesion streak — while rows 4 and 5, entirely inside the uniform dark region, land near zero. One 9-number kernel, reused at all 36 valid positions, located the lesion boundary.</p>
     <aside class="takeaways">
       <h4>Key takeaways</h4>
       <ul>
@@ -236,7 +243,7 @@ print(edges.round(2))</code></pre>
     <h2>Padding, stride, pooling, and receptive fields</h2>
     <p class="opening"><span class="term">Padding</span> is the number of extra pixel rows/columns of (usually zero-valued) border added around an input before a kernel slides over it. <span class="term">Stride</span> is the number of pixels the kernel jumps between one application and the next. <span class="term">Pooling</span> is a fixed, non-learned downsampling operation — most commonly taking the max or the average over a small window. Those three definitions, plus the kernel size from Lesson 1, are all you need to compute the exact shape of every feature map in a network before you run a single line of training code, which matters enormously in practice: a shape mismatch between two layers is one of the most common bugs in CNN code, and it's entirely preventable by arithmetic.</p>
     <h3>Valid versus same padding, and the output-size formula</h3>
-    <p>The plain "valid" convolution used in Lesson 1's NumPy example has zero padding, and it shrinks the output: a K×K kernel run over an H×H input with stride 1 and no padding produces an output of size (H − K + 1). Run enough valid convolutions in a row and your feature map eventually shrinks to nothing, which is rarely what you want in the early layers of a network — you'd like to control shrinkage deliberately rather than have it forced on you by kernel size. <span class="term">Same padding</span> adds just enough zero border so that, at stride 1, the output spatial size equals the input spatial size (for odd kernel sizes like 3×3 or 5×5, that's P = (K−1)/2 pixels on each side). The general formula that covers both cases, plus stride, plus dilation, is:</p>
+    <p>The plain "valid" convolution used in Lesson 1's NumPy example has zero padding, and it shrinks the output: a K×K kernel run over an H×H input with stride 1 and no padding produces an output of size (H − K + 1). Run enough valid convolutions in a row and your feature map eventually shrinks to nothing, which is rarely what you want in the early layers of a network — you'd like to control shrinkage deliberately rather than have it forced on you by kernel size. <span class="term">Same padding</span> adds just enough zero border so that, at stride 1, the output spatial size equals the input spatial size (for odd kernel sizes like 3×3 or 5×5, that's P = (K−1)/2 pixels on each side). The general formula that covers both cases, plus stride, is:</p>
     <p class="math">out = floor( (H + 2P − K) / S ) + 1</p>
     <p>where H is input side length, P is padding per side, K is kernel size, and S is stride. Plug in real numbers from a field-photo pipeline: a 224×224 crop, a 5×5 kernel, padding 2 (which would be "same" at stride 1), stride 2 for downsampling. out = floor((224 + 2·2 − 5) / 2) + 1 = floor(223/2) + 1 = floor(111.5) + 1 = 111 + 1 = <strong>112</strong>. Stride 2 halved the spatial size, same as it would with any kernel/padding combination tuned to "same at stride 1" — that's the general rule worth memorizing: stride S downsamples by roughly a factor of S regardless of kernel size, as long as padding is chosen to make the kernel itself shape-neutral.</p>
     <p><span class="term">Dilation</span> is a fourth, less commonly needed knob: it inserts gaps between kernel elements, so a 3×3 kernel with dilation 2 samples input pixels spaced 2 apart, covering a 5×5 span in the input while still only holding 9 learned weights. It's a cheap way to grow receptive field without growing parameter count or losing resolution, and it shows up in semantic segmentation architectures — not central to this unit, but worth recognizing the term when you see it in a paper's method section.</p>
@@ -532,7 +539,12 @@ print(f"{'total':<12}{count_params(model):>10,} params")</code></pre>
 </main>
 
 <footer class="unit-foot">
-  <p>Deep Learning Foundations · Unit 6 of 8 — Unit 7 moves into training CNNs at scale: data augmentation, transfer learning from pretrained backbones, and the failure modes that only show up once a real, messy field-photo dataset is involved.</p>
+  <p>Deep Learning Foundations · Unit 6 of 8 — Unit 7 moves from spatial data to sequential: recurrent networks, LSTMs and GRUs, and the vanishing-gradient problem that shows up once a model has to carry information across many time steps.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="unit5.html">← Unit 5</a>
+    <a href="../courses.html">All units</a>
+    <a href="unit7.html">Unit 7 →</a>
+  </nav>
 </footer>
 </body>
 </html>

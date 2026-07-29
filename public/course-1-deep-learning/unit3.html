@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -261,7 +268,8 @@ def backward(x, y_onehot, cache):
     """
     x:        (N, D)  input pixel batch
     y_onehot: (N, C)  true digit labels, one-hot
-    cache:    dict with z1 (N,H), h (N,H), p (N,C) from the forward pass
+    cache:    dict with z1 (N,H), h (N,H), p (N,C) from the forward pass,
+              plus the parameters W1, b1, W2, b2 it was run with
     returns:  dict of gradients, one entry per parameter
     """
     N = x.shape[0]
@@ -529,6 +537,11 @@ for lr, label in [(3.0, "too high"), (0.1, "healthy"), (0.0005, "too low")]:
 
 <footer class="unit-foot">
   <p>Deep Learning Foundations · Unit 3 of 8 — Unit 4 builds on plain SGD with momentum, Adam, and learning-rate schedules, still trained on the same ZIP-code sorting task.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="unit2.html">← Unit 2</a>
+    <a href="../courses.html">All units</a>
+    <a href="unit4.html">Unit 4 →</a>
+  </nav>
 </footer>
 </body>
 </html>

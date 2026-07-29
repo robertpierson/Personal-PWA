@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -276,7 +283,7 @@ for name, f, d in [("sigmoid", sigmoid, sigmoid_d),
     vanish_at = z[np.abs(grads) < 0.01]
     print(f"{name:11s} min grad={grads.min():.4f}  "
           f"near-zero at z={vanish_at}")</code></pre>
-    <p class="caption">Sigmoid and tanh print near-zero gradients at both <code>z ≈ -6</code> and <code>z ≈ 6</code>; ReLU prints near-zero only for every negative <code>z</code>, exactly the "dead" half; leaky ReLU never drops below <code>a = 0.01</code> anywhere on the sweep.</p>
+    <p class="caption">Sigmoid and tanh print near-zero gradients at both <code>z ≈ -6</code> and <code>z ≈ 6</code>; ReLU prints near-zero for every non-positive <code>z</code> (<code>z = 0</code> included), exactly the "dead" half; leaky ReLU never drops below <code>a = 0.01</code> anywhere on the sweep.</p>
     <aside class="takeaways">
       <h4>Key takeaways</h4>
       <ul>
@@ -486,6 +493,10 @@ h1 = relu(X @ W1 + b1)              # crashes: shapes (32,8) and (16,8) not alig
 
 <footer class="unit-foot">
   <p>Deep Learning Foundations · Unit 1 of 8 — Unit 2 picks up where this one stops: loss functions for classification and regression, and how a single prediction's error gets turned into a training signal.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="../courses.html">All units</a>
+    <a href="unit2.html">Unit 2 →</a>
+  </nav>
 </footer>
 </body>
 </html>

@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -228,7 +235,7 @@ for t in range(T):
 
 print("timesteps of activations retained for backward pass:", len(stored_h))
 </code></pre>
-    <p class="caption">Every <code>stored_h</code> entry must survive until the backward pass — that list is the memory cost from Lesson 1 made concrete. Watch the spectral radius print and the <code>||h_t||</code> norms: a spectral radius near 1 keeps the norm roughly stable across 24 hours; push <code>Whh</code>'s scale up and you'll see the norm climb hour over hour, a hands-on preview of the exploding-gradient direction.</p>
+    <p class="caption">Every <code>stored_h</code> entry must survive until the backward pass — that list is the memory cost from Lesson 1 made concrete. Watch the spectral radius print and the <code>||h_t||</code> norms: the printed radius here is 0.628, well below 1, so the recurrent path on its own is strongly contractive — a signal with no fresh input washes out within about a dozen hours. The norms nevertheless hold near 8 across all 24 hours only because every hour injects a new vitals reading; it is the input drive, not a neutral recurrence, doing that work. Push <code>Whh</code>'s scale up past a radius of 1 and you'll see the norm climb hour over hour instead, a hands-on preview of the exploding-gradient direction.</p>
 
     <aside class="takeaways">
       <h4>Key takeaways</h4>
@@ -386,7 +393,7 @@ print("mask:\n", mask)
 print("masked loss:  ", round(masked_bce_loss(y_true, y_pred, mask), 4))
 print("naive loss:   ", round(naive_bce_loss(y_true, y_pred), 4))
 </code></pre>
-    <p class="caption">The 3-hour patient contributes loss from only 3 real timesteps in the masked version but from all 10 (7 fabricated) in the naive one — with class imbalance already this heavy, that dilution from padding can swing a rare-positive-label epoch's gradient meaningfully. Note the double masking: <code>per_step * mask</code> zeroes padded terms, and dividing by <code>mask.sum()</code> (not <code>T</code>) is what keeps short stays from being under-weighted relative to long ones — miss either half and the loss is still wrong.</p>
+    <p class="caption">The 3-hour patient contributes loss from only 3 real timesteps in the masked version but from all 10 (7 fabricated) in the naive one — with class imbalance already this heavy, that dilution from padding can swing a rare-positive-label epoch's gradient meaningfully. Note the double masking: <code>per_step * mask</code> zeroes padded terms, and dividing by <code>mask.sum()</code> (not <code>batch × T</code>) is what keeps the loss on a fixed per-real-timestep scale — miss either half and the loss is still wrong.</p>
 
     <aside class="takeaways">
       <h4>Key takeaways</h4>
@@ -471,7 +478,7 @@ print("naive loss:   ", round(naive_bce_loss(y_true, y_pred), 4))
 
     <article class="q">
       <p class="q-num">Question 5 <span class="q-type">Bug fix</span></p>
-      <p class="q-stem">This masked loss function is intended to ignore padded ICU timesteps, and it passes a quick sanity check where every sequence in the batch has the same true length. It silently gives wrong (over-weighted) loss values on any batch with sequences of mixed length. Find the bug.</p>
+      <p class="q-stem">This masked loss function is intended to ignore padded ICU timesteps, and it passes a quick sanity check where every sequence in the batch has the same true length. It silently gives wrong (scaled-down) loss values on any batch with sequences of mixed length. Find the bug.</p>
       <pre><code>def masked_bce_loss(y_true, y_pred, mask, eps=1e-7):
     y_pred = np.clip(y_pred, eps, 1 - eps)
     per_step = -(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
@@ -480,14 +487,14 @@ print("naive loss:   ", round(naive_bce_loss(y_true, y_pred), 4))
     return per_step_masked.sum() / (mask.shape[0] * T)   # <- suspect line</code></pre>
       <ol class="choices" type="A">
         <li>The masking multiplication itself (<code>per_step * mask</code>) is wrong and should be a division.</li>
-        <li>The normalization divides by <code>batch_size × T</code> (the padded shape) instead of <code>mask.sum()</code> (the actual count of real timesteps), so short sequences get diluted by their own padding in the denominator.</li>
+        <li>The normalization divides by <code>batch_size × T</code> (the padded shape) instead of <code>mask.sum()</code> (the actual count of real timesteps), so the whole loss is scaled down by the batch's padding fraction — which varies from batch to batch.</li>
         <li><code>np.clip</code> should not be applied before masking.</li>
         <li>The bug is in the sign of the log terms.</li>
       </ol>
       <details>
         <summary>Show answer</summary>
         <div class="answer">
-          <p><strong>Answer: B.</strong> The numerator correctly zeroes out padded terms via <code>per_step * mask</code>, but the denominator still uses the full padded shape (<code>batch_size × T</code>) instead of <code>mask.sum()</code>, the true number of real timesteps. On a uniform-length batch, <code>mask.sum() == batch_size × T</code>, so the bug is invisible — which is exactly why it survives a same-length sanity check. On a mixed-length batch, a 3-hour stay's already-small loss sum gets divided by the same large denominator as a 10-hour stay's, silently shrinking its effective contribution to training.</p>
+          <p><strong>Answer: B.</strong> The numerator correctly zeroes out padded terms via <code>per_step * mask</code>, but the denominator still uses the full padded shape (<code>batch_size × T</code>) instead of <code>mask.sum()</code>, the true number of real timesteps. On a uniform-length batch, <code>mask.sum() == batch_size × T</code>, so the bug is invisible — which is exactly why it survives a same-length sanity check. On a mixed-length batch, the numerator sums over real timesteps only while the denominator counts padded slots too, so the entire loss — and every gradient derived from it — comes out scaled by that batch's fraction of real steps. Note what this is <em>not</em>: it does not re-weight short stays against long ones, since a single scalar divisor multiplies every sample's contribution equally. The real damage is that the padding fraction changes from batch to batch, so the scale factor changes with it, giving you an effective learning rate that fluctuates randomly with whatever mix of stay lengths each batch happened to draw.</p>
           <p>A misdescribes the masking mechanism (multiplication by a 0/1 mask is correct for zeroing padded terms). C is a red herring — clipping before or after masking doesn't change correctness since it only affects numerical stability of the log. D is wrong; the BCE sign convention shown is standard.</p>
         </div>
       </details>
@@ -557,6 +564,11 @@ for chunk in patient_chunks:            # chunks in stay order, 24h each
 
 <footer class="unit-foot">
   <p>Deep Learning Foundations · Unit 7 of 8 — Unit 8 closes out the course with a synthesis of everything so far, stress-testing the full toolkit against harder, messier real-world scenarios.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="unit6.html">← Unit 6</a>
+    <a href="../courses.html">All units</a>
+    <a href="unit8.html">Unit 8 →</a>
+  </nav>
 </footer>
 </body>
 </html>

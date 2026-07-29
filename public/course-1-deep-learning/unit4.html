@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -226,7 +233,7 @@ for kind in ("sgd", "momentum", "nesterov"):
     print(f"{kind:9s}  w0 sign flips: "
           f"{np.sum(np.diff(np.sign(tr[:,0])) != 0):2d}   "
           f"final distance to minimum: {final_dist:.4f}")</code></pre>
-    <p class="caption">SGD racks up many sign flips on <code>w0</code> (the steep hip-stiffness direction) while barely moving <code>w1</code>; momentum cuts the sign-flip count sharply and reaches a smaller final distance in the same 40 steps; Nesterov matches momentum closely here because the bowl is smooth and static — the two only diverge on sharper, contact-like landscapes.</p>
+    <p class="caption">At this conservative <code>lr</code>, SGD never overshoots on <code>w0</code> at all (0 sign flips) — it simply crawls, ending 0.7252 from the minimum because it barely moves <code>w1</code>. Momentum and Nesterov both let the velocity buffer overshoot and oscillate on the steep direction (12 and 14 sign flips), and that is the price of the real payoff: a final distance of 0.1429 and 0.0825, roughly 5x and 9x closer in the same 40 steps. Nesterov tracks momentum closely here because the bowl is smooth and static — the two only diverge on sharper, contact-like landscapes.</p>
 
     <aside class="takeaways">
       <h4>Key takeaways</h4>
@@ -339,7 +346,7 @@ def lr_at_step(step, peak_lr=3e-4, warmup_steps=2000, total_steps=50_000, lr_min
 
 for step in (0, 500, 5_000, 50_000):
     print(f"step {step:>6}: lr = {lr_at_step(step):.6f}")</code></pre>
-    <p class="caption">Step 0 sits at the warmup floor, step 500 is partway up the linear ramp (still inside the 2000-step warmup window), step 5,000 is well into the cosine decay, and step 50,000 lands exactly at <code>lr_min</code> because it's the final step of the 50,000-step budget the cosine curve was built for.</p>
+    <p class="caption">Step 0 sits at the warmup floor, step 500 is partway up the linear ramp (still inside the 2000-step warmup window), step 5,000 has only just entered the cosine phase and is still essentially at peak (0.000297 against a 3.0e-4 peak — about 1% decayed), and step 50,000 lands exactly at <code>lr_min</code> because it's the final step of the 50,000-step budget the cosine curve was built for.</p>
 
     <aside class="takeaways">
       <h4>Key takeaways</h4>
@@ -469,9 +476,9 @@ _____________________</code></pre>
 
     <article class="q">
       <p class="q-num">Question 7 <span class="q-type">Multiple choice</span></p>
-      <p class="q-stem">You scale up a quadruped training run from 512 to 2,048 parallel simulated robot instances (4x the batch size), keeping total sample budget roughly fixed, and keep the same peak learning rate and the same warmup length as the smaller run. Within the first few hundred steps, several policies fall over and never recover. What's the most likely cause, and the fix?</p>
+      <p class="q-stem">You scale up a quadruped training run from 512 to 2,048 parallel simulated robot instances (4x the batch size), keeping total sample budget roughly fixed. You apply the linear scaling rule and raise the peak learning rate 4x to match, but leave the warmup length exactly as it was on the smaller run. Within the first few hundred steps, several policies fall over and never recover. What's the most likely cause, and the fix?</p>
       <ol class="choices" type="A">
-        <li>The peak learning rate should have been scaled up (roughly 4x) alongside the batch size, with a correspondingly longer warmup — leaving both unchanged under-uses the lower-variance gradient the larger batch provides, and the mismatch specifically shows up as continued early-training instability, not the reverse.</li>
+        <li>The warmup length should have been extended roughly in proportion to the peak learning rate — a 4x larger peak step needs proportionally longer to ramp in, so the unchanged warmup reaches a much larger lr far too early in training.</li>
         <li>Larger batches always destabilize training regardless of learning rate, so the fix is to reduce the batch size back down.</li>
         <li>The problem is unrelated to batch size; switch optimizers from Adam to plain SGD.</li>
         <li>Increase β2 in Adam to 0.9999 to fix the instability.</li>
@@ -479,7 +486,7 @@ _____________________</code></pre>
       <details>
         <summary>Show answer</summary>
         <div class="answer">
-          <p><strong>Answer: A.</strong> The linear scaling rule says peak lr should scale roughly with batch size, and warmup should lengthen to match — leaving both unchanged after a 4x batch increase under-scales the step size relative to the now-lower-variance gradient estimates, but more importantly leaves warmup too short relative to the larger effective step, which is the direct cause of early instability described here.</p>
+          <p><strong>Answer: A.</strong> Scaling peak lr with batch size was the right call — but the linear scaling rule has a second half: warmup has to lengthen in proportion too. Warmup exists because early gradients are large, noisy, and badly scaled, and a 4x larger peak step makes that early window more dangerous, not less. Holding warmup fixed means the run hits a 4x larger lr at the same early step it used to hit the old one, which is exactly the unrecoverable-blow-up regime described here.</p>
           <p>B is the tempting distractor because "bigger batch, more instability" sounds intuitive, but larger batches actually produce <em>lower</em>-variance gradients, which is inherently more stabilizing, not less — the instability here comes from a schedule mismatch, not from the batch size itself.</p>
         </div>
       </details>
@@ -509,6 +516,11 @@ _____________________</code></pre>
 
 <footer class="unit-foot">
   <p>Deep Learning Foundations · Unit 4 of 8 — Unit 5 turns to regularization: dropout, batch norm, and weight decay as a deliberate generalization tool rather than an optimizer detail.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="unit3.html">← Unit 3</a>
+    <a href="../courses.html">All units</a>
+    <a href="unit5.html">Unit 5 →</a>
+  </nav>
 </footer>
 </body>
 </html>

@@ -149,6 +149,13 @@ pre code{background:none;border:0;padding:0;color:#dcd9d0;font-size:inherit}
   pre{font-size:.78rem;padding:.9rem}
   .opening::first-letter{font-size:2.6rem}
 }
+
+.unit-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:none}
+.unit-nav a{flex:1 1 12ch;text-align:center;color:var(--ink-soft);text-decoration:none;
+  border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;background:var(--panel-2);
+  transition:border-color .15s,color .15s}
+.unit-nav a:hover,.unit-nav a:focus-visible{color:var(--ink);border-color:var(--gold);outline:none}
 </style>
 </head>
 <body>
@@ -284,7 +291,7 @@ print(f"MAE:   {mae(y_true_kwh, y_pred_kwh):.3f}")
 print(f"Huber: {huber(y_true_kwh, y_pred_kwh):.3f}")
 print(f"BCE:   {stable_bce(y_true_peak, y_pred_prob):.3f}")
 </code></pre>
-    <p class="caption">Same predictions, four different loss numbers — MSE (18.8) is dragged up hard by the single missed spike at index 3, MAE (3.5) barely notices it, Huber (10.75) sits between the two, and BCE reports the classification loss on an entirely different scale because it's measuring probability calibration, not kWh error.</p>
+    <p class="caption">Same predictions, four different loss numbers — MSE (464.65) is dragged up hard by the single missed spike at index 3, MAE (11.1) grows only linearly with that 48-kWh miss instead of quadratically, Huber (47.43) sits between the two, and BCE reports the classification loss on an entirely different scale because it's measuring probability calibration, not kWh error.</p>
     <aside class="takeaways">
       <h4>Key takeaways</h4>
       <ul>
@@ -401,7 +408,7 @@ for epoch in range(1, 6):
     </article>
 
     <article class="q">
-      <p class="q-num">Question 3 <span class="q-type">Fill in the blank</span></p>
+      <p class="q-num">Question 3 <span class="q-type">Multiple choice</span></p>
       <p class="q-stem">A forward pass must cache its intermediate activations (like <code>Z1</code> and <code>A1</code>) because Unit 3's <span class="blank">&nbsp;</span> computation reuses these exact values via the chain rule.</p>
       <ol class="choices" type="A">
         <li>loss reduction</li>
@@ -497,6 +504,11 @@ for epoch in range(1, 6):
 
 <footer class="unit-foot">
   <p>Deep Learning Foundations · Unit 2 of 8 — Unit 3 picks up the chain rule and shows how the cached activations from this unit's forward pass turn into gradients and a working training loop.</p>
+  <nav class="unit-nav" aria-label="Unit navigation">
+    <a href="unit1.html">← Unit 1</a>
+    <a href="../courses.html">All units</a>
+    <a href="unit3.html">Unit 3 →</a>
+  </nav>
 </footer>
 </body>
 </html>
